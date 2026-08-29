@@ -1,0 +1,35 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools %}
+  <!-- Stats Summary Grid -->
+  <div class="support-stats-grid" style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
+    
+    <div style="flex: 1; min-width: 130px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 4px solid #EF4444;">
+      <div style="font-size: 0.78rem; text-transform: uppercase; color: #6B7280; font-weight: 700; letter-spacing: 0.05em;">Unread</div>
+      <div style="font-size: 1.8rem; font-weight: bold; color: #111827; margin-top: 5px;">{{ unread_count }}</div>
+    </div>
+
+    <div style="flex: 1; min-width: 130px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 4px solid #3B82F6;">
+      <div style="font-size: 0.78rem; text-transform: uppercase; color: #6B7280; font-weight: 700; letter-spacing: 0.05em;">Open</div>
+      <div style="font-size: 1.8rem; font-weight: bold; color: #111827; margin-top: 5px;">{{ open_count }}</div>
+    </div>
+
+    <div style="flex: 1; min-width: 130px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 4px solid #F59E0B;">
+      <div style="font-size: 0.78rem; text-transform: uppercase; color: #6B7280; font-weight: 700; letter-spacing: 0.05em;">In Progress</div>
+      <div style="font-size: 1.8rem; font-weight: bold; color: #111827; margin-top: 5px;">{{ in_progress_count }}</div>
+    </div>
+
+    <div style="flex: 1; min-width: 130px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 4px solid #10B981;">
+      <div style="font-size: 0.78rem; text-transform: uppercase; color: #6B7280; font-weight: 700; letter-spacing: 0.05em;">Resolved</div>
+      <div style="font-size: 1.8rem; font-weight: bold; color: #111827; margin-top: 5px;">{{ resolved_count }}</div>
+    </div>
+
+    <div style="flex: 1; min-width: 130px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-top: 4px solid #6B7280;">
+      <div style="font-size: 0.78rem; text-transform: uppercase; color: #6B7280; font-weight: 700; letter-spacing: 0.05em;">Closed</div>
+      <div style="font-size: 1.8rem; font-weight: bold; color: #111827; margin-top: 5px;">{{ closed_count }}</div>
+    </div>
+
+  </div>
+
+  {{ block.super }}
+{% endblock %}

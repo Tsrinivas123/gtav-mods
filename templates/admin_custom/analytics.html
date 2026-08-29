@@ -1,0 +1,67 @@
+{% extends 'admin_custom/base_admin.html' %}
+{% block title %}Analytics | PawanMod Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="fa-solid fa-chart-line" style="color:var(--color-primary);margin-right:10px;"></i>Analytics</h1>
+</div>
+
+<!-- Top products by downloads -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+  <div class="admin-card">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:20px;">Top Products by Downloads</h3>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      {% for product in top_products %}
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:rgba(255,107,0,.1);color:var(--color-primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem;flex-shrink:0;">{{ forloop.counter }}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:600;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ product.name }}</div>
+            <div style="background:var(--border-color);border-radius:4px;height:6px;margin-top:6px;overflow:hidden;">
+              <div style="height:100%;background:var(--color-primary);border-radius:4px;width:{% if top_products.0.downloads_count > 0 %}{{ product.downloads_count|floatformat:0 }}{% else %}0{% endif %}%"></div>
+            </div>
+          </div>
+          <div style="font-weight:700;font-size:.875rem;color:var(--text-primary);flex-shrink:0;">{{ product.downloads_count }}</div>
+        </div>
+      {% empty %}
+        <p style="color:var(--text-secondary);">No download data yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="admin-card">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:20px;">Orders — Last 7 Days</h3>
+    {% if daily_orders %}
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Orders</th>
+            <th>Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in daily_orders %}
+            <tr>
+              <td style="font-size:.875rem;">{{ row.day }}</td>
+              <td style="font-weight:600;">{{ row.count }}</td>
+              <td style="font-weight:700;color:var(--color-primary);">₹{{ row.revenue|floatformat:2 }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div style="text-align:center;color:var(--text-secondary);padding:40px 0;">
+        <i class="fa-solid fa-chart-bar fa-2x" style="margin-bottom:12px;opacity:.4;"></i>
+        <p>No order data for the last 7 days.</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<div class="placeholder-panel" style="margin-top:24px;">
+  <div class="ph-icon"><i class="fa-solid fa-chart-pie"></i></div>
+  <h2>Advanced Analytics</h2>
+  <p>Revenue charts, conversion rates, and detailed performance graphs will be added in Phase 2.</p>
+</div>
+{% endblock %}

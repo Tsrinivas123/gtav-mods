@@ -1,0 +1,473 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Complete Payment | PawanMod{% endblock %}
+
+{% block content %}
+<section class="section" style="min-height: calc(100vh - 80px); padding: 50px 5%; background: #f5f5f7;">
+
+  <!-- Stepper Progress Tracker -->
+  <div class="checkout-stepper">
+    <span style="color: var(--color-text-secondary);">Shopping Cart</span>
+    <span style="color: var(--color-text-muted);">&gt;</span>
+    <span style="color: var(--color-text-secondary);">Checkout Details</span>
+    <span style="color: var(--color-text-muted);">&gt;</span>
+    <span style="color: var(--accent-orange); font-weight: 700;">Payment Page</span>
+    <span style="color: var(--color-text-muted);">&gt;</span>
+    <span style="color: var(--color-text-muted);">Order Complete</span>
+  </div>
+
+  <div class="payment-layout" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; max-width: 1200px; margin: 0 auto;">
+
+    <!-- Left Column: Payment Gateways -->
+    <div style="display: flex; flex-direction: column; gap: 30px;">
+      
+      <div class="payment-gateway-panel"
+        style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); padding: 35px; box-shadow: var(--shadow-soft);">
+        
+        <!-- Condition 1: UPI QR Code -->
+        {% if order.payment_method == 'UPI' %}
+        <div id="payment-gate-upi">
+          <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.4rem; text-transform: uppercase; margin-bottom: 15px; color: var(--color-text-primary); display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-qrcode" style="color: #6739b6;"></i> UPI QR Code Payment
+          </h2>
+          <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin-bottom: 25px; line-height: 1.6;">
+            Scan and pay securely using any UPI app like GPay, PhonePe, Paytm, or BHIM.
+          </p>
+
+          <div style="background: #f9fafb; border: 1px solid var(--card-border); padding: 20px; border-radius: var(--border-radius); margin-bottom: 25px;">
+            <div style="display: grid; grid-template-columns: 1fr; gap: 12px; font-size: 0.95rem;">
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--card-border); padding-bottom: 8px;">
+                <span style="color: var(--color-text-secondary);">Order Number:</span>
+                <strong style="color: var(--color-text-primary);">{{ order.code }}</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--card-border); padding-bottom: 8px;">
+                <span style="color: var(--color-text-secondary);">Payment Method:</span>
+                <strong style="color: var(--color-text-primary);">UPI QR Code</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 700; padding-top: 4px;">
+                <span style="color: var(--color-text-primary);">Total Amount:</span>
+                <span style="color: var(--accent-orange);">₹{{ order.total_amount }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button id="scanPayBtn" onclick="openUpiQrModal()" class="btn btn-primary"
+              style="width: 100%; padding: 14px 20px; font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <i class="fa-solid fa-expand"></i> Scan & Pay Now
+            </button>
+
+            <a href="{% url 'orders:cart' %}" class="btn btn-secondary"
+              style="width: 100%; display: block; text-align: center; padding: 12px 20px; border-radius: var(--border-radius-sm); font-weight: 600;">
+              Cancel Payment
+            </a>
+          </div>
+        </div>
+
+        <!-- Condition 2: PayPal -->
+        {% elif order.payment_method == 'PayPal' %}
+        <div id="payment-gate-paypal">
+          <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.4rem; text-transform: uppercase; margin-bottom: 15px; color: var(--color-text-primary); display: flex; align-items: center; gap: 10px;">
+            <i class="fa-brands fa-paypal" style="color: #003087;"></i> PayPal Payment
+          </h2>
+          <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin-bottom: 25px; line-height: 1.6;">
+            Log in to your PayPal account to complete the transaction directly.
+          </p>
+
+          <div style="background: #f9fafb; border: 1px solid var(--card-border); padding: 20px; border-radius: var(--border-radius); margin-bottom: 25px;">
+            <div style="display: grid; grid-template-columns: 1fr; gap: 12px; font-size: 0.95rem;">
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--card-border); padding-bottom: 8px;">
+                <span style="color: var(--color-text-secondary);">Order Number:</span>
+                <strong style="color: var(--color-text-primary);">{{ order.code }}</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--card-border); padding-bottom: 8px;">
+                <span style="color: var(--color-text-secondary);">Payment Method:</span>
+                <strong style="color: var(--color-text-primary);">PayPal Gateway</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 700; padding-top: 4px;">
+                <span style="color: var(--color-text-primary);">Total Amount:</span>
+                <span style="color: var(--accent-orange);">₹{{ order.total_amount }}</span>
+              </div>
+            </div>
+          </div>
+
+          {% if paypal_configured %}
+          <div id="paypal-button-container" style="margin-bottom: 15px;"></div>
+          {% else %}
+          <button onclick="simulatePayPalSuccess()" class="btn btn-primary"
+            style="width: 100%; padding: 14px 20px; font-size: 1rem; font-weight: 700; margin-bottom: 15px;">
+            <i class="fa-solid fa-vial"></i> Simulate PayPal Payment (Demo Mode)
+          </button>
+          {% endif %}
+
+          <a href="{% url 'orders:cart' %}" class="btn btn-secondary"
+            style="width: 100%; display: block; text-align: center; padding: 12px 20px; border-radius: var(--border-radius-sm); font-weight: 600;">
+            Cancel Payment
+          </a>
+        </div>
+
+        <!-- Condition 3: Cards -->
+        {% else %}
+        <div id="payment-gate-cards">
+          <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.4rem; text-transform: uppercase; margin-bottom: 15px; color: var(--color-text-primary); display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-credit-card" style="color: var(--accent-orange);"></i> Debit / Credit Card Payment
+          </h2>
+          <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin-bottom: 25px; line-height: 1.6;">
+            Pay securely using your Debit or Credit Card via our secure gateway interface.
+          </p>
+
+          <div style="background: #f9fafb; border: 1px solid var(--card-border); padding: 20px; border-radius: var(--border-radius); margin-bottom: 25px;">
+            <div style="display: grid; grid-template-columns: 1fr; gap: 12px; font-size: 0.95rem;">
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--card-border); padding-bottom: 8px;">
+                <span style="color: var(--color-text-secondary);">Order Number:</span>
+                <strong style="color: var(--color-text-primary);">{{ order.code }}</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--card-border); padding-bottom: 8px;">
+                <span style="color: var(--color-text-secondary);">Payment Method:</span>
+                <strong style="color: var(--color-text-primary);">Credit / Debit Card</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 700; padding-top: 4px;">
+                <span style="color: var(--color-text-primary);">Total Amount:</span>
+                <span style="color: var(--accent-orange);">₹{{ order.total_amount }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
+            <button id="payWithCardBtn" onclick="initiateRazorpay()" class="btn btn-primary"
+              style="width: 100%; padding: 14px 20px; font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <i class="fa-solid fa-shield-halved"></i> Pay with Debit / Credit Card
+            </button>
+
+            <a href="{% url 'orders:cart' %}" class="btn btn-secondary"
+              style="width: 100%; display: block; text-align: center; padding: 12px 20px; border-radius: var(--border-radius-sm); font-weight: 600;">
+              Cancel Payment
+            </a>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Status messages container -->
+        <div id="payment-status-msg" style="display: none; margin-top: 20px; padding: 14px 18px; border-radius: var(--border-radius-sm); font-size: 0.875rem;"></div>
+
+      </div>
+
+    </div>
+
+    <!-- Right Column: Order Summary details -->
+    <div>
+      <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); padding: 35px; box-shadow: var(--shadow-soft);">
+        <h3 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 25px; color: var(--color-text-primary); border-bottom: 2px solid var(--card-border); padding-bottom: 12px;">
+          Order Summary
+        </h3>
+
+        <!-- Purchased Products -->
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid var(--card-border); padding-bottom: 15px;">
+          {% for item in order.items.all %}
+          <div style="display: flex; justify-content: space-between; font-size: 0.9rem; line-height: 1.4;">
+            <span style="color: var(--color-text-secondary);">{{ item.product.name }}</span>
+            <span style="font-weight: 600; color: var(--color-text-primary);">₹{{ item.price }}</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Totals details -->
+        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.95rem;">
+          {% if order.discount_amount > 0 %}
+          <div style="display: flex; justify-content: space-between; color: var(--color-text-secondary);">
+            <span>Discount:</span>
+            <span style="color: var(--color-success); font-weight: 600;">-₹{{ order.discount_amount }}</span>
+          </div>
+          {% endif %}
+          <div style="display: flex; justify-content: space-between; font-size: 1.15rem; font-weight: 700; color: var(--color-text-primary);">
+            <span>Total:</span>
+            <span style="color: var(--accent-orange);">₹{{ order.total_amount }}</span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 10px; line-height: 1.4;">
+            Digital products downloads will be unlocked instantly upon successful confirmation.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- UPI QR CODE MODAL POPUP -->
+<div id="upiQrModal" role="dialog" aria-modal="true" aria-labelledby="upiModalTitle" style="display: none; position: fixed; inset: 0; background: rgba(10, 11, 14, 0.8); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+  <div style="background: #ffffff; border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); width: 100%; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden; position: relative; animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+    
+    <!-- Modal Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid #f3f4f6;">
+      <h3 id="upiModalTitle" style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.1rem; color: #111827; text-transform: uppercase; margin: 0; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-qrcode" style="color: #6739b6;"></i> Scan & Pay UPI
+      </h3>
+      <button onclick="closeUpiQrModal()" aria-label="Close QR Modal" style="background: none; border: none; font-size: 1.5rem; color: #9ca3af; cursor: pointer; transition: var(--transition-smooth); line-height: 1;" onmouseover="this.style.color='#111827'" onmouseout="this.style.color='#9ca3af'">&times;</button>
+    </div>
+
+    <!-- Modal Body -->
+    <div style="padding: 24px; text-align: center;">
+      <!-- QR Image Card -->
+      <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: var(--border-radius); padding: 16px; display: inline-block; margin-bottom: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);">
+        <img id="upiQrCodeImg" src="" alt="UPI QR Code" style="width: 210px; height: 210px; display: block; background: #ffffff;">
+      </div>
+
+      <!-- Payment details Info -->
+      <div style="margin-bottom: 20px; background: #f3f4f6; padding: 14px 18px; border-radius: var(--border-radius-sm); text-align: left; font-size: 0.85rem; line-height: 1.6;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: #6b7280;">Merchant Name:</span>
+          <strong style="color: #111827;">PawanMod Marketplace</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span style="color: #6b7280;">Order Number:</span>
+          <strong style="color: #111827;">{{ order.code }}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: #6b7280;">Amount:</span>
+          <strong style="color: var(--accent-orange); font-size: 1rem;">₹{{ order.total_amount }}</strong>
+        </div>
+      </div>
+
+      <!-- Supported App Badges -->
+      <div style="margin-bottom: 25px;">
+        <div style="font-size: 0.72rem; text-transform: uppercase; color: #9ca3af; margin-bottom: 12px; font-weight: 700; letter-spacing: 0.08em;">Supported Apps</div>
+        <div style="display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+          <span style="background: #f3f4f6; color: #6739b6; padding: 5px 10px; border-radius: 20px; font-weight: 600; font-size: 0.75rem;"><i class="fa-solid fa-mobile-screen"></i> PhonePe</span>
+          <span style="background: #f3f4f6; color: #4285f4; padding: 5px 10px; border-radius: 20px; font-weight: 600; font-size: 0.75rem;"><i class="fa-solid fa-mobile-screen"></i> GPay</span>
+          <span style="background: #f3f4f6; color: #00baf2; padding: 5px 10px; border-radius: 20px; font-weight: 600; font-size: 0.75rem;"><i class="fa-solid fa-mobile-screen"></i> Paytm</span>
+          <span style="background: #f3f4f6; color: #e85d04; padding: 5px 10px; border-radius: 20px; font-weight: 600; font-size: 0.75rem;"><i class="fa-solid fa-mobile-screen"></i> BHIM</span>
+        </div>
+      </div>
+
+      <!-- Timer & Simulation -->
+      <div style="border-top: 1px solid #f3f4f6; padding-top: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+        <div style="font-size: 0.95rem; font-weight: 700; color: #111827;">
+          Session Expires In: <span id="countdownTimer" style="color: #ef4444; font-family: monospace;">05:00</span>
+        </div>
+        <div id="paymentStatusSpinner" style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #ca8a04; font-size: 0.8rem; font-weight: 600;">
+          <span class="pulse-dot" style="width: 8px; height: 8px; background: #ca8a04; border-radius: 50%; display: inline-block;"></span>
+          Waiting for payment confirmation...
+        </div>
+        
+        <!-- Verify Instantly Action -->
+        <button id="verifyUpiBtn" onclick="verifyUpiPayment()" style="margin-top: 10px; width: 100%; padding: 10px; background: var(--accent-orange); color: white; border: none; border-radius: var(--border-radius-sm); font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: var(--transition-smooth);" onmouseover="this.style.background='#e86500'" onmouseout="this.style.background='var(--accent-orange)'">
+          Verify Payment Status
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes modalFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .pulse-dot {
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0% {
+      transform: scale(0.9);
+      opacity: 0.4;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(0.9);
+      opacity: 0.4;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Razorpay SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+{% if paypal_configured %}
+<!-- PayPal SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&currency=USD"></script>
+{% endif %}
+
+<script>
+  const ORDER_CODE = '{{ order.code }}';
+  const CUSTOMER_NAME = '{{ order.full_name|escapejs }}';
+  const CUSTOMER_EMAIL = '{{ order.email|escapejs }}';
+  const GRAND_TOTAL = {{ razorpay_amount }};
+  const RZP_KEY_ID = '{{ RAZORPAY_KEY_ID }}';
+  const RZP_ORDER_ID = '{{ razorpay_order_id }}';
+  const RAZORPAY_CONFIGURED = {{ razorpay_configured|yesno:"true,false" }};
+  const COMPLETE_URL = '{% url "orders:payment_complete" %}';
+
+  let countdownInterval = null;
+  let autoVerifyTimeout = null;
+
+  function showStatus(msg, isError) {
+    const el = document.getElementById('payment-status-msg');
+    if (!el) return;
+    el.style.display = 'block';
+    el.style.background = isError ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)';
+    el.style.color = isError ? '#dc2626' : '#16a34a';
+    el.style.border = '1px solid ' + (isError ? '#fca5a5' : '#86efac');
+    el.innerHTML = msg;
+  }
+
+  function sendVerification(payload) {
+    return fetch(COMPLETE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          showStatus('<i class="fa-solid fa-circle-check"></i> Payment successful! Redirecting to confirmation...', false);
+          setTimeout(() => { window.location.href = data.redirect_url; }, 1200);
+        } else {
+          showStatus('<i class="fa-solid fa-triangle-exclamation"></i> ' + (data.message || 'Payment verification failed. Please try again.'), true);
+        }
+      })
+      .catch(() => {
+        showStatus('<i class="fa-solid fa-triangle-exclamation"></i> Network error occurred. Please contact support.', true);
+      });
+  }
+
+  /* --- UPI Payment Logic --- */
+  function openUpiQrModal() {
+    const modal = document.getElementById('upiQrModal');
+    modal.style.display = 'flex';
+
+    // Generate UPI URL & QR Code Image dynamically
+    const upiLink = `upi://pay?pa=pawanmod@okhdfcbank&pn=PawanMod%20Marketplace&tr=${ORDER_CODE}&am={{ order.total_amount }}&cu=INR`;
+    const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiLink)}`;
+    document.getElementById('upiQrCodeImg').src = qrImgUrl;
+
+    startTimer(300);
+
+    autoVerifyTimeout = setTimeout(() => {
+      document.getElementById('paymentStatusSpinner').innerHTML = '<i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> Payment received! Verifying...';
+      document.getElementById('paymentStatusSpinner').style.color = '#16a34a';
+      setTimeout(() => {
+        verifyUpiPayment();
+      }, 1500);
+    }, 8000);
+  }
+
+  function closeUpiQrModal() {
+    document.getElementById('upiQrModal').style.display = 'none';
+    if (countdownInterval) clearInterval(countdownInterval);
+    if (autoVerifyTimeout) clearTimeout(autoVerifyTimeout);
+  }
+
+  // Handle Escape key to close modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('upiQrModal');
+      if (modal && modal.style.display === 'flex') {
+        closeUpiQrModal();
+      }
+    }
+  });
+
+  function startTimer(duration) {
+    let timer = duration, minutes, seconds;
+    const timerDisplay = document.getElementById('countdownTimer');
+    
+    if (countdownInterval) clearInterval(countdownInterval);
+    
+    countdownInterval = setInterval(function () {
+      minutes = parseInt(timer / 60, 10);
+      seconds = parseInt(timer % 60, 10);
+
+      minutes = minutes < 10 ? "0" + minutes : minutes;
+      seconds = seconds < 10 ? "0" + seconds : seconds;
+
+      timerDisplay.textContent = minutes + ":" + seconds;
+
+      if (--timer < 0) {
+        clearInterval(countdownInterval);
+        timerDisplay.textContent = "EXPIRED";
+        document.getElementById('paymentStatusSpinner').innerHTML = '<i class="fa-solid fa-circle-xmark" style="color: #ef4444;"></i> Session Expired.';
+        document.getElementById('paymentStatusSpinner').style.color = '#ef4444';
+        document.getElementById('verifyUpiBtn').disabled = true;
+      }
+    }, 1000);
+  }
+
+  function verifyUpiPayment() {
+    closeUpiQrModal();
+    showStatus('<i class="fa-solid fa-circle-notch fa-spin"></i> Processing UPI Transaction...', false);
+    sendVerification({
+      order_code: ORDER_CODE,
+      payment_id: 'upi_pay_' + Date.now().toString().slice(-6),
+      gateway: 'UPI',
+      response: 'UPI QR simulation capture successful'
+    });
+  }
+
+  /* --- Cards Payment Logic --- */
+  function initiateRazorpay() {
+    if (!RAZORPAY_CONFIGURED || !RZP_KEY_ID) {
+      showStatus('<i class="fa-solid fa-circle-notch fa-spin"></i> Processing test card transaction…', false);
+      sendVerification({
+        order_code: ORDER_CODE,
+        payment_id: 'rzp_test_' + Date.now().toString().slice(-6),
+        gateway: 'Razorpay',
+        response: 'Test mode card payment'
+      });
+      return;
+    }
+
+    const options = {
+      key: RZP_KEY_ID,
+      amount: GRAND_TOTAL,
+      currency: 'INR',
+      name: 'PawanMod Marketplace',
+      description: 'Order #' + ORDER_CODE,
+      order_id: RZP_ORDER_ID,
+      prefill: { name: CUSTOMER_NAME, email: CUSTOMER_EMAIL },
+      theme: { color: '#ff6b00' },
+      handler: function (response) {
+        showStatus('<i class="fa-solid fa-circle-notch fa-spin"></i> Payment received! Confirming with server…', false);
+        sendVerification({
+          order_code: ORDER_CODE,
+          payment_id: response.razorpay_payment_id,
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_signature: response.razorpay_signature,
+          gateway: 'Razorpay'
+        });
+      },
+      modal: {
+        ondismiss: function () {
+          showStatus('<i class="fa-solid fa-circle-info"></i> Payment window closed. You can try again.', true);
+        }
+      }
+    };
+    const rzp = new Razorpay(options);
+    rzp.open();
+  }
+
+  /* --- PayPal Payment Logic --- */
+  function simulatePayPalSuccess() {
+    showStatus('<i class="fa-solid fa-circle-notch fa-spin"></i> Processing PayPal test transaction…', false);
+    sendVerification({
+      order_code: ORDER_CODE,
+      payment_id: 'paypal_sim_' + Date.now().toString().slice(-6),
+      gateway: 'PayPal',
+      response: 'Demo PayPal simulation'
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends 'admin_custom/base_admin.html' %}
+{% block title %}Orders | PawanMod Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="fa-solid fa-receipt" style="color:var(--color-primary);margin-right:10px;"></i>Orders</h1>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <span style="font-size:.85rem;color:var(--text-secondary);">{{ total_count }} orders &nbsp;|&nbsp; Revenue: ₹{{ total_revenue }}</span>
+  </div>
+</div>
+
+<!-- Search & Filter Bar -->
+<div class="admin-card" style="margin-bottom:20px;padding:18px 24px;">
+  <form method="get" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+    <div style="flex:2;min-width:200px;">
+      <label style="font-size:.75rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:5px;">Search</label>
+      <input type="text" name="q" value="{{ q }}" placeholder="Order code, invoice, name, email…"
+        style="width:100%;padding:9px 14px;border:1px solid var(--border-color);border-radius:8px;font-size:.875rem;background:var(--bg-secondary);">
+    </div>
+    <div style="flex:1;min-width:130px;">
+      <label style="font-size:.75rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:5px;">Order Status</label>
+      <select name="status" style="width:100%;padding:9px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:.875rem;background:var(--bg-secondary);">
+        <option value="">All Statuses</option>
+        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+        <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
+        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+      </select>
+    </div>
+    <div style="flex:1;min-width:130px;">
+      <label style="font-size:.75rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:5px;">Payment Status</label>
+      <select name="payment_status" style="width:100%;padding:9px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:.875rem;background:var(--bg-secondary);">
+        <option value="">All</option>
+        <option value="Pending" {% if payment_filter == 'Pending' %}selected{% endif %}>Pending</option>
+        <option value="Success" {% if payment_filter == 'Success' %}selected{% endif %}>Success</option>
+        <option value="Failed" {% if payment_filter == 'Failed' %}selected{% endif %}>Failed</option>
+        <option value="Cancelled" {% if payment_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+      </select>
+    </div>
+    <div style="flex:1;min-width:120px;">
+      <label style="font-size:.75rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:5px;">Gateway</label>
+      <select name="gateway" style="width:100%;padding:9px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:.875rem;background:var(--bg-secondary);">
+        <option value="">All</option>
+        <option value="Razorpay" {% if gateway_filter == 'Razorpay' %}selected{% endif %}>Razorpay</option>
+        <option value="PayPal" {% if gateway_filter == 'PayPal' %}selected{% endif %}>PayPal</option>
+      </select>
+    </div>
+    <div>
+      <button type="submit" class="btn btn-primary" style="padding:9px 20px;font-size:.875rem;">
+        <i class="fa-solid fa-filter"></i> Filter
+      </button>
+    </div>
+    {% if q or status_filter or payment_filter or gateway_filter %}
+    <div>
+      <a href="{% url 'custom_admin:orders' %}" class="btn" style="padding:9px 16px;font-size:.875rem;background:var(--bg-secondary);color:var(--text-secondary);border:1px solid var(--border-color);">
+        <i class="fa-solid fa-xmark"></i> Clear
+      </a>
+    </div>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Orders Table -->
+<div class="admin-card">
+  <div style="overflow-x:auto;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Order Code</th>
+          <th>Invoice #</th>
+          <th>Customer</th>
+          <th>Products</th>
+          <th>Amount</th>
+          <th>Gateway</th>
+          <th>Payment Status</th>
+          <th>Order Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+          <tr>
+            <td style="font-family:monospace;font-size:.8rem;color:var(--color-primary);font-weight:700;">
+              {{ order.code }}
+            </td>
+            <td style="font-size:.8rem;color:var(--text-secondary);">
+              {{ order.invoice_number|default:"—" }}
+            </td>
+            <td>
+              <div style="font-weight:600;font-size:.875rem;">{{ order.full_name }}</div>
+              <div style="font-size:.75rem;color:var(--text-secondary);">{{ order.email }}</div>
+            </td>
+            <td style="font-size:.8rem;color:var(--text-secondary);">
+              {{ order.items.count }} item{{ order.items.count|pluralize }}
+            </td>
+            <td style="font-weight:700;color:var(--text-primary);">₹{{ order.total_amount }}</td>
+            <td>
+              <span class="badge badge-gray">{{ order.payment_method|default:"—" }}</span>
+            </td>
+            <td>
+              {% if order.payment_status == 'Success' %}
+                <span class="badge badge-green">Success</span>
+              {% elif order.payment_status == 'Failed' %}
+                <span class="badge badge-red">Failed</span>
+              {% elif order.payment_status == 'Cancelled' %}
+                <span class="badge badge-red">Cancelled</span>
+              {% else %}
+                <span class="badge badge-yellow">{{ order.payment_status }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if order.status == 'completed' %}
+                <span class="badge badge-green">Completed</span>
+              {% elif order.status == 'paid' %}
+                <span class="badge badge-blue">Paid</span>
+              {% elif order.status == 'pending' %}
+                <span class="badge badge-yellow">Pending</span>
+              {% elif order.status == 'cancelled' %}
+                <span class="badge badge-red">Cancelled</span>
+              {% else %}
+                <span class="badge badge-gray">{{ order.status|capfirst }}</span>
+              {% endif %}
+            </td>
+            <td style="color:var(--text-secondary);font-size:.8rem;">
+              {{ order.created_at|date:"M d, Y H:i" }}
+            </td>
+            <td>
+              <div style="display:flex;gap:6px;">
+                <a href="{% url 'custom_admin:order_detail' order.code %}" class="btn btn-sm"
+                   style="background:var(--bg-secondary);color:var(--text-primary);border:1px solid var(--border-color);font-size:.75rem;padding:5px 10px;" title="View Details">
+                  <i class="fa-solid fa-eye"></i>
+                </a>
+                {% if order.invoice_number %}
+                <a href="{% url 'orders:invoice_pdf' order.code %}" target="_blank" class="btn btn-sm"
+                   style="background:rgba(255,107,0,.1);color:var(--color-primary);border:1px solid rgba(255,107,0,.2);font-size:.75rem;padding:5px 10px;" title="Download Invoice PDF">
+                  <i class="fa-solid fa-file-pdf"></i>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="10" style="text-align:center;color:var(--text-secondary);padding:50px 0;">
+              <i class="fa-solid fa-receipt" style="font-size:2rem;opacity:.3;margin-bottom:12px;display:block;"></i>
+              No orders found{% if q %} matching "<strong>{{ q }}</strong>"{% endif %}.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div style="display:flex;justify-content:center;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border-color);">
+    {% if page_obj.has_previous %}
+      <a href="?{% if q %}q={{ q }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if payment_filter %}payment_status={{ payment_filter }}&{% endif %}page={{ page_obj.previous_page_number }}"
+         style="padding:6px 14px;border:1px solid var(--border-color);border-radius:6px;font-size:.8rem;text-decoration:none;color:var(--text-secondary);">
+        &laquo; Prev
+      </a>
+    {% endif %}
+    <span style="padding:6px 14px;background:var(--color-primary);color:white;border-radius:6px;font-size:.8rem;">
+      {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+    </span>
+    {% if page_obj.has_next %}
+      <a href="?{% if q %}q={{ q }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if payment_filter %}payment_status={{ payment_filter }}&{% endif %}page={{ page_obj.next_page_number }}"
+         style="padding:6px 14px;border:1px solid var(--border-color);border-radius:6px;font-size:.8rem;text-decoration:none;color:var(--text-secondary);">
+        Next &raquo;
+      </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends 'admin_custom/base_admin.html' %}
+
+{% block title %}Dashboard | PawanMod Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1><i class="fa-solid fa-gauge-high" style="color:var(--color-primary);margin-right:10px;"></i>Dashboard</h1>
+  <a href="/admin/" target="_blank" style="font-size:.8rem;color:var(--text-secondary);text-decoration:none;display:flex;align-items:center;gap:6px;">
+    <i class="fa-solid fa-gears"></i> Django Admin
+  </a>
+</div>
+
+<!-- ── Stats Widgets ────────────────────────────────── -->
+<div class="stats-grid">
+  <div class="stat-widget">
+    <div class="stat-widget-icon orange"><i class="fa-solid fa-boxes-stacked"></i></div>
+    <div>
+      <div class="stat-widget-label">Total Products</div>
+      <div class="stat-widget-value">{{ total_products }}</div>
+    </div>
+  </div>
+  <div class="stat-widget">
+    <div class="stat-widget-icon blue"><i class="fa-solid fa-receipt"></i></div>
+    <div>
+      <div class="stat-widget-label">Total Orders</div>
+      <div class="stat-widget-value">{{ total_orders }}</div>
+    </div>
+  </div>
+  <div class="stat-widget">
+    <div class="stat-widget-icon green"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+    <div>
+      <div class="stat-widget-label">Total Revenue</div>
+      <div class="stat-widget-value">₹{{ total_revenue|floatformat:0 }}</div>
+    </div>
+  </div>
+  <div class="stat-widget">
+    <div class="stat-widget-icon purple"><i class="fa-solid fa-users"></i></div>
+    <div>
+      <div class="stat-widget-label">Registered Users</div>
+      <div class="stat-widget-value">{{ total_users }}</div>
+    </div>
+  </div>
+  <div class="stat-widget">
+    <div class="stat-widget-icon yellow"><i class="fa-solid fa-download"></i></div>
+    <div>
+      <div class="stat-widget-label">Total Downloads</div>
+      <div class="stat-widget-value">{{ total_downloads }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Second row of counters ──────────────────────── -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px;">
+  <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-sm);padding:16px 20px;text-align:center;">
+    <div style="font-size:1.4rem;font-weight:700;color:var(--text-primary);">{{ total_categories }}</div>
+    <div style="font-size:.75rem;color:var(--text-secondary);margin-top:4px;">Categories</div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-sm);padding:16px 20px;text-align:center;">
+    <div style="font-size:1.4rem;font-weight:700;color:var(--text-primary);">{{ total_blog_posts }}</div>
+    <div style="font-size:.75rem;color:var(--text-secondary);margin-top:4px;">Blog Posts</div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-sm);padding:16px 20px;text-align:center;">
+    <div style="font-size:1.4rem;font-weight:700;color:var(--color-green);">{{ total_coupons }}</div>
+    <div style="font-size:.75rem;color:var(--text-secondary);margin-top:4px;">Active Coupons</div>
+  </div>
+  <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-sm);padding:16px 20px;text-align:center;">
+    <div style="font-size:1.4rem;font-weight:700;color:var(--color-yellow);">{{ pending_orders_count }}</div>
+    <div style="font-size:.75rem;color:var(--text-secondary);margin-top:4px;">Pending Orders</div>
+  </div>
+</div>
+
+<!-- ── Two Column: Recent Orders + Recent Products ── -->
+<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:24px;">
+
+  <!-- Recent Orders -->
+  <div class="admin-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h3 style="font-size:1rem;font-weight:700;">Recent Orders</h3>
+      <a href="{% url 'custom_admin:orders' %}" style="font-size:.8rem;color:var(--color-primary);text-decoration:none;">View all →</a>
+    </div>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Customer</th>
+          <th>Amount</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in recent_orders %}
+          <tr>
+            <td style="font-family:monospace;font-size:.8rem;color:var(--color-primary);">{{ order.code }}</td>
+            <td>{{ order.full_name|truncatechars:22 }}</td>
+            <td style="font-weight:600;">₹{{ order.total_amount }}</td>
+            <td>
+              {% if order.payment_status == 'Completed' %}
+                <span class="badge badge-green">Completed</span>
+              {% else %}
+                <span class="badge badge-yellow">Pending</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" style="text-align:center;color:var(--text-secondary);padding:30px 0;">No orders yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Recent Products -->
+  <div class="admin-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h3 style="font-size:1rem;font-weight:700;">Recent Products</h3>
+      <a href="{% url 'custom_admin:products' %}" style="font-size:.8rem;color:var(--color-primary);text-decoration:none;">View all →</a>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      {% for product in recent_products %}
+        <div style="display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--border-color);">
+          <div style="width:44px;height:44px;border-radius:8px;overflow:hidden;background:#f3f4f6;flex-shrink:0;">
+            {% if product.main_image %}
+              <img src="{{ product.main_image.url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:cover;">
+            {% else %}
+              <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#9ca3af;"><i class="fa-solid fa-image"></i></div>
+            {% endif %}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:600;font-size:.875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ product.name }}</div>
+            <div style="font-size:.75rem;color:var(--text-secondary);">{{ product.category.name }}</div>
+          </div>
+          <div style="font-weight:700;font-size:.875rem;color:var(--color-primary);">₹{{ product.price }}</div>
+        </div>
+      {% empty %}
+        <p style="text-align:center;color:var(--text-secondary);padding:20px 0;">No products yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

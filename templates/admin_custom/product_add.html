@@ -1,0 +1,363 @@
+{% extends 'admin_custom/base_admin.html' %}
+{% block title %}Add Product | PawanMod Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  .form-section-title {
+    font-size: .95rem; font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .form-section-title i { color: var(--color-primary); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-row.single { grid-template-columns: 1fr; }
+  @media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+
+  .admin-field { display: flex; flex-direction: column; gap: 6px; }
+  .admin-label {
+    font-size: .8rem; font-weight: 600;
+    color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px;
+  }
+  .admin-label .required { color: var(--color-red); margin-left: 2px; }
+  .admin-form-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: .875rem; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text-primary); background: var(--bg-card);
+    outline: none; transition: var(--transition);
+    resize: vertical;
+  }
+  .admin-form-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(255,107,0,.1);
+  }
+  .admin-form-input.error-field { border-color: var(--color-red); }
+
+  .field-error {
+    font-size: .75rem; color: var(--color-red);
+    display: flex; align-items: center; gap: 5px; margin-top: 2px;
+  }
+  .field-hint {
+    font-size: .72rem; color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .toggle-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg-body); border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    cursor: pointer; transition: var(--transition);
+  }
+  .toggle-row:hover { border-color: var(--color-primary); }
+  .admin-form-checkbox { width: 18px; height: 18px; accent-color: var(--color-primary); cursor: pointer; }
+  .toggle-label { font-size: .875rem; font-weight: 600; color: var(--text-primary); cursor: pointer; }
+  .toggle-sublabel { font-size: .75rem; color: var(--text-secondary); margin-top: 2px; }
+
+  .form-actions {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 20px 28px;
+    box-shadow: var(--shadow);
+    align-items: center;
+  }
+  .btn-save {
+    padding: 11px 28px;
+    background: var(--color-primary); color: white;
+    border: none; border-radius: var(--radius-sm);
+    font-size: .875rem; font-weight: 700;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    transition: var(--transition);
+  }
+  .btn-save:hover { background: #e85f00; }
+  .btn-cancel {
+    padding: 11px 20px;
+    background: var(--bg-body); color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: .875rem; font-weight: 600;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    text-decoration: none; transition: var(--transition);
+  }
+  .btn-cancel:hover { background: var(--border-color); color: var(--text-primary); }
+
+  /* Slug preview */
+  #slug-preview {
+    font-family: monospace; font-size: .8rem;
+    color: var(--text-secondary);
+    padding: 4px 10px; background: var(--bg-body);
+    border-radius: 4px; margin-top: 4px; display: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1><i class="fa-solid fa-plus" style="color:var(--color-primary);margin-right:10px;"></i>Add Product</h1>
+</div>
+
+<form method="POST" id="productForm">
+  {% csrf_token %}
+
+  <!-- ── Section 1: Basic Info ─────────────────────── -->
+  <div class="form-section">
+    <div class="form-section-title">
+      <i class="fa-solid fa-circle-info"></i> Basic Information
+    </div>
+
+    <div class="form-row" style="margin-bottom:20px;">
+      <!-- Product Name -->
+      <div class="admin-field">
+        <label class="admin-label" for="id_name">Product Name <span class="required">*</span></label>
+        {{ form.name }}
+        {% if form.name.errors %}
+          {% for e in form.name.errors %}
+            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Category -->
+      <div class="admin-field">
+        <label class="admin-label" for="id_category">Category <span class="required">*</span></label>
+        {{ form.category }}
+        {% if form.category.errors %}
+          {% for e in form.category.errors %}
+            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Slug -->
+    <div class="form-row single" style="margin-bottom:20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_slug">Slug <span class="required">*</span></label>
+        {{ form.slug }}
+        <div id="slug-preview"></div>
+        <span class="field-hint"><i class="fa-solid fa-wand-magic-sparkles"></i> Leave blank to auto-generate from the product name.</span>
+        {% if form.slug.errors %}
+          {% for e in form.slug.errors %}
+            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Short Description -->
+    <div class="form-row single" style="margin-bottom:20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_short_description">Short Description <span class="required">*</span></label>
+        {{ form.short_description }}
+        <span class="field-hint">Shown on product listing cards. Max 255 characters.</span>
+        {% if form.short_description.errors %}
+          {% for e in form.short_description.errors %}
+            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Full Description -->
+    <div class="form-row single">
+      <div class="admin-field">
+        <label class="admin-label" for="id_description">Full Description <span class="required">*</span></label>
+        {{ form.description }}
+        {% if form.description.errors %}
+          {% for e in form.description.errors %}
+            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 2: Pricing ─────────────────────────── -->
+  <div class="form-section">
+    <div class="form-section-title">
+      <i class="fa-solid fa-indian-rupee-sign"></i> Pricing
+    </div>
+
+    <div class="form-row">
+      <div class="admin-field">
+        <label class="admin-label" for="id_price">Price (₹) <span class="required">*</span></label>
+        {{ form.price }}
+        <span class="field-hint">Set to 0.00 for free mods.</span>
+        {% if form.price.errors %}
+          {% for e in form.price.errors %}
+            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="admin-field">
+        <label class="admin-label" for="id_old_price">Old / Original Price (₹)</label>
+        {{ form.old_price }}
+        <span class="field-hint">Optional. Must be greater than price to show a discount badge.</span>
+        {% if form.old_price.errors %}
+          {% for e in form.old_price.errors %}
+            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 3: Tech Details ────────────────────── -->
+  <div class="form-section">
+    <div class="form-section-title">
+      <i class="fa-solid fa-screwdriver-wrench"></i> Technical Details
+    </div>
+
+    <div class="form-row single" style="margin-bottom:20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_requirements">Requirements <span class="required">*</span></label>
+        {{ form.requirements }}
+        <span class="field-hint">List mods, scripts or tools required to run this product.</span>
+        {% if form.requirements.errors %}
+          {% for e in form.requirements.errors %}
+            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="form-row single">
+      <div class="admin-field">
+        <label class="admin-label" for="id_installation_guide">Installation Guide <span class="required">*</span></label>
+        {{ form.installation_guide }}
+        {% if form.installation_guide.errors %}
+          {% for e in form.installation_guide.errors %}
+            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 4: Status & Visibility ────────────── -->
+  <div class="form-section">
+    <div class="form-section-title">
+      <i class="fa-solid fa-toggle-on"></i> Status &amp; Visibility
+    </div>
+
+    <div class="form-row" style="margin-bottom:20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_stock_status">Availability <span class="required">*</span></label>
+        {{ form.stock_status }}
+        {% if form.stock_status.errors %}
+          {% for e in form.stock_status.errors %}
+            <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <!-- Featured -->
+      <label class="toggle-row" for="id_is_featured">
+        {{ form.is_featured }}
+        <div>
+          <div class="toggle-label"><i class="fa-solid fa-star" style="color:#F59E0B;margin-right:6px;"></i>Featured Product</div>
+          <div class="toggle-sublabel">Displayed in the Featured Mods section on the homepage.</div>
+        </div>
+      </label>
+
+      <!-- Trending -->
+      <label class="toggle-row" for="id_is_trending">
+        {{ form.is_trending }}
+        <div>
+          <div class="toggle-label"><i class="fa-solid fa-fire" style="color:var(--color-primary);margin-right:6px;"></i>Trending Product</div>
+          <div class="toggle-sublabel">Shown in the Trending Mods carousel on the homepage.</div>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <!-- ── Non-field errors ──────────────────────────── -->
+  {% if form.non_field_errors %}
+    <div style="background:rgba(239,68,68,.08);border:1px solid var(--color-red);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:20px;color:var(--color-red);font-size:.875rem;">
+      {% for e in form.non_field_errors %}
+        <div style="display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-triangle-exclamation"></i> {{ e }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- ── Image notice (Phase 2.2) ──────────────────── -->
+  <div style="background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.2);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:24px;display:flex;align-items:center;gap:12px;font-size:.85rem;color:var(--color-blue);">
+    <i class="fa-solid fa-circle-info"></i>
+    <span><strong>Image Upload</strong> and <strong>File Upload</strong> will be available in Phase 2.2. A placeholder image will be used until then.</span>
+  </div>
+
+  <!-- ── Form Actions ──────────────────────────────── -->
+  <div class="form-actions">
+    <button type="submit" class="btn-save">
+      <i class="fa-solid fa-floppy-disk"></i> Save & Publish
+    </button>
+    <a href="{% url 'custom_admin:products' %}" class="btn-cancel">
+      <i class="fa-solid fa-xmark"></i> Cancel
+    </a>
+  </div>
+
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Auto-generate slug from product name ────────────────────────────
+  const nameField = document.getElementById('id_name');
+  const slugField = document.getElementById('id_slug');
+  const slugPreview = document.getElementById('slug-preview');
+
+  function slugify(str) {
+    return str.toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+  }
+
+  if (nameField && slugField) {
+    nameField.addEventListener('input', () => {
+      if (!slugField.dataset.manuallyEdited) {
+        const generated = slugify(nameField.value);
+        slugField.value = generated;
+        if (generated) {
+          slugPreview.textContent = 'Preview: /products/' + generated + '/';
+          slugPreview.style.display = 'block';
+        } else {
+          slugPreview.style.display = 'none';
+        }
+      }
+    });
+
+    // If admin manually edits slug, stop overwriting
+    slugField.addEventListener('input', () => {
+      slugField.dataset.manuallyEdited = '1';
+      const slug = slugField.value;
+      if (slug) {
+        slugPreview.textContent = 'Preview: /products/' + slug + '/';
+        slugPreview.style.display = 'block';
+      }
+    });
+  }
+</script>
+{% endblock %}

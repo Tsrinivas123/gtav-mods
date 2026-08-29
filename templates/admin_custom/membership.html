@@ -1,0 +1,63 @@
+{% extends 'admin_custom/base_admin.html' %}
+{% block title %}Membership | PawanMod Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="fa-solid fa-crown" style="color:var(--color-primary);margin-right:10px;"></i>Membership</h1>
+  <span style="font-size:.85rem;color:var(--text-secondary);">{{ total_count }} premium members</span>
+</div>
+
+<div class="admin-card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+    <h3 style="font-size:1rem;font-weight:700;">Premium &amp; Legend Members</h3>
+    <span style="font-size:.8rem;background:rgba(255,107,0,.1);color:var(--color-primary);padding:4px 12px;border-radius:20px;font-weight:600;">Phase 2: Management Coming Soon</span>
+  </div>
+
+  {% if premium_users %}
+    <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Plan</th>
+            <th>Expires</th>
+            <th>Joined</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for profile in premium_users %}
+            <tr>
+              <td>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:32px;height:32px;border-radius:50%;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;">
+                    {{ profile.user.username|slice:":1"|upper }}
+                  </div>
+                  <span style="font-weight:600;">{{ profile.user.username }}</span>
+                </div>
+              </td>
+              <td style="color:var(--text-secondary);font-size:.875rem;">{{ profile.user.email }}</td>
+              <td>
+                {% if profile.membership_type == 'legend' %}
+                  <span class="badge badge-blue"><i class="fa-solid fa-crown" style="margin-right:4px;"></i>Legend</span>
+                {% else %}
+                  <span class="badge badge-green"><i class="fa-solid fa-crown" style="margin-right:4px;"></i>Premium</span>
+                {% endif %}
+              </td>
+              <td style="color:var(--text-secondary);font-size:.875rem;">
+                {% if profile.membership_expires %}{{ profile.membership_expires|date:"M d, Y" }}{% else %}—{% endif %}
+              </td>
+              <td style="color:var(--text-secondary);font-size:.8rem;">{{ profile.user.date_joined|date:"M d, Y" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="placeholder-panel">
+      <div class="ph-icon"><i class="fa-solid fa-crown"></i></div>
+      <h2>No Premium Members Yet</h2>
+      <p>Once users upgrade their membership, they will appear here for management.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

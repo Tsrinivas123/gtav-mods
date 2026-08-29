@@ -1,0 +1,331 @@
+{% extends 'admin_custom/base_admin.html' %}
+{% block title %}{{ page_title }} | PawanMod Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-section {
+    background: var(--bg-card); border: 1px solid var(--border-color);
+    border-radius: var(--radius); padding: 28px; margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  .form-section-title {
+    font-size: .95rem; font-weight: 700; color: var(--text-primary);
+    margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .form-section-title i { color: var(--color-primary); }
+
+  .form-row        { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-row.single { grid-template-columns: 1fr; }
+  @media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+
+  .admin-field  { display: flex; flex-direction: column; gap: 6px; }
+  .admin-label  { font-size: .78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
+  .admin-label .req { color: var(--color-red); margin-left: 2px; }
+  .admin-form-input {
+    width: 100%; padding: 10px 14px; border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm); font-size: .875rem;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: var(--text-primary);
+    background: var(--bg-card); outline: none; transition: var(--transition); resize: vertical;
+  }
+  .admin-form-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(255,107,0,.1); }
+  .field-error { font-size: .75rem; color: var(--color-red); display: flex; align-items: center; gap: 5px; }
+  .field-hint  { font-size: .72rem; color: var(--text-secondary); }
+
+  #slug-preview { font-family: monospace; font-size: .8rem; color: var(--text-secondary); padding: 4px 10px; background: var(--bg-body); border-radius: 4px; margin-top: 4px; display: none; }
+
+  /* CKEditor overrides to fit dark theme and general dashboard styles */
+  .ck-editor__editable {
+    min-height: 350px !important;
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  .ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
+    border-color: var(--border-color) !important;
+  }
+  .ck.ck-toolbar {
+    background-color: var(--bg-body) !important;
+    border-color: var(--border-color) !important;
+  }
+  .ck.ck-button {
+    color: var(--text-primary) !important;
+    cursor: pointer !important;
+  }
+  .ck.ck-button:hover, .ck.ck-button.ck-on {
+    background-color: var(--border-color) !important;
+  }
+  .ck.ck-list {
+    background-color: var(--bg-card) !important;
+  }
+
+  .form-actions {
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    background: var(--bg-card); border: 1px solid var(--border-color);
+    border-radius: var(--radius); padding: 20px 28px; box-shadow: var(--shadow);
+  }
+  .btn-save {
+    padding: 11px 28px; background: var(--color-primary); color: white;
+    border: none; border-radius: var(--radius-sm); font-size: .875rem;
+    font-weight: 700; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; transition: var(--transition);
+    text-decoration: none;
+  }
+  .btn-save:hover { background: #e85f00; }
+  .btn-cancel {
+    padding: 11px 20px; background: var(--bg-body); color: var(--text-secondary);
+    border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+    font-size: .875rem; font-weight: 600; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    text-decoration: none; transition: var(--transition);
+  }
+  .btn-cancel:hover { background: var(--border-color); color: var(--text-primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>
+    <i class="fa-solid fa-{% if mode == 'edit' %}pen{% else %}plus{% endif %}" style="color:var(--color-primary);margin-right:10px;"></i>
+    {{ page_title }}
+  </h1>
+  {% if mode == 'edit' %}
+    <a href="{% url 'blog:post_detail' post.slug %}" target="_blank"
+       style="font-size:.8rem;color:var(--color-blue);text-decoration:none;display:flex;align-items:center;gap:6px;">
+      <i class="fa-solid fa-arrow-up-right-from-square"></i> Preview on Storefront
+    </a>
+  {% endif %}
+</div>
+
+<form method="POST" enctype="multipart/form-data" id="blogForm">
+  {% csrf_token %}
+
+  <!-- ── Article Details ── -->
+  <div class="form-section">
+    <div class="form-section-title"><i class="fa-solid fa-circle-info"></i> Article Configuration</div>
+    
+    <div class="form-row" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_title">Article Title <span class="req">*</span></label>
+        {{ form.title }}
+        {% for e in form.title.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="id_slug">Slug URL <span class="req">*</span></label>
+        {{ form.slug }}
+        <div id="slug-preview"></div>
+        {% for e in form.slug.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_category">Category <span class="req">*</span></label>
+        {{ form.category }}
+        {% for e in form.category.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="id_tags">Tags</label>
+        {{ form.tags }}
+        <span class="field-hint">gta5, vehicles, carpack (comma-separated).</span>
+        {% for e in form.tags.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_author">Author <span class="req">*</span></label>
+        {{ form.author }}
+        {% for e in form.author.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="id_featured_image">Featured Image <span class="req">*</span></label>
+        {{ form.featured_image }}
+        <span class="field-hint">Upload blog thumbnail image.</span>
+        {% for e in form.featured_image.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row single" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_excerpt">Short Description / Excerpt <span class="req">*</span></label>
+        {{ form.excerpt }}
+        <span class="field-hint">A short teaser summary of the post shown on listing pages.</span>
+        {% for e in form.excerpt.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <!-- Rich Text Content Editor -->
+    <div class="form-row single" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label">Article Body Content <span class="req">*</span></label>
+        {{ form.content }}
+        <!-- CKEditor editable block container -->
+        <div id="editor-container">
+          {% if mode == 'edit' %}{{ post.content|safe }}{% endif %}
+        </div>
+        {% for e in form.content.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="admin-field">
+        <label class="admin-label" for="id_status">Status</label>
+        {{ form.status }}
+        {% for e in form.status.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="id_publish_date">Publish Date <span class="req">*</span></label>
+        {{ form.publish_date }}
+        <span class="field-hint">Future dates hide the article from storefront until scheduled publishing date.</span>
+        {% for e in form.publish_date.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Search Engine Optimization (SEO) Section ── -->
+  <div class="form-section">
+    <div class="form-section-title"><i class="fa-solid fa-globe"></i> SEO & Meta Card Headers</div>
+    
+    <div class="form-row" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_seo_title">SEO Title Tag Override</label>
+        {{ form.seo_title }}
+        <span class="field-hint">Defaults to the Article Title if blank.</span>
+        {% for e in form.seo_title.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="id_canonical_url">Canonical URL Link</label>
+        {{ form.canonical_url }}
+        <span class="field-hint">Absolute URL of primary copy.</span>
+        {% for e in form.canonical_url.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_meta_description">Meta Description Tag</label>
+        {{ form.meta_description }}
+        {% for e in form.meta_description.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="id_meta_keywords">Meta Keywords Tag</label>
+        {{ form.meta_keywords }}
+        {% for e in form.meta_keywords.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_og_title">Open Graph Title</label>
+        {{ form.og_title }}
+        {% for e in form.og_title.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="id_og_description">Open Graph Description</label>
+        {{ form.og_description }}
+        {% for e in form.og_description.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Non-Field Errors ── -->
+  {% if form.non_field_errors %}
+    <div style="background:rgba(239,68,68,.08);border:1px solid var(--color-red);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:20px;color:var(--color-red);font-size:.875rem;">
+      {% for e in form.non_field_errors %}
+        <div style="display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-triangle-exclamation"></i> {{ e }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- ── Actions ── -->
+  <div class="form-actions">
+    <button type="submit" class="btn-save">
+      <i class="fa-solid fa-circle-check"></i>
+      {% if mode == 'edit' %}Save Changes{% else %}Save Article{% endif %}
+    </button>
+    
+    <a href="{% url 'custom_admin:blog' %}" class="btn-cancel">
+      <i class="fa-solid fa-xmark"></i> Cancel
+    </a>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Load CKEditor 5 from CDN -->
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+<script>
+  // Initialize CKEditor 5
+  ClassicEditor
+    .create(document.querySelector('#editor-container'), {
+      toolbar: [
+        'heading', '|',
+        'bold', 'italic', 'underline', 'link', '|',
+        'bulletedList', 'numberedList', 'blockQuote', 'insertTable', 'codeBlock', 'mediaEmbed', '|',
+        'undo', 'redo'
+      ],
+      heading: {
+        options: [
+          { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+          { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+          { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+          { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
+        ]
+      }
+    })
+    .then(editor => {
+      const hiddenTextarea = document.querySelector('#id_content');
+      
+      // Bind initial content if editing
+      if (hiddenTextarea.value) {
+        editor.setData(hiddenTextarea.value);
+      }
+      
+      // Sync editor changes back to hidden field
+      editor.model.document.on('change:data', () => {
+        hiddenTextarea.value = editor.getData();
+      });
+      
+      // Sync on submit as fallback safety
+      document.querySelector('#blogForm').addEventListener('submit', () => {
+        hiddenTextarea.value = editor.getData();
+      });
+    })
+    .catch(error => {
+      console.error('CKEditor initialization failed:', error);
+    });
+
+  // ── Auto slug from article title ─────────────────────────
+  const titleField = document.getElementById('id_title');
+  const slugField  = document.getElementById('id_slug');
+  const slugPreview = document.getElementById('slug-preview');
+
+  function toSlug(s) {
+    return s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+  }
+
+  if (titleField && slugField) {
+    titleField.addEventListener('input', () => {
+      if (!slugField.dataset.manual) {
+        const s = toSlug(titleField.value);
+        slugField.value = s;
+        slugPreview.textContent = s ? 'Preview Link: /blog/' + s + '/' : '';
+        slugPreview.style.display = s ? 'block' : 'none';
+      }
+    });
+    slugField.addEventListener('input', () => {
+      slugField.dataset.manual = '1';
+      const s = slugField.value;
+      slugPreview.textContent = s ? 'Preview Link: /blog/' + s + '/' : '';
+      slugPreview.style.display = s ? 'block' : 'none';
+    });
+    if (slugField.value) {
+      slugPreview.textContent = 'Preview Link: /blog/' + slugField.value + '/';
+      slugPreview.style.display = 'block';
+    }
+  }
+</script>
+{% endblock %}

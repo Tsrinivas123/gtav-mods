@@ -1,0 +1,221 @@
+{% extends 'admin_custom/base_admin.html' %}
+{% block title %}{{ page_title }} | PawanMod Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-section {
+    background: var(--bg-card); border: 1px solid var(--border-color);
+    border-radius: var(--radius); padding: 28px; margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  .form-section-title {
+    font-size: .95rem; font-weight: 700; color: var(--text-primary);
+    margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .form-section-title i { color: var(--color-primary); }
+
+  .form-row        { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-row.single { grid-template-columns: 1fr; }
+  @media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+
+  .admin-field  { display: flex; flex-direction: column; gap: 6px; }
+  .admin-label  { font-size: .78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
+  .admin-label .req { color: var(--color-red); margin-left: 2px; }
+  .admin-form-input {
+    width: 100%; padding: 10px 14px; border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm); font-size: .875rem;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: var(--text-primary);
+    background: var(--bg-card); outline: none; transition: var(--transition); resize: vertical;
+  }
+  .admin-form-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(255,107,0,.1); }
+  .field-error { font-size: .75rem; color: var(--color-red); display: flex; align-items: center; gap: 5px; }
+  .field-hint  { font-size: .72rem; color: var(--text-secondary); }
+
+  #slug-preview { font-family: monospace; font-size: .8rem; color: var(--text-secondary); padding: 4px 10px; background: var(--bg-body); border-radius: 4px; margin-top: 4px; display: none; }
+
+  .form-actions {
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    background: var(--bg-card); border: 1px solid var(--border-color);
+    border-radius: var(--radius); padding: 20px 28px; box-shadow: var(--shadow);
+  }
+  .btn-save {
+    padding: 11px 28px; background: var(--color-primary); color: white;
+    border: none; border-radius: var(--radius-sm); font-size: .875rem;
+    font-weight: 700; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; transition: var(--transition);
+    text-decoration: none;
+  }
+  .btn-save:hover { background: #e85f00; }
+  .btn-cancel {
+    padding: 11px 20px; background: var(--bg-body); color: var(--text-secondary);
+    border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+    font-size: .875rem; font-weight: 600; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    text-decoration: none; transition: var(--transition);
+  }
+  .btn-cancel:hover { background: var(--border-color); color: var(--text-primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>
+    <i class="fa-solid fa-{% if mode == 'edit' %}pen{% else %}plus{% endif %}" style="color:var(--color-primary);margin-right:10px;"></i>
+    {{ page_title }}
+  </h1>
+  {% if mode == 'edit' %}
+    <a href="{% url 'marketplace:category_detail' category.slug %}" target="_blank"
+       style="font-size:.8rem;color:var(--color-blue);text-decoration:none;display:flex;align-items:center;gap:6px;">
+      <i class="fa-solid fa-arrow-up-right-from-square"></i> Preview on Store
+    </a>
+  {% endif %}
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  <!-- ── Basic Info Section ── -->
+  <div class="form-section">
+    <div class="form-section-title"><i class="fa-solid fa-circle-info"></i> Category Details</div>
+    
+    <div class="form-row" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_name">Category Name <span class="req">*</span></label>
+        {{ form.name }}
+        {% for e in form.name.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="id_slug">Slug URL <span class="req">*</span></label>
+        {{ form.slug }}
+        <div id="slug-preview"></div>
+        {% for e in form.slug.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_icon">FontAwesome Icon Class <span class="req">*</span></label>
+        {{ form.icon }}
+        <span class="field-hint">e.g. <code>fa-car</code>, <code>fa-gun</code>, <code>fa-map</code></span>
+        {% for e in form.icon.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="id_image">Category Cover Image</label>
+        {{ form.image }}
+        <span class="field-hint">Used for directory catalog banners.</span>
+        {% for e in form.image.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row single" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_description">Category Description</label>
+        {{ form.description }}
+        {% for e in form.description.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="admin-field">
+        <label class="admin-label" for="id_display_order">Display Order Sequence</label>
+        {{ form.display_order }}
+        <span class="field-hint">Lower numbers sort first.</span>
+        {% for e in form.display_order.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="id_status">Status Visibility</label>
+        {{ form.status }}
+        <span class="field-hint">Inactive categories and their products will be hidden from storefront.</span>
+        {% for e in form.status.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Search Engine Optimization (SEO) Section ── -->
+  <div class="form-section">
+    <div class="form-section-title"><i class="fa-solid fa-globe"></i> SEO Configuration (Optional)</div>
+    
+    <div class="form-row single" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_seo_title">SEO Title Tag Override</label>
+        {{ form.seo_title }}
+        <span class="field-hint">Defaults to the Category Name. Max 200 chars.</span>
+        {% for e in form.seo_title.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row" style="margin-bottom: 20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_meta_description">Meta Description Tag</label>
+        {{ form.meta_description }}
+        <span class="field-hint">Excerpt shown in Google search results.</span>
+        {% for e in form.meta_description.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="id_meta_keywords">Meta Keywords Tag</label>
+        {{ form.meta_keywords }}
+        <span class="field-hint">Comma separated words list.</span>
+        {% for e in form.meta_keywords.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Non-Field Errors ── -->
+  {% if form.non_field_errors %}
+    <div style="background:rgba(239,68,68,.08);border:1px solid var(--color-red);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:20px;color:var(--color-red);font-size:.875rem;">
+      {% for e in form.non_field_errors %}
+        <div style="display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-triangle-exclamation"></i> {{ e }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- ── Actions ── -->
+  <div class="form-actions">
+    <button type="submit" class="btn-save">
+      <i class="fa-solid fa-circle-check"></i>
+      {% if mode == 'edit' %}Save Changes{% else %}Save Category{% endif %}
+    </button>
+    
+    <a href="{% url 'custom_admin:categories' %}" class="btn-cancel">
+      <i class="fa-solid fa-xmark"></i> Cancel
+    </a>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Auto slug from category name ─────────────────────────
+  const nameField  = document.getElementById('id_name');
+  const slugField  = document.getElementById('id_slug');
+  const slugPreview = document.getElementById('slug-preview');
+
+  function toSlug(s) {
+    return s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+  }
+
+  if (nameField && slugField) {
+    nameField.addEventListener('input', () => {
+      if (!slugField.dataset.manual) {
+        const s = toSlug(nameField.value);
+        slugField.value = s;
+        slugPreview.textContent = s ? 'Preview Link: /category/' + s + '/' : '';
+        slugPreview.style.display = s ? 'block' : 'none';
+      }
+    });
+    slugField.addEventListener('input', () => {
+      slugField.dataset.manual = '1';
+      const s = slugField.value;
+      slugPreview.textContent = s ? 'Preview Link: /category/' + s + '/' : '';
+      slugPreview.style.display = s ? 'block' : 'none';
+    });
+    // Show on edit load
+    if (slugField.value) {
+      slugPreview.textContent = 'Preview Link: /category/' + slugField.value + '/';
+      slugPreview.style.display = 'block';
+    }
+  }
+</script>
+{% endblock %}

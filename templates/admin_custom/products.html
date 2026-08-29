@@ -1,0 +1,556 @@
+{% extends 'admin_custom/base_admin.html' %}
+{% block title %}Products | PawanMod Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Filter bar ───────────────────────── */
+  .filter-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+  .filter-input {
+    padding:9px 14px; border:1px solid var(--border-color); border-radius:var(--radius-sm);
+    font-size:.875rem; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background:var(--bg-card);
+    color:var(--text-primary); outline:none; transition:var(--transition);
+  }
+  .filter-input:focus { border-color:var(--color-primary); box-shadow:0 0 0 3px rgba(255,107,0,.1); }
+  .filter-input[type="search"] { min-width:220px; }
+  .filter-input[type="select"], select.filter-input { min-width:150px; }
+  .filter-btn {
+    padding:9px 18px; border-radius:var(--radius-sm); font-size:.875rem;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:600; cursor:pointer;
+    border:none; transition:var(--transition); display:flex; align-items:center; gap:6px;
+  }
+  .btn-orange  { background:var(--color-primary); color:white; }
+  .btn-orange:hover { background:#e85f00; }
+  .btn-outline { background:var(--bg-body); color:var(--text-secondary); border:1px solid var(--border-color)!important; border:none; text-decoration:none; }
+  .btn-outline:hover { background:var(--border-color); color:var(--text-primary); }
+
+  /* ── Bulk bar ─────────────────────────── */
+  .bulk-bar {
+    display:none; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:12px 16px; background:rgba(255,107,0,.06); border:1px solid rgba(255,107,0,.2);
+    border-radius:var(--radius-sm); margin-bottom:16px;
+  }
+  .bulk-bar.visible { display:flex; }
+  .bulk-count { font-size:.875rem; font-weight:600; color:var(--color-primary); }
+  .bulk-select {
+    padding:7px 12px; border:1px solid var(--border-color);
+    border-radius:var(--radius-sm); font-size:.8rem;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background:var(--bg-card);
+    color:var(--text-primary); outline:none; cursor:pointer;
+  }
+  .btn-bulk-apply {
+    padding:7px 16px; background:var(--color-primary); color:white;
+    border:none; border-radius:var(--radius-sm); font-size:.8rem;
+    font-weight:700; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; cursor:pointer; transition:var(--transition);
+  }
+  .btn-bulk-apply:hover { background:#e85f00; }
+
+  /* ── Table ────────────────────────────── */
+  .product-thumb {
+    width:44px; height:44px; border-radius:8px; object-fit:cover;
+    background:#f3f4f6; border:1px solid var(--border-color);
+  }
+  .product-thumb-ph {
+    width:44px; height:44px; border-radius:8px; background:#f3f4f6;
+    display:flex; align-items:center; justify-content:center;
+    color:#9ca3af; font-size:.9rem; border:1px solid var(--border-color);
+  }
+  .action-btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:30px; height:30px; border-radius:6px; font-size:.78rem;
+    text-decoration:none; transition:var(--transition); cursor:pointer;
+    border:none; background:none;
+  }
+  .action-btn:hover { filter:brightness(.85); }
+  .action-edit      { background:rgba(37,99,235,.08);  color:var(--color-blue); }
+  .action-preview   { background:rgba(34,197,94,.08);  color:var(--color-green); }
+  .action-duplicate { background:rgba(245,158,11,.08); color:var(--color-yellow); }
+  .action-delete    { background:rgba(239,68,68,.08);  color:var(--color-red); }
+
+  /* ── Pagination ───────────────────────── */
+  .pager { display:flex; align-items:center; justify-content:space-between; margin-top:20px; flex-wrap:wrap; gap:10px; }
+  .pager-info { font-size:.8rem; color:var(--text-secondary); }
+  .pager-links { display:flex; gap:6px; }
+  .plink {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:32px; height:32px; border-radius:var(--radius-sm);
+    border:1px solid var(--border-color); font-size:.8rem; font-weight:600;
+    color:var(--text-secondary); text-decoration:none; transition:var(--transition);
+  }
+  .plink:hover { border-color:var(--color-primary); color:var(--color-primary); }
+  .plink.active { background:var(--color-primary); border-color:var(--color-primary); color:white; }
+  .plink.disabled { opacity:.4; pointer-events:none; }
+
+  /* ── Delete modal ─────────────────────── */
+  .modal-bd {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.5);
+    z-index:9999; align-items:center; justify-content:center;
+  }
+  .modal-bd.open { display:flex; }
+  .modal-box {
+    background:var(--bg-card); border-radius:var(--radius); padding:32px;
+    max-width:440px; width:90%; box-shadow:var(--shadow-md); text-align:center;
+  }
+  .modal-icon  { font-size:2.5rem; color:var(--color-red); margin-bottom:14px; }
+  .modal-title { font-size:1.1rem; font-weight:700; margin-bottom:8px; }
+  .modal-body  { font-size:.875rem; color:var(--text-secondary); margin-bottom:24px; line-height:1.6; }
+  .modal-actions { display:flex; gap:12px; justify-content:center; }
+  .btn-cancel-sm {
+    padding:9px 20px; background:var(--bg-body); color:var(--text-secondary);
+    border:1px solid var(--border-color); border-radius:var(--radius-sm);
+    font-size:.875rem; font-weight:600; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; cursor:pointer;
+  }
+  .btn-delete-confirm {
+    padding:9px 20px; background:var(--color-red); color:white;
+    border:none; border-radius:var(--radius-sm);
+    font-size:.875rem; font-weight:700; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>
+    <i class="fa-solid fa-boxes-stacked" style="color:var(--color-primary);margin-right:10px;"></i>Products
+    <span style="font-size:.85rem;font-weight:400;color:var(--text-secondary);margin-left:8px;">{{ total_count }} total</span>
+  </h1>
+  <a href="{% url 'custom_admin:product_add' %}" class="filter-btn btn-orange" style="text-decoration:none;">
+    <i class="fa-solid fa-plus"></i> Add Product
+  </a>
+</div>
+
+<!-- ── Filters ────────────────────────────────────── -->
+<form method="GET" id="filterForm">
+  <div class="filter-bar">
+    <input type="search" name="q" id="liveSearch" value="{{ q }}" placeholder="Search products…" class="filter-input" autocomplete="off">
+
+    <select name="category" class="filter-input">
+      <option value="">All Categories</option>
+      {% for cat in categories %}
+        <option value="{{ cat.slug }}" {% if cat_filter == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="status" class="filter-input">
+      <option value="">All Statuses</option>
+      {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="featured" class="filter-input">
+      <option value="">Featured: All</option>
+      <option value="1" {% if featured_filter == '1' %}selected{% endif %}>Featured Only</option>
+    </select>
+
+    <select name="trending" class="filter-input">
+      <option value="">Trending: All</option>
+      <option value="1" {% if trending_filter == '1' %}selected{% endif %}>Trending Only</option>
+    </select>
+
+    <button type="submit" class="filter-btn btn-orange"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+
+    {% if q or cat_filter or status_filter or featured_filter or trending_filter %}
+      <a href="{% url 'custom_admin:products' %}" class="filter-btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
+    {% endif %}
+  </div>
+</form>
+
+<!-- ── Bulk Action Bar ────────────────────────────── -->
+<form method="POST" action="{% url 'custom_admin:product_bulk' %}" id="bulkForm">
+  {% csrf_token %}
+
+  <div class="bulk-bar" id="bulkBar">
+    <span class="bulk-count" id="bulkCount">0 selected</span>
+    <select name="bulk_action" class="bulk-select">
+      <option value="">— Bulk Action —</option>
+      <option value="publish">✔ Publish (Available)</option>
+      <option value="draft">📝 Save as Draft (Coming Soon)</option>
+      <option value="feature">⭐ Mark as Featured</option>
+      <option value="unfeature">Remove Featured</option>
+      <option value="delete">🗑 Delete</option>
+    </select>
+    <button type="submit" class="btn-bulk-apply" onclick="return confirmBulk()">Apply</button>
+    <button type="button" class="filter-btn btn-outline" onclick="deselectAll()"><i class="fa-solid fa-xmark"></i> Deselect All</button>
+  </div>
+
+  <!-- ── Table ─────────────────────────────────────── -->
+  <div class="admin-card" style="padding:0;overflow:hidden;">
+    <div style="overflow-x:auto;">
+      <table class="admin-table" id="productTable">
+        <thead>
+          <tr>
+            <th style="width:40px;padding-left:20px;">
+              <input type="checkbox" id="selectAll" class="admin-form-checkbox" style="width:16px;height:16px;" title="Select all">
+            </th>
+            <th style="width:54px;"></th>
+            <th>Product Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th style="text-align:center;">★ Featured</th>
+            <th style="text-align:center;">🔥 Trending</th>
+            <th>Created</th>
+            <th style="text-align:center;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="productTbody">
+          {% for product in products %}
+            <tr data-name="{{ product.name|lower }}" data-id="{{ product.id }}">
+              <!-- Checkbox -->
+              <td style="padding-left:20px;">
+                <input type="checkbox" name="product_ids" value="{{ product.id }}"
+                  class="row-check admin-form-checkbox" style="width:16px;height:16px;">
+              </td>
+
+              <!-- Image -->
+              <td>
+                {% if product.main_image %}
+                  <img src="{{ product.main_image.url }}" alt="{{ product.name }}" class="product-thumb">
+                {% else %}
+                  <div class="product-thumb-ph"><i class="fa-solid fa-image"></i></div>
+                {% endif %}
+              </td>
+
+              <!-- Name -->
+              <td>
+                <div style="font-weight:600;font-size:.875rem;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ product.name }}</div>
+                <div style="font-size:.72rem;color:var(--text-secondary);font-family:monospace;">/{{ product.slug }}</div>
+              </td>
+
+              <!-- Category -->
+              <td><span class="badge badge-blue">{{ product.category.name }}</span></td>
+
+              <!-- Price -->
+              <td style="font-weight:700;">
+                ₹{{ product.price }}
+                {% if product.old_price %}
+                  <div style="font-size:.72rem;color:var(--text-secondary);text-decoration:line-through;font-weight:400;">₹{{ product.old_price }}</div>
+                {% endif %}
+              </td>
+
+              <!-- Status -->
+              <td>
+                {% if product.stock_status == 'available' %}
+                  <span class="badge badge-green">Available</span>
+                {% elif product.stock_status == 'coming_soon' %}
+                  <span class="badge badge-yellow">Draft</span>
+                {% else %}
+                  <span class="badge badge-gray">Deprecated</span>
+                {% endif %}
+              </td>
+
+              <!-- Featured -->
+              <td style="text-align:center;">
+                {% if product.is_featured %}<i class="fa-solid fa-star" style="color:#F59E0B;"></i>
+                {% else %}<i class="fa-regular fa-star" style="color:var(--border-color);"></i>{% endif %}
+              </td>
+
+              <!-- Trending -->
+              <td style="text-align:center;">
+                {% if product.is_trending %}<i class="fa-solid fa-fire" style="color:var(--color-primary);"></i>
+                {% else %}<i class="fa-regular fa-fire" style="color:var(--border-color);"></i>{% endif %}
+              </td>
+
+              <!-- Created -->
+              <td style="color:var(--text-secondary);font-size:.8rem;">{{ product.created_at|date:"M d, Y" }}</td>
+
+              <!-- Actions -->
+              <td style="text-align:center;">
+                <div style="display:flex;align-items:center;justify-content:center;gap:5px;">
+                  <!-- Edit -->
+                  <a href="{% url 'custom_admin:product_edit' product.id %}"
+                     class="action-btn action-edit" title="Edit">
+                    <i class="fa-solid fa-pen"></i>
+                  </a>
+                  <!-- Preview on store -->
+                  <a href="{% url 'marketplace:product_detail' product.slug %}" target="_blank"
+                     class="action-btn action-preview" title="Preview on Store">
+                    <i class="fa-solid fa-eye"></i>
+                  </a>
+                  <!-- Duplicate -->
+                  <form method="POST" action="{% url 'custom_admin:product_duplicate' product.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="action-btn action-duplicate" title="Duplicate">
+                      <i class="fa-solid fa-copy"></i>
+                    </button>
+                  </form>
+                  <!-- Delete -->
+                  <button type="button" class="action-btn action-delete" title="Delete"
+                    onclick="openDeleteModal({{ product.id }}, '{{ product.name|escapejs }}')">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr id="emptyRow">
+              <td colspan="10" style="text-align:center;padding:50px 0;color:var(--text-secondary);">
+                <i class="fa-solid fa-box-open fa-2x" style="margin-bottom:14px;opacity:.3;display:block;"></i>
+                {% if q or cat_filter or status_filter or featured_filter or trending_filter %}
+                  No products match your filters.
+                  <a href="{% url 'custom_admin:products' %}" style="color:var(--color-primary);">Clear filters</a>
+                {% else %}
+                  No products yet. <a href="{% url 'custom_admin:product_add' %}" style="color:var(--color-primary);">Add one →</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.paginator.num_pages > 1 %}
+      <div class="pager" style="padding:16px 24px;">
+        <div class="pager-info">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ total_count }}</div>
+        <div class="pager-links">
+          {% if page_obj.has_previous %}
+            <a class="plink" href="?{% if q %}q={{ q }}&{% endif %}{% if cat_filter %}category={{ cat_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ page_obj.previous_page_number }}"><i class="fa-solid fa-chevron-left"></i></a>
+          {% else %}
+            <span class="plink disabled"><i class="fa-solid fa-chevron-left"></i></span>
+          {% endif %}
+          {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+              <span class="plink active">{{ num }}</span>
+            {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+              <a class="plink" href="?{% if q %}q={{ q }}&{% endif %}{% if cat_filter %}category={{ cat_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ num }}">{{ num }}</a>
+            {% endif %}
+          {% endfor %}
+          {% if page_obj.has_next %}
+            <a class="plink" href="?{% if q %}q={{ q }}&{% endif %}{% if cat_filter %}category={{ cat_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ page_obj.next_page_number }}"><i class="fa-solid fa-chevron-right"></i></a>
+          {% else %}
+            <span class="plink disabled"><i class="fa-solid fa-chevron-right"></i></span>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</form>
+
+<!-- ── Delete Confirmation Modal ──────────────────── -->
+<div class="modal-bd" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div class="modal-title">Delete Product?</div>
+    <div class="modal-body" id="deleteModalBody">This action is permanent and cannot be undone.</div>
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel-sm" onclick="closeDeleteModal()">Cancel</button>
+      <form method="POST" id="deleteForm">
+        {% csrf_token %}
+        <button type="submit" class="btn-delete-confirm">
+          <i class="fa-solid fa-trash"></i> Yes, Delete
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── AJAX Live Search & Filters ────────────────────────
+  let searchTimeout;
+  const filterForm = document.getElementById('filterForm');
+  const liveSearch = document.getElementById('liveSearch');
+
+  function fetchProducts(url) {
+    fetch(url, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Update table body
+      const newTbody = doc.getElementById('productTbody');
+      const currentTbody = document.getElementById('productTbody');
+      if (newTbody && currentTbody) {
+        currentTbody.innerHTML = newTbody.innerHTML;
+      }
+      
+      // Update pager
+      const newPager = doc.querySelector('.pager');
+      const currentPager = document.querySelector('.pager');
+      if (currentPager) {
+        if (newPager) {
+          currentPager.innerHTML = newPager.innerHTML;
+          currentPager.style.display = '';
+        } else {
+          currentPager.style.display = 'none';
+        }
+      } else if (newPager) {
+        const card = document.querySelector('.admin-card');
+        const pagerDiv = document.createElement('div');
+        pagerDiv.className = 'pager';
+        pagerDiv.style.padding = '16px 24px';
+        pagerDiv.innerHTML = newPager.innerHTML;
+        card.appendChild(pagerDiv);
+      }
+      
+      // Update count span in header
+      const newHeaderSpan = doc.querySelector('.page-header h1 span');
+      const currentHeaderSpan = document.querySelector('.page-header h1 span');
+      if (newHeaderSpan && currentHeaderSpan) {
+        currentHeaderSpan.textContent = newHeaderSpan.textContent;
+      }
+
+      // Update Clear button in filter bar
+      const newFilterBar = doc.querySelector('.filter-bar');
+      const currentFilterBar = document.querySelector('.filter-bar');
+      if (newFilterBar && currentFilterBar) {
+        const newClear = newFilterBar.querySelector('.btn-outline');
+        const currentClear = currentFilterBar.querySelector('.btn-outline');
+        if (newClear) {
+          if (!currentClear) {
+            currentFilterBar.appendChild(newClear);
+          }
+        } else {
+          if (currentClear) {
+            currentClear.remove();
+          }
+        }
+      }
+      
+      // Reset Select All state
+      const selectAll = document.getElementById('selectAll');
+      if (selectAll) selectAll.checked = false;
+      
+      attachCheckboxListeners();
+      updateBulkBar();
+      
+      // Update history URL without reload
+      window.history.pushState({}, '', url);
+    })
+    .catch(err => console.error('Error fetching products:', err));
+  }
+
+  function updateProductsAjax() {
+    const formData = new FormData(filterForm);
+    const params = new URLSearchParams();
+    for (const [key, val] of formData.entries()) {
+      if (val) params.append(key, val);
+    }
+    const url = `${window.location.pathname}?${params.toString()}`;
+    fetchProducts(url);
+  }
+
+  // Live search key input
+  liveSearch?.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(updateProductsAjax, 300);
+  });
+
+  // Select filters onchange
+  filterForm?.querySelectorAll('.filter-input').forEach(input => {
+    if (input.tagName === 'SELECT') {
+      input.addEventListener('change', updateProductsAjax);
+    }
+  });
+
+  // Prevent form submit reloading and use AJAX instead
+  filterForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    updateProductsAjax();
+  });
+
+  // Intercept click events for AJAX (pagination links and clear button)
+  document.addEventListener('click', (e) => {
+    // 1. Pagination clicks
+    const plink = e.target.closest('.plink');
+    if (plink && !plink.classList.contains('disabled')) {
+      e.preventDefault();
+      const url = plink.getAttribute('href');
+      if (url) fetchProducts(url);
+      return;
+    }
+
+    // 2. Clear filters button clicks
+    const clearBtn = e.target.closest('.filter-bar .btn-outline');
+    if (clearBtn) {
+      e.preventDefault();
+      filterForm.reset();
+      filterForm.querySelectorAll('select').forEach(sel => sel.value = '');
+      if (liveSearch) liveSearch.value = '';
+      fetchProducts(clearBtn.getAttribute('href'));
+      return;
+    }
+  });
+
+  // ── Select All / Row Checkboxes ────────────────────────────────────
+  const selectAll = document.getElementById('selectAll');
+  const bulkBar   = document.getElementById('bulkBar');
+  const bulkCount = document.getElementById('bulkCount');
+
+  function updateBulkBar() {
+    const checked = document.querySelectorAll('.row-check:checked');
+    if (checked.length > 0) {
+      bulkBar.classList.add('visible');
+      bulkCount.textContent = checked.length + ' selected';
+    } else {
+      bulkBar.classList.remove('visible');
+    }
+    if (selectAll) {
+      selectAll.indeterminate = checked.length > 0 && checked.length < document.querySelectorAll('.row-check').length;
+      selectAll.checked = checked.length === document.querySelectorAll('.row-check').length && checked.length > 0;
+    }
+  }
+
+  function attachCheckboxListeners() {
+    document.querySelectorAll('.row-check').forEach(cb => {
+      // Avoid adding multiple listeners
+      cb.removeEventListener('change', updateBulkBar);
+      cb.addEventListener('change', updateBulkBar);
+    });
+  }
+
+  selectAll?.addEventListener('change', () => {
+    document.querySelectorAll('.row-check').forEach(cb => cb.checked = selectAll.checked);
+    updateBulkBar();
+  });
+
+  // Initial call
+  attachCheckboxListeners();
+
+  function deselectAll() {
+    document.querySelectorAll('.row-check, #selectAll').forEach(cb => cb.checked = false);
+    updateBulkBar();
+  }
+
+  function confirmBulk() {
+    const action = document.querySelector('[name="bulk_action"]')?.value;
+    const count  = document.querySelectorAll('.row-check:checked').length;
+    if (!action) {
+      if (window.showToast) window.showToast('Please select a bulk action.', 'error');
+      else alert('Please select a bulk action.');
+      return false;
+    }
+    if (count === 0) {
+      if (window.showToast) window.showToast('No products selected.', 'warning');
+      else alert('No products selected.');
+      return false;
+    }
+    if (action === 'delete') {
+      return confirm(`Permanently delete ${count} product(s)? This cannot be undone.`);
+    }
+    return true;
+  }
+
+  // ── Delete modal ───────────────────────────────────────────────────
+  function openDeleteModal(id, name) {
+    document.getElementById('deleteModalBody').textContent =
+      `"${name}" will be deleted. (You can restore it later if needed).`;
+    document.getElementById('deleteForm').action = `/custom-admin/products/${id}/delete/`;
+    document.getElementById('deleteModal').classList.add('open');
+  }
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('open');
+  }
+  document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}PawanMod | Explore Mod Categories{% endblock %}
+
+{% block content %}
+<section class="section" style="background: #f3f4f6; min-height: calc(100vh - 80px); padding: 50px 5%;">
+  <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 40px;">
+    <div class="section-title-wrap">
+      <span class="section-tag" style="color: var(--accent-cyan); font-weight: 700;">Catalog Directory</span>
+      <h2 class="section-title" style="margin: 0 auto; text-transform: uppercase;">Browse Categories</h2>
+    </div>
+  </div>
+
+  <div class="categories-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto;">
+    {% for cat in categories %}
+      <div class="category-card-new" onclick="window.location.href='{% url 'marketplace:category_detail' cat.slug %}'" style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 25px; cursor: pointer; transition: var(--transition-smooth); display: flex; flex-direction: column; align-items: flex-start; box-shadow: var(--shadow-soft);">
+        <div class="cat-title-row" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+          <span class="cat-emoji" style="font-size: 2rem;">
+            {% if cat.slug == 'vehicles' %}🚗
+            {% elif cat.slug == 'weapons' %}🔫
+            {% elif cat.slug == 'scripts-huds' %}📦
+            {% elif cat.slug == 'maps-safehouses' %}🗺️
+            {% elif cat.slug == 'character-skins' %}👥
+            {% elif cat.slug == 'graphics-presets' %}🎨
+            {% elif cat.slug == 'interiors' %}🏢
+            {% elif cat.icon %}<i class="fa-solid {{ cat.icon }}"></i>
+            {% else %}⚙️{% endif %}
+          </span>
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--color-text-primary); font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">{{ cat.name }}</h3>
+        </div>
+        <span class="cat-count-text" style="font-size: 0.9rem; color: var(--color-text-secondary); margin-bottom: 15px;">{{ cat.product_count|default:'0' }} Mods</span>
+        <span class="cat-link-text" style="font-size: 0.85rem; font-weight: 700; color: var(--accent-orange); display: flex; align-items: center; gap: 6px; transition: var(--transition-smooth);">Explore &rarr;</span>
+      </div>
+    {% empty %}
+      <p style="color: var(--color-text-secondary); text-align: center; grid-column: 1 / -1;">No categories found.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

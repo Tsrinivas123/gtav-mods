@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}PawanMod | Premium Membership Plans{% endblock %}
+
+{% block content %}
+<section class="section" style="background: #f3f4f6; min-height: calc(100vh - 80px); padding: 50px 5%;">
+  
+  <!-- Header title -->
+  <div style="text-align: center; margin-bottom: 50px;">
+    <span class="section-tag" style="color: var(--accent-orange); font-weight: 700;"><i class="fa-solid fa-crown"></i> PawanMod Pass</span>
+    <h1 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 2.8rem; text-transform: uppercase; margin: 10px 0;">Premium Membership</h1>
+    <p style="color: var(--color-text-secondary); max-width: 600px; margin: 0 auto; font-size: 1.05rem;">Choose a membership level to unlock supercharged server speeds, early access builds, and exclusive developer maps.</p>
+  </div>
+
+  <!-- Plans Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; max-width: 1100px; margin: 0 auto 60px;">
+    
+    <!-- Plan 1: Free -->
+    <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 40px 30px; display: flex; flex-direction: column; box-shadow: var(--shadow-soft);">
+      <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; color: var(--color-text-primary); font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">Basic</h3>
+      <div style="margin-bottom: 25px;">
+        <span style="font-size: 2rem; font-weight: 700; color: var(--color-text-primary);">₹0</span>
+        <span style="color: var(--color-text-muted);">/ lifetime</span>
+      </div>
+      <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 30px; line-height: 1.5;">Access the default marketplace catalog with standard capped download speeds.</p>
+      
+      <ul style="list-style: none; padding: 0; margin: 0 0 40px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 12px; color: var(--color-text-secondary);">
+        <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 10px;"></i> Standard Download Speed</li>
+        <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 10px;"></i> Community Forum Access</li>
+        <li><i class="fa-solid fa-xmark" style="color: var(--color-danger); margin-right: 10px; width: 14px; text-align: center;"></i> No Exclusive VIP Mods</li>
+        <li><i class="fa-solid fa-xmark" style="color: var(--color-danger); margin-right: 10px; width: 14px; text-align: center;"></i> Standard Queue Times</li>
+      </ul>
+      
+      <a href="{% url 'accounts:login' %}" class="btn btn-secondary" style="margin-top: auto; text-align: center; display: block; padding: 12px 0;">Get Started</a>
+    </div>
+
+    <!-- Plan 2: Pro (Recommended) -->
+    <div style="background: white; border: 2px solid var(--accent-orange); border-radius: var(--border-radius); padding: 40px 30px; display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 30px rgba(255, 107, 0, 0.08);">
+      <span style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: var(--accent-orange); color: white; padding: 4px 15px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">Recommended</span>
+      <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; color: var(--color-text-primary); font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">Pro Pass</h3>
+      <div style="margin-bottom: 25px;">
+        <span style="font-size: 2rem; font-weight: 700; color: var(--color-text-primary);">₹299</span>
+        <span style="color: var(--color-text-muted);">/ month</span>
+      </div>
+      <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 30px; line-height: 1.5;">Unlock rapid downloads, exclusive VIP mod access, and responsive priority support channels.</p>
+      
+      <ul style="list-style: none; padding: 0; margin: 0 0 40px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 12px; color: var(--color-text-secondary);">
+        <li><i class="fa-solid fa-check" style="color: var(--accent-orange); margin-right: 10px;"></i> 10x Faster Server Speeds</li>
+        <li><i class="fa-solid fa-check" style="color: var(--accent-orange); margin-right: 10px;"></i> Exclusive Premium Mod Files</li>
+        <li><i class="fa-solid fa-check" style="color: var(--accent-orange); margin-right: 10px;"></i> Priority Support Channels</li>
+        <li><i class="fa-solid fa-check" style="color: var(--accent-orange); margin-right: 10px;"></i> Ad-free Browsing Experience</li>
+      </ul>
+      
+      <a href="{% url 'accounts:profile' %}#panelMembership" class="btn btn-primary" style="margin-top: auto; text-align: center; display: block; padding: 12px 0;">Join Now</a>
+    </div>
+
+    <!-- Plan 3: Ultimate -->
+    <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 40px 30px; display: flex; flex-direction: column; box-shadow: var(--shadow-soft);">
+      <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; color: var(--color-text-primary); font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">Ultimate Pass</h3>
+      <div style="margin-bottom: 25px;">
+        <span style="font-size: 2rem; font-weight: 700; color: var(--color-text-primary);">₹799</span>
+        <span style="color: var(--color-text-muted);">/ month</span>
+      </div>
+      <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 30px; line-height: 1.5;">Total access suite for dedicated server developers and advanced mod content creators.</p>
+      
+      <ul style="list-style: none; padding: 0; margin: 0 0 40px; font-size: 0.9rem; display: flex; flex-direction: column; gap: 12px; color: var(--color-text-secondary);">
+        <li><i class="fa-solid fa-check" style="color: var(--accent-cyan); margin-right: 10px;"></i> Uncapped Server Speeds</li>
+        <li><i class="fa-solid fa-check" style="color: var(--accent-cyan); margin-right: 10px;"></i> Early-access Developer Builds</li>
+        <li><i class="fa-solid fa-check" style="color: var(--accent-cyan); margin-right: 10px;"></i> Direct Developer Consultation</li>
+        <li><i class="fa-solid fa-check" style="color: var(--accent-cyan); margin-right: 10px;"></i> Unlimited Simultaneous Files</li>
+      </ul>
+      
+      <a href="{% url 'accounts:profile' %}#panelMembership" class="btn btn-secondary" style="margin-top: auto; text-align: center; display: block; padding: 12px 0;">Upgrade Now</a>
+    </div>
+
+  </div>
+
+  <!-- Benefits Section -->
+  <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 50px; max-width: 1100px; margin: 0 auto 50px; box-shadow: var(--shadow-soft);">
+    <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.8rem; text-align: center; margin-bottom: 40px; text-transform: uppercase;">Membership Benefits</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 30px; text-align: center;">
+      <div>
+        <div style="font-size: 2.2rem; color: var(--accent-orange); margin-bottom: 15px;"><i class="fa-solid fa-gauge-high"></i></div>
+        <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 10px;">Instant Download</h4>
+        <p style="color: var(--color-text-secondary); font-size: 0.85rem; line-height: 1.4;">Uncapped speeds to pull massive vehicle packs and graphics configs in seconds.</p>
+      </div>
+      <div>
+        <div style="font-size: 2.2rem; color: var(--accent-orange); margin-bottom: 15px;"><i class="fa-solid fa-box-open"></i></div>
+        <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 10px;">Exclusive Mods</h4>
+        <p style="color: var(--color-text-secondary); font-size: 0.85rem; line-height: 1.4;">Premium scripts and safehouse interior files reserved only for Pass holders.</p>
+      </div>
+      <div>
+        <div style="font-size: 2.2rem; color: var(--accent-orange); margin-bottom: 15px;"><i class="fa-solid fa-headset"></i></div>
+        <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 10px;">Priority Support</h4>
+        <p style="color: var(--color-text-secondary); font-size: 0.85rem; line-height: 1.4;">Dedicated Discord tickets to assist with installation and loader conflicts.</p>
+      </div>
+      <div>
+        <div style="font-size: 2.2rem; color: var(--accent-orange); margin-bottom: 15px;"><i class="fa-solid fa-hourglass-start"></i></div>
+        <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 10px;">Early Access</h4>
+        <p style="color: var(--color-text-secondary); font-size: 0.85rem; line-height: 1.4;">Test beta builds of upcoming modifications before public listing releases.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ Section -->
+  <div style="max-width: 800px; margin: 0 auto;">
+    <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.8rem; text-align: center; margin-bottom: 30px; text-transform: uppercase;">Membership FAQs</h2>
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 25px; box-shadow: var(--shadow-soft);">
+        <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 10px; color: var(--color-text-primary);">Can I cancel my subscription anytime?</h4>
+        <p style="color: var(--color-text-secondary); font-size: 0.9rem; line-height: 1.5; margin: 0;">Yes, you can cancel auto-renewal directly from your dashboard membership tab. You will retain premium access until the current billing cycle ends.</p>
+      </div>
+      <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 25px; box-shadow: var(--shadow-soft);">
+        <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 10px; color: var(--color-text-primary);">How does payment renewal work?</h4>
+        <p style="color: var(--color-text-secondary); font-size: 0.9rem; line-height: 1.5; margin: 0;">Renewals are processed automatically on a monthly basis. We support major card processors, PayPal, and UPI payments.</p>
+      </div>
+    </div>
+  </div>
+
+</section>
+{% endblock %}

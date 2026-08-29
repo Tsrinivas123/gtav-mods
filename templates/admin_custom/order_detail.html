@@ -1,0 +1,200 @@
+{% extends 'admin_custom/base_admin.html' %}
+{% block title %}Order {{ order.code }} | PawanMod Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="fa-solid fa-receipt" style="color:var(--color-primary);margin-right:10px;"></i>Order {{ order.code }}</h1>
+  <div style="display:flex;gap:10px;">
+    {% if order.invoice_number %}
+    <a href="{% url 'orders:invoice_pdf' order.code %}" target="_blank" class="btn"
+       style="padding:8px 16px;font-size:.85rem;background:rgba(255,107,0,.1);color:var(--color-primary);border:1px solid rgba(255,107,0,.3);">
+      <i class="fa-solid fa-file-pdf"></i> Download Invoice
+    </a>
+    {% endif %}
+    <a href="{% url 'custom_admin:orders' %}" class="btn"
+       style="padding:8px 16px;font-size:.85rem;background:var(--bg-secondary);color:var(--text-secondary);border:1px solid var(--border-color);">
+      <i class="fa-solid fa-arrow-left"></i> Back to Orders
+    </a>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;">
+
+  <!-- Left Column -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Order Items -->
+    <div class="admin-card">
+      <h3 style="font-size:.95rem;font-weight:700;margin-bottom:18px;border-bottom:1px solid var(--border-color);padding-bottom:12px;">
+        <i class="fa-solid fa-box-open" style="color:var(--color-primary);margin-right:8px;"></i>Purchased Products
+      </h3>
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th style="text-align:right;">Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in order.items.all %}
+            <tr>
+              <td>
+                <div style="font-weight:600;">{{ item.product.name }}</div>
+                <div style="font-size:.75rem;color:var(--text-secondary);">{{ item.product.slug }}</div>
+              </td>
+              <td style="font-size:.8rem;color:var(--text-secondary);">{{ item.product.category.name }}</td>
+              <td style="text-align:right;font-weight:700;">₹{{ item.price }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3" style="text-align:center;color:var(--text-secondary);">No items.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="display:flex;justify-content:flex-end;margin-top:12px;padding-top:12px;border-top:1px solid var(--border-color);gap:20px;">
+        {% if order.discount_amount > 0 %}
+        <span style="font-size:.875rem;color:var(--text-secondary);">Discount: <strong style="color:#16a34a;">-₹{{ order.discount_amount }}</strong></span>
+        {% endif %}
+        <span style="font-size:.95rem;font-weight:700;">Total: <span style="color:var(--color-primary);">₹{{ order.total_amount }}</span></span>
+      </div>
+    </div>
+
+    <!-- Customer Details -->
+    <div class="admin-card">
+      <h3 style="font-size:.95rem;font-weight:700;margin-bottom:18px;border-bottom:1px solid var(--border-color);padding-bottom:12px;">
+        <i class="fa-solid fa-user" style="color:var(--color-primary);margin-right:8px;"></i>Customer Details
+      </h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-secondary);margin-bottom:4px;">Full Name</div>
+          <div style="font-size:.9rem;">{{ order.full_name }}</div>
+        </div>
+        <div>
+          <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-secondary);margin-bottom:4px;">Email</div>
+          <div style="font-size:.9rem;"><a href="mailto:{{ order.email }}" style="color:var(--color-primary);">{{ order.email }}</a></div>
+        </div>
+        {% if order.user %}
+        <div>
+          <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-secondary);margin-bottom:4px;">Username</div>
+          <div style="font-size:.9rem;">{{ order.user.username }}</div>
+        </div>
+        {% endif %}
+        <div>
+          <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-secondary);margin-bottom:4px;">Billing Address</div>
+          <div style="font-size:.9rem;">{{ order.billing_address|default:"—" }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Details -->
+    <div class="admin-card">
+      <h3 style="font-size:.95rem;font-weight:700;margin-bottom:18px;border-bottom:1px solid var(--border-color);padding-bottom:12px;">
+        <i class="fa-solid fa-credit-card" style="color:var(--color-primary);margin-right:8px;"></i>Payment Details
+      </h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-secondary);margin-bottom:4px;">Invoice Number</div>
+          <div style="font-size:.9rem;font-family:monospace;">{{ order.invoice_number|default:"Not generated" }}</div>
+        </div>
+        <div>
+          <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-secondary);margin-bottom:4px;">Payment Method</div>
+          <div style="font-size:.9rem;">{{ order.payment_method }}</div>
+        </div>
+        <div>
+          <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-secondary);margin-bottom:4px;">Transaction ID</div>
+          <div style="font-size:.85rem;font-family:monospace;word-break:break-all;">{{ order.payment_id|default:"—" }}</div>
+        </div>
+        <div>
+          <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-secondary);margin-bottom:4px;">Transaction Time</div>
+          <div style="font-size:.9rem;">{{ order.payment_transaction_time|date:"M d, Y H:i"|default:"—" }}</div>
+        </div>
+        {% if order.payment_gateway_response %}
+        <div style="grid-column:1/-1;">
+          <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-secondary);margin-bottom:4px;">Gateway Log</div>
+          <pre style="background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:6px;padding:10px;font-size:.72rem;overflow-x:auto;max-height:120px;color:var(--text-secondary);">{{ order.payment_gateway_response }}</pre>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right Column: Status Update Panel -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Order Meta -->
+    <div class="admin-card">
+      <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;border-bottom:1px solid var(--border-color);padding-bottom:12px;">
+        <i class="fa-solid fa-circle-info" style="color:var(--color-primary);margin-right:8px;"></i>Order Info
+      </h3>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div>
+          <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-secondary);margin-bottom:3px;">Order Code</div>
+          <div style="font-family:monospace;font-size:.85rem;color:var(--color-primary);font-weight:700;">{{ order.code }}</div>
+        </div>
+        <div>
+          <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-secondary);margin-bottom:3px;">Created</div>
+          <div style="font-size:.875rem;">{{ order.created_at|date:"M d, Y H:i" }}</div>
+        </div>
+        <div>
+          <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-secondary);margin-bottom:3px;">Order Status</div>
+          <div>
+            {% if order.status == 'completed' %}
+              <span class="badge badge-green">Completed</span>
+            {% elif order.status == 'paid' %}
+              <span class="badge badge-blue">Paid</span>
+            {% elif order.status == 'pending' %}
+              <span class="badge badge-yellow">Pending</span>
+            {% elif order.status == 'cancelled' %}
+              <span class="badge badge-red">Cancelled</span>
+            {% endif %}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--text-secondary);margin-bottom:3px;">Payment Status</div>
+          <div>
+            {% if order.payment_status == 'Success' %}
+              <span class="badge badge-green">Success</span>
+            {% elif order.payment_status == 'Failed' %}
+              <span class="badge badge-red">Failed</span>
+            {% elif order.payment_status == 'Cancelled' %}
+              <span class="badge badge-red">Cancelled</span>
+            {% else %}
+              <span class="badge badge-yellow">{{ order.payment_status }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Status Form -->
+    <div class="admin-card">
+      <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;border-bottom:1px solid var(--border-color);padding-bottom:12px;">
+        <i class="fa-solid fa-pen-to-square" style="color:var(--color-primary);margin-right:8px;"></i>Update Status
+      </h3>
+      <form method="post">
+        {% csrf_token %}
+        <div style="margin-bottom:14px;">
+          <label style="font-size:.8rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:5px;">Order Status</label>
+          <select name="status" style="width:100%;padding:9px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:.875rem;background:var(--bg-secondary);">
+            {% for val, label in status_choices %}
+              <option value="{{ val }}" {% if order.status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div style="margin-bottom:18px;">
+          <label style="font-size:.8rem;font-weight:600;color:var(--text-secondary);display:block;margin-bottom:5px;">Payment Status</label>
+          <select name="payment_status" style="width:100%;padding:9px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:.875rem;background:var(--bg-secondary);">
+            {% for val, label in payment_status_choices %}
+              <option value="{{ val }}" {% if order.payment_status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:10px;">
+          <i class="fa-solid fa-floppy-disk"></i> Save Changes
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

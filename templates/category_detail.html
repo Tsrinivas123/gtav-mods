@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}PawanMod | {{ category.name }} Mods{% endblock %}
+
+{% block content %}
+<section class="section" style="background: #f3f4f6; min-height: calc(100vh - 80px); padding: 40px 5%;">
+  
+  <!-- Category Header banner -->
+  <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 40px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-soft);">
+    <div>
+      <span class="section-tag" style="color: var(--accent-cyan); font-weight: 700;">Category Files</span>
+      <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 2.2rem; text-transform: uppercase; margin: 5px 0;">{{ category.name }}</h2>
+      <p style="color: var(--color-text-secondary); margin: 0;">Showing {{ total_count }} products in the {{ category.name }} catalog.</p>
+    </div>
+    <a href="{% url 'marketplace:categories_list' %}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> All Categories</a>
+  </div>
+
+  <!-- Filters Row -->
+  <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 20px 30px; margin-bottom: 30px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; box-shadow: var(--shadow-soft);">
+    <!-- Search inside Category -->
+    <form action="" method="GET" style="display: flex; gap: 10px; width: 100%; max-width: 400px; position: relative;">
+      <input type="text" name="search" placeholder="Search in {{ category.name }}..." value="{{ search_query }}" style="width: 100%; border-radius: 30px; padding: 10px 20px; border: 1px solid var(--card-border); background: #f3f4f6; color: var(--color-text-primary);">
+      {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
+      {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
+      {% if sort_by %}<input type="hidden" name="sort_by" value="{{ sort_by }}">{% endif %}
+      <button type="submit" class="btn btn-primary" style="border-radius: 30px; padding: 8px 20px;"><i class="fa-solid fa-magnifying-glass"></i></button>
+    </form>
+
+    <!-- Sort Filter Form -->
+    <form action="" method="GET" id="sortForm" style="display: flex; align-items: center; gap: 15px;">
+      {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+      {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
+      {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
+      
+      <label for="sort_by" style="font-weight: 600; font-size: 0.9rem; color: var(--color-text-secondary);">Sort By:</label>
+      <select name="sort_by" id="sort_by" onchange="document.getElementById('sortForm').submit();" style="border-radius: 8px; padding: 8px 15px; border: 1px solid var(--card-border); background: white; color: var(--color-text-primary); cursor: pointer;">
+        <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Uploads</option>
+        <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Most Popular</option>
+        <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Highest Rated</option>
+        <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+        <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+      </select>
+    </form>
+  </div>
+
+  <!-- Products Grid -->
+  <div class="mods-grid">
+    {% for product in products %}
+      {% include 'includes/product_card.html' with product=product %}
+    {% empty %}
+      <p style="color: var(--color-text-secondary); text-align: center; grid-column: 1 / -1; padding: 50px 0;">No mods found in this category.</p>
+    {% endfor %}
+  </div>
+
+</section>
+
+<!-- Quick View Modal Container -->
+<div id="quickViewModal" class="qv-modal" style="display: none;">
+  <div class="qv-modal-content">
+    <span class="qv-close">&times;</span>
+    <div class="qv-modal-body">
+      <div class="qv-grid">
+        <div class="qv-img-container">
+          <img id="qv-img" src="" alt="Product Image">
+        </div>
+        <div class="qv-details">
+          <span id="qv-cat" class="mod-badge-cat"></span>
+          <h2 id="qv-name"></h2>
+          <div class="qv-rating-downloads" style="margin: 10px 0;">
+            <span style="color: var(--accent-orange);"><i class="fa-solid fa-star"></i> <span id="qv-rating"></span></span>
+            <span style="margin-left: 15px; color: var(--color-text-secondary);"><i class="fa-solid fa-download"></i> <span id="qv-downloads"></span> downloads</span>
+          </div>
+          <p id="qv-desc" style="margin-bottom: 20px; font-size: 0.95rem; color: var(--color-text-secondary); line-height: 1.5;"></p>
+          <div class="qv-price-box" style="margin-bottom: 25px;">
+            <span id="qv-old-price" class="mod-old-price" style="display: none; margin-right: 8px;"></span>
+            <span id="qv-price" class="mod-price" style="font-size: 1.5rem; font-weight: 700; color: var(--accent-orange);"></span>
+          </div>
+          <div class="qv-actions" style="display: flex; gap: 10px;">
+            <form id="qv-add-cart-form" action="" method="POST" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-secondary">Add to Cart</button>
+            </form>
+            <form id="qv-buy-now-form" action="" method="POST" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="checkout_direct" value="true">
+              <button type="submit" class="btn btn-primary">Buy Now</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('quickViewModal');
+  const closeBtn = document.querySelector('.qv-close');
+  
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+  }
+  
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+
+  // Open modal handler
+  document.addEventListener('click', (e) => {
+    const qvBtn = e.target.closest('.quick-view-btn');
+    if (qvBtn) {
+      e.preventDefault();
+      
+      const id = qvBtn.getAttribute('data-id');
+      const name = qvBtn.getAttribute('data-name');
+      const img = qvBtn.getAttribute('data-img');
+      const cat = qvBtn.getAttribute('data-cat');
+      const desc = qvBtn.getAttribute('data-desc');
+      const price = qvBtn.getAttribute('data-price');
+      const oldPrice = qvBtn.getAttribute('data-old-price');
+      const rating = qvBtn.getAttribute('data-rating');
+      const downloads = qvBtn.getAttribute('data-downloads');
+      const cartUrl = qvBtn.getAttribute('data-cart-url');
+
+      // Populate elements
+      document.getElementById('qv-name').innerText = name;
+      document.getElementById('qv-cat').innerText = cat;
+      document.getElementById('qv-desc').innerText = desc;
+      document.getElementById('qv-rating').innerText = rating;
+      document.getElementById('qv-downloads').innerText = downloads;
+      document.getElementById('qv-price').innerText = price;
+      
+      const imgEl = document.getElementById('qv-img');
+      if (img) {
+        imgEl.src = img;
+        imgEl.style.display = 'block';
+      } else {
+        imgEl.style.display = 'none';
+      }
+
+      const oldPriceEl = document.getElementById('qv-old-price');
+      if (oldPrice) {
+        oldPriceEl.innerText = oldPrice;
+        oldPriceEl.style.display = 'inline';
+      } else {
+        oldPriceEl.style.display = 'none';
+      }
+
+      // Action urls
+      document.getElementById('qv-add-cart-form').action = cartUrl;
+      document.getElementById('qv-buy-now-form').action = cartUrl;
+
+      // Show modal
+      modal.style.display = 'flex';
+    }
+  });
+
+  // AJAX wishlisting from card
+  document.addEventListener('click', (e) => {
+    const wishBtn = e.target.closest('.wishlist-btn-card');
+    if (wishBtn) {
+      e.preventDefault();
+      const pid = wishBtn.getAttribute('data-product-id');
+      fetch(`/accounts/wishlist/toggle/${pid}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === 'added') {
+          wishBtn.querySelector('i').className = 'fa-solid fa-heart';
+          wishBtn.style.color = '#ff6b00';
+        } else if (data.status === 'removed') {
+          wishBtn.querySelector('i').className = 'fa-regular fa-heart';
+          wishBtn.style.color = '';
+        }
+      })
+      .catch(() => alert('Please login to wishlist mods.'));
+    }
+  });
+});
+</script>
+{% endblock %}

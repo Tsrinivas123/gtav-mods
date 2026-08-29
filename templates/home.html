@@ -1,0 +1,469 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}PawanMod | Premium GTA Mods Marketplace{% endblock %}
+
+{% block content %}
+
+<section class="section" style="background: #f5f5f7; padding: 50px 5%; display: flex; flex-direction: column; gap: 50px;">
+
+  <!-- 3. Trending Mods (max 8 products) -->
+  <div class="home-section-block">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-tag" style="color: var(--accent-orange); font-weight: 700;">🔥 Hot Releases</span>
+        <h2 class="section-title">Trending Mods</h2>
+      </div>
+      <a href="{% url 'marketplace:store' %}?sort_by=popular" class="btn btn-secondary"><i class="fa-solid fa-arrow-up-right-from-square"></i> View All Trending</a>
+    </div>
+
+    <div class="mods-grid">
+      {% for product in trending_mods|slice:":8" %}
+        {% include 'includes/product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 4. Limited-Time Offers / Coupon Codes -->
+  {% if coupons_enabled %}
+  <div class="home-section-block">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-tag" style="color: var(--accent-cyan); font-weight: 700;">🎁 Promo Hub</span>
+        <h2 class="section-title">Limited-Time Coupon Offers</h2>
+      </div>
+    </div>
+    
+    <div class="form-row-grid" style="gap: 24px;">
+      <div style="background: white; border: 1px dashed var(--accent-orange); border-radius: var(--border-radius); padding: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-soft);">
+        <div>
+          <span style="background: rgba(255, 107, 0, 0.08); color: var(--accent-orange); font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; text-transform: uppercase;">20% Discount</span>
+          <h4 style="font-size: 1.15rem; font-weight: 700; margin: 10px 0 5px; color: var(--color-text-primary);">Save on Orders above ₹499</h4>
+          <p style="color: var(--color-text-secondary); font-size: 0.85rem; margin: 0;">Apply coupon at checkout screen.</p>
+        </div>
+        <div style="text-align: right;">
+          <div style="background: #f3f4f6; border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 8px; font-weight: 700; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: var(--color-text-primary); margin-bottom: 10px; cursor: pointer;" onclick="navigator.clipboard.writeText('SAVE20'); window.showToast('Coupon SAVE20 copied to clipboard!', 'success');" tabindex="0" role="button" aria-label="Copy SAVE20 coupon code">SAVE20</div>
+          <span style="font-size: 0.75rem; color: var(--color-text-muted);">Click to Copy Code</span>
+        </div>
+      </div>
+      
+      <div style="background: white; border: 1px dashed var(--accent-cyan); border-radius: var(--border-radius); padding: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-soft);">
+        <div>
+          <span style="background: rgba(37, 99, 235, 0.08); color: var(--accent-cyan); font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; text-transform: uppercase;">10% Welcome</span>
+          <h4 style="font-size: 1.15rem; font-weight: 700; margin: 10px 0 5px; color: var(--color-text-primary);">First Purchase Discount</h4>
+          <p style="color: var(--color-text-secondary); font-size: 0.85rem; margin: 0;">Applies to all products library.</p>
+        </div>
+        <div style="text-align: right;">
+          <div style="background: #f3f4f6; border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 8px; font-weight: 700; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: var(--color-text-primary); margin-bottom: 10px; cursor: pointer;" onclick="navigator.clipboard.writeText('WELCOME10'); window.showToast('Coupon WELCOME10 copied to clipboard!', 'success');" tabindex="0" role="button" aria-label="Copy WELCOME10 coupon code">WELCOME10</div>
+          <span style="font-size: 0.75rem; color: var(--color-text-muted);">Click to Copy Code</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 5. Browse Categories (6-8 compact cards) -->
+  <div class="home-section-block" id="categoriesSec">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-tag" style="color: var(--accent-cyan); font-weight: 700;">Catalog Directory</span>
+        <h2 class="section-title">Browse Categories</h2>
+      </div>
+      <a href="{% url 'marketplace:categories_list' %}" class="btn btn-secondary"><i class="fa-solid fa-layer-group"></i> View All Categories</a>
+    </div>
+
+    <div class="categories-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;">
+      {% for cat in featured_categories %}
+      <div class="category-card-new" onclick="window.location.href='{% url 'marketplace:category_detail' cat.slug %}'">
+        <div class="cat-title-row">
+          <span class="cat-emoji">
+            {% if cat.slug == 'vehicles' %}🚗
+            {% elif cat.slug == 'weapons' %}🔫
+            {% elif cat.slug == 'scripts-huds' %}📦
+            {% elif cat.slug == 'maps-safehouses' %}🗺️
+            {% elif cat.slug == 'character-skins' %}👥
+            {% elif cat.slug == 'graphics-presets' %}🎨
+            {% elif cat.slug == 'interiors' %}🏢
+            {% elif cat.icon %}<i class="fa-solid {{ cat.icon }}"></i>
+            {% else %}⚙️{% endif %}
+          </span>
+          <h3>{{ cat.name }}</h3>
+        </div>
+        <span class="cat-count-text">{{ cat.product_count|default:'0' }} Mods</span>
+        <span class="cat-link-text">Explore &rarr;</span>
+      </div>
+      {% empty %}
+      <p style="color: var(--color-text-secondary); text-align: center; grid-column: 1 / -1;">No categories found.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 6. Why Buy From Us -->
+  <div class="home-section-block">
+    <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 30px;">
+      <div class="section-title-wrap">
+        <span class="section-tag" style="color: var(--accent-orange); font-weight: 700;">🔒 Guaranteed Footprints</span>
+        <h2 class="section-title" style="margin: 0 auto; text-transform: uppercase;">Why Buy From Us</h2>
+      </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px;">
+      <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 25px; text-align: center; box-shadow: var(--shadow-soft);">
+        <div style="font-size: 2rem; color: var(--accent-orange); margin-bottom: 12px;"><i class="fa-solid fa-shield-halved"></i></div>
+        <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;">100% Secure Files</h4>
+        <p style="color: var(--color-text-secondary); font-size: 0.85rem; line-height: 1.4; margin: 0;">Scanned systematically for trojans or malicious hooks.</p>
+      </div>
+      <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 25px; text-align: center; box-shadow: var(--shadow-soft);">
+        <div style="font-size: 2rem; color: var(--accent-orange); margin-bottom: 12px;"><i class="fa-solid fa-bolt"></i></div>
+        <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;">Instant Download Delivery</h4>
+        <p style="color: var(--color-text-secondary); font-size: 0.85rem; line-height: 1.4; margin: 0;">Delivered instantly to your profile catalog upon checking out.</p>
+      </div>
+      <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 25px; text-align: center; box-shadow: var(--shadow-soft);">
+        <div style="font-size: 2rem; color: var(--accent-orange); margin-bottom: 12px;"><i class="fa-solid fa-headset"></i></div>
+        <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;">Responsive Assistance</h4>
+        <p style="color: var(--color-text-secondary); font-size: 0.85rem; line-height: 1.4; margin: 0;">Our guides and moderators support configure scripts quickly.</p>
+      </div>
+      <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 25px; text-align: center; box-shadow: var(--shadow-soft);">
+        <div style="font-size: 2rem; color: var(--accent-orange); margin-bottom: 12px;"><i class="fa-solid fa-crown"></i></div>
+        <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;">Exclusive Code timelines</h4>
+        <p style="color: var(--color-text-secondary); font-size: 0.85rem; line-height: 1.4; margin: 0;">Exclusive maps and versions updates directly from developers.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Secure Payment Methods -->
+  <div class="home-section-block" style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 30px 40px; box-shadow: var(--shadow-soft); text-align: center;">
+    <h4 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 0.95rem; text-transform: uppercase; color: var(--color-text-secondary); margin-bottom: 20px; letter-spacing: 1px;"><i class="fa-solid fa-lock" style="color: #22c55e; margin-right: 8px;"></i> Guaranteed SSL Secure Checkout Payments</h4>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 30px; opacity: 0.8;">
+      <span style="font-weight: 700; font-size: 1.1rem; color: #5f259f;"><i class="fa-solid fa-wallet"></i> PhonePe</span>
+      <span style="font-weight: 700; font-size: 1.1rem; color: #00b9f5;"><i class="fa-solid fa-money-bill-transfer"></i> Paytm</span>
+      <span style="font-weight: 700; font-size: 1.1rem; color: #2563eb;"><i class="fa-solid fa-building-columns"></i> Google Pay</span>
+      <span style="font-weight: 700; font-size: 1.1rem; color: #0079C1;"><i class="fa-brands fa-paypal"></i> PayPal</span>
+      <span style="font-weight: 700; font-size: 1.1rem; color: var(--color-text-primary);"><i class="fa-regular fa-credit-card"></i> Debit/Credit Cards</span>
+      <span style="font-weight: 700; font-size: 1.1rem; color: #22c55e;"><i class="fa-solid fa-shield-check"></i> SSL Secured</span>
+    </div>
+  </div>
+
+  <!-- Latest Products (max 8 products) -->
+  <div class="home-section-block">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-tag" style="color: var(--accent-cyan); font-weight: 700;">✨ Newest Additions</span>
+        <h2 class="section-title">Latest Products</h2>
+      </div>
+      <a href="{% url 'marketplace:store' %}?sort_by=newest" class="btn btn-secondary"><i class="fa-solid fa-arrow-up-right-from-square"></i> View All New</a>
+    </div>
+
+    <div class="mods-grid">
+      {% for product in latest_products %}
+        {% include 'includes/product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 8. Best Selling Mods (6 products) -->
+  <div class="home-section-block">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-tag" style="color: var(--accent-orange); font-weight: 700;">💎 Customer Favorites</span>
+        <h2 class="section-title">Best Selling Mods</h2>
+      </div>
+      <a href="{% url 'marketplace:store' %}?sort_by=popular" class="btn btn-secondary"><i class="fa-solid fa-arrow-up-right-from-square"></i> View All Best Sellers</a>
+    </div>
+
+    <div class="mods-grid">
+      {% for product in best_selling_mods %}
+        {% include 'includes/product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 9. Top Rated Mods (6 products) -->
+  <div class="home-section-block">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-tag" style="color: var(--accent-cyan); font-weight: 700;">⭐ Gold Standard</span>
+        <h2 class="section-title">Top Rated Mods</h2>
+      </div>
+      <a href="{% url 'marketplace:store' %}?sort_by=rating" class="btn btn-secondary"><i class="fa-solid fa-arrow-up-right-from-square"></i> View All Top Rated</a>
+    </div>
+
+    <div class="mods-grid">
+      {% for product in top_rated_mods %}
+        {% include 'includes/product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 10. Featured Mods (6 products) -->
+  <div class="home-section-block">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-tag" style="color: var(--accent-orange); font-weight: 700;">⭐ Staff Handpicked</span>
+        <h2 class="section-title">Featured Mods</h2>
+      </div>
+      <a href="{% url 'marketplace:store' %}?sort_by=featured" class="btn btn-secondary"><i class="fa-solid fa-star"></i> View All Featured</a>
+    </div>
+
+    <div class="mods-grid">
+      {% for product in featured_mods %}
+        {% include 'includes/product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 11. Latest Blog Posts (only 3 posts) -->
+  <div class="home-section-block">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-tag" style="color: var(--accent-orange); font-weight: 700;">Modding Guides</span>
+        <h2 class="section-title">Latest Blog Posts</h2>
+      </div>
+      <a href="{% url 'blog:post_list' %}" class="btn btn-secondary"><i class="fa-solid fa-book-open"></i> View All Articles</a>
+    </div>
+    
+    <div class="blog-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px;">
+      {% for article in latest_articles|slice:":3" %}
+        <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); overflow: hidden; display: flex; flex-direction: column; height: 100%; box-shadow: var(--shadow-soft);">
+          <div style="height: 180px; overflow: hidden; background: #f8f9fa;">
+            {% if article.featured_image %}
+              <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            {% endif %}
+          </div>
+          <div style="padding: 25px; display: flex; flex-direction: column; flex-grow: 1;">
+            <span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">{{ article.category|default:'MODS' }}</span>
+            <h3 style="font-size: 1.15rem; font-weight: 700; line-height: 1.4; margin-bottom: 12px; color: var(--color-text-primary);">{{ article.title }}</h3>
+            <p style="font-size: 0.85rem; color: var(--color-text-secondary); line-height: 1.5; margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; height: 57px;">{{ article.excerpt }}</p>
+            
+            <a href="{% url 'blog:post_detail' article.slug %}" class="btn btn-secondary" style="margin-top: auto; align-self: flex-start; padding: 8px 16px; font-size: 0.75rem;">Read More</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 12. Customer Reviews -->
+  <div class="home-section-block">
+    <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 35px;">
+      <div class="section-title-wrap">
+        <span class="section-tag" style="color: var(--accent-cyan); font-weight: 700;">Verified Testimonials</span>
+        <h2 class="section-title" style="margin: 0 auto; text-transform: uppercase;">Customer Reviews</h2>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px;">
+      <div style="background: white; border: 1px solid var(--card-border); padding: 30px; border-radius: var(--border-radius); box-shadow: var(--shadow-soft);">
+        <div style="color: #eab308; margin-bottom: 15px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+        <p style="font-size: 0.95rem; color: var(--color-text-secondary); line-height: 1.5; margin-bottom: 20px;">"The graphics shader preset and atmospheric sky map completely changed my GTA V visual experience. Installation was super easy following the guide!"</p>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--color-text-primary);">JD</div>
+          <div>
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--color-text-primary);">John Doe</h4>
+            <span style="font-size: 0.75rem; color: var(--color-text-muted);">Verified Mod Buyer</span>
+          </div>
+        </div>
+      </div>
+      <div style="background: white; border: 1px solid var(--card-border); padding: 30px; border-radius: var(--border-radius); box-shadow: var(--shadow-soft);">
+        <div style="color: #eab308; margin-bottom: 15px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+        <p style="font-size: 0.95rem; color: var(--color-text-secondary); line-height: 1.5; margin-bottom: 20px;">"The realism jobs inventory script is amazing! It works perfectly on my FiveM server without lagging. 10/10 developer work."</p>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--color-text-primary);">AS</div>
+          <div>
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--color-text-primary);">Alice Smith</h4>
+            <span style="font-size: 0.75rem; color: var(--color-text-muted);">Server Owner</span>
+          </div>
+        </div>
+      </div>
+      <div style="background: white; border: 1px solid var(--card-border); padding: 30px; border-radius: var(--border-radius); box-shadow: var(--shadow-soft);">
+        <div style="color: #eab308; margin-bottom: 15px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+        <p style="font-size: 0.95rem; color: var(--color-text-secondary); line-height: 1.5; margin-bottom: 20px;">"PawanMod is my go-to marketplace for premium GTA 5 mods. Fast downloads, safe files, and friendly support moderators."</p>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: #e5e7eb; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--color-text-primary);">MR</div>
+          <div>
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--color-text-primary);">Mike Ross</h4>
+            <span style="font-size: 0.75rem; color: var(--color-text-muted);">Content Creator</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 13. FAQ Accordions (Requested) -->
+  <div class="home-section-block" style="max-width: 800px; margin: 0 auto;">
+    <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 30px;">
+      <div class="section-title-wrap">
+        <span class="section-tag" style="color: var(--accent-cyan); font-weight: 700;">Help Center</span>
+        <h2 class="section-title" style="margin: 0 auto; text-transform: uppercase;">Frequently Asked Questions</h2>
+      </div>
+    </div>
+    
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+      <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 20px 25px; box-shadow: var(--shadow-soft);">
+        <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: var(--color-text-primary);">How do I download and install these mods?</h4>
+        <p style="color: var(--color-text-secondary); font-size: 0.88rem; line-height: 1.5; margin: 0;">Once your checkout purchase completes, files will instantly appear inside your account inventory. Every product detail has step-by-step installation tab guidelines.</p>
+      </div>
+      <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 20px 25px; box-shadow: var(--shadow-soft);">
+        <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: var(--color-text-primary);">Are these files safe to use?</h4>
+        <p style="color: var(--color-text-secondary); font-size: 0.88rem; line-height: 1.5; margin: 0;">Yes. We scan all submissions thoroughly to verify they are virus-free, and safe for multiplayer roleplay server execution.</p>
+      </div>
+      <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 20px 25px; box-shadow: var(--shadow-soft);">
+        <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: var(--color-text-primary);">Can I use UPI for payments?</h4>
+        <p style="color: var(--color-text-secondary); font-size: 0.88rem; line-height: 1.5; margin: 0;">Yes, we support direct UPI checkout with PhonePe, Paytm, Google Pay, and QR code billing methods.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 14. Newsletter Section -->
+  <div class="newsletter-section-wrapper" style="background: var(--bg-secondary); border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); padding: 50px; text-align: center; margin-bottom: 20px; box-shadow: var(--shadow-soft);">
+    <div style="max-width: 600px; margin: 0 auto;">
+      <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 2rem; text-transform: uppercase; margin-bottom: 10px; color: var(--color-text-primary);">Join Newsletter</h2>
+      <p style="color: var(--color-text-secondary); margin-bottom: 30px; font-size: 0.95rem;">Subscribe to receive updates on new releases, holiday coupon discount codes, and monthly mod giveaways.</p>
+      <form onsubmit="event.preventDefault(); window.showToast('Subscribed to newsletter successfully!', 'success');" style="display: flex; gap: 10px;">
+        <input type="email" placeholder="Enter email address" class="form-input" required style="flex: 1; border-radius: 30px; padding: 12px 25px; background: #f3f4f6; border: 1px solid var(--card-border); color: var(--color-text-primary);" aria-label="Email address for newsletter">
+        <button type="submit" class="btn btn-primary" style="border-radius: 30px; padding: 12px 30px;"><i class="fa-solid fa-paper-plane"></i> Subscribe</button>
+      </form>
+    </div>
+  </div>
+
+</section>
+
+<!-- Quick View Modal Container -->
+<div id="quickViewModal" class="qv-modal" style="display: none;">
+  <div class="qv-modal-content">
+    <span class="qv-close">&times;</span>
+    <div class="qv-modal-body">
+      <div class="qv-grid">
+        <div class="qv-img-container">
+          <img id="qv-img" src="" alt="Product Image">
+        </div>
+        <div class="qv-details">
+          <span id="qv-cat" class="mod-badge-cat"></span>
+          <h2 id="qv-name"></h2>
+          <div class="qv-rating-downloads" style="margin: 10px 0;">
+            <span style="color: var(--accent-orange);"><i class="fa-solid fa-star"></i> <span id="qv-rating"></span></span>
+            <span style="margin-left: 15px; color: var(--color-text-secondary);"><i class="fa-solid fa-download"></i> <span id="qv-downloads"></span> downloads</span>
+          </div>
+          <p id="qv-desc" style="margin-bottom: 20px; font-size: 0.95rem; color: var(--color-text-secondary); line-height: 1.5;"></p>
+          <div class="qv-price-box" style="margin-bottom: 25px;">
+            <span id="qv-old-price" class="mod-old-price" style="display: none; margin-right: 8px;"></span>
+            <span id="qv-price" class="mod-price" style="font-size: 1.5rem; font-weight: 700; color: var(--accent-orange);"></span>
+          </div>
+          <div class="qv-actions" style="display: flex; gap: 10px;">
+            <form id="qv-add-cart-form" action="" method="POST" style="display: inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-secondary">Add to Cart</button>
+            </form>
+            <form id="qv-buy-now-form" action="" method="POST" style="display: inline;">
+              {% csrf_token %}
+              <input type="hidden" name="checkout_direct" value="true">
+              <button type="submit" class="btn btn-primary">Buy Now</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('quickViewModal');
+  const closeBtn = document.querySelector('.qv-close');
+  
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+  }
+  
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+
+  // Open modal handler
+  document.addEventListener('click', (e) => {
+    const qvBtn = e.target.closest('.quick-view-btn');
+    if (qvBtn) {
+      e.preventDefault();
+      
+      const id = qvBtn.getAttribute('data-id');
+      const name = qvBtn.getAttribute('data-name');
+      const img = qvBtn.getAttribute('data-img');
+      const cat = qvBtn.getAttribute('data-cat');
+      const desc = qvBtn.getAttribute('data-desc');
+      const price = qvBtn.getAttribute('data-price');
+      const oldPrice = qvBtn.getAttribute('data-old-price');
+      const rating = qvBtn.getAttribute('data-rating');
+      const downloads = qvBtn.getAttribute('data-downloads');
+      const cartUrl = qvBtn.getAttribute('data-cart-url');
+
+      // Populate elements
+      document.getElementById('qv-name').innerText = name;
+      document.getElementById('qv-cat').innerText = cat;
+      document.getElementById('qv-desc').innerText = desc;
+      document.getElementById('qv-rating').innerText = rating;
+      document.getElementById('qv-downloads').innerText = downloads;
+      document.getElementById('qv-price').innerText = price;
+      
+      const imgEl = document.getElementById('qv-img');
+      if (img) {
+        imgEl.src = img;
+        imgEl.style.display = 'block';
+      } else {
+        imgEl.style.display = 'none';
+      }
+
+      const oldPriceEl = document.getElementById('qv-old-price');
+      if (oldPrice) {
+        oldPriceEl.innerText = oldPrice;
+        oldPriceEl.style.display = 'inline';
+      } else {
+        oldPriceEl.style.display = 'none';
+      }
+
+      // Action urls
+      document.getElementById('qv-add-cart-form').action = cartUrl;
+      document.getElementById('qv-buy-now-form').action = cartUrl;
+
+      // Show modal
+      modal.style.display = 'flex';
+    }
+  });
+
+  // AJAX wishlisting from card
+  document.addEventListener('click', (e) => {
+    const wishBtn = e.target.closest('.wishlist-btn-card');
+    if (wishBtn) {
+      e.preventDefault();
+      const pid = wishBtn.getAttribute('data-product-id');
+      fetch(`/accounts/wishlist/toggle/${pid}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === 'added') {
+          wishBtn.querySelector('i').className = 'fa-solid fa-heart';
+          wishBtn.style.color = '#ff6b00';
+          if (window.showToast) window.showToast('Added to wishlist!', 'success');
+        } else if (data.status === 'removed') {
+          wishBtn.querySelector('i').className = 'fa-regular fa-heart';
+          wishBtn.style.color = '';
+          if (window.showToast) window.showToast('Removed from wishlist.', 'info');
+        }
+      })
+      .catch(() => {
+        if (window.showToast) window.showToast('Please login to wishlist mods.', 'warning');
+        else alert('Please login to wishlist mods.');
+      });
+    }
+  });
+});
+</script>
+{% endblock %}

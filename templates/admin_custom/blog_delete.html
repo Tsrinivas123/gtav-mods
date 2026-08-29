@@ -1,0 +1,57 @@
+{% extends 'admin_custom/base_admin.html' %}
+{% block title %}Delete Blog Post | PawanMod Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .delete-card {
+    max-width: 550px; margin: 40px auto; background: var(--bg-card);
+    border: 1px solid var(--border-color); border-radius: var(--radius);
+    padding: 35px; box-shadow: var(--shadow-md); text-align: center;
+  }
+  .warning-icon { font-size: 3.5rem; color: var(--color-red); margin-bottom: 20px; }
+  .delete-title { font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; }
+  .delete-desc  { font-size: .9rem; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6; }
+  
+  .actions-row { display: flex; gap: 12px; justify-content: center; }
+  .btn-delete-confirm {
+    padding: 10px 24px; background: var(--color-red); color: white;
+    border: none; border-radius: var(--radius-sm); font-size: .875rem;
+    font-weight: 700; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; text-decoration: none;
+    transition: var(--transition);
+  }
+  .btn-delete-confirm:hover { background: #dc2626; }
+  .btn-cancel {
+    padding: 10px 20px; background: var(--bg-body); color: var(--text-secondary);
+    border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+    font-size: .875rem; font-weight: 600; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    text-decoration: none; transition: var(--transition);
+  }
+  .btn-cancel:hover { background: var(--border-color); color: var(--text-primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-card">
+  <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+  <h2 class="delete-title">Are you absolutely sure?</h2>
+  
+  <p class="delete-desc">
+    You are about to delete the blog post <strong>"{{ post.title }}"</strong>.
+    This action is permanent and cannot be undone.
+  </p>
+
+  <form method="POST">
+    {% csrf_token %}
+    <div class="actions-row">
+      <button type="submit" class="btn-delete-confirm">
+        <i class="fa-solid fa-trash"></i> Delete Post
+      </button>
+      <a href="{% url 'custom_admin:blog' %}" class="btn-cancel">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

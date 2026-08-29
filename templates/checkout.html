@@ -1,0 +1,495 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout Details | PawanMod Premium GTA Mods{% endblock %}
+
+{% block content %}
+<style>
+  /* Premium style overrides for Checkout form and fields */
+  .checkout-layout {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 1024px) {
+    .checkout-layout {
+      grid-template-columns: 1.2fr 1fr;
+      gap: 30px;
+    }
+  }
+
+  @media (max-width: 991px) {
+    .checkout-layout {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+    .checkout-billing-panel {
+      padding: 24px !important;
+    }
+    .checkout-summary-sidebar {
+      position: static !important;
+    }
+  }
+
+  /* Form Fields Styling */
+  .form-group {
+    margin-bottom: 24px;
+  }
+
+  .custom-field-label {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 8px;
+    color: #4b5563;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .required-star {
+    color: #ef4444;
+    font-weight: 800;
+    margin-left: 2px;
+  }
+
+  .custom-form-input, .custom-form-select, .custom-form-textarea {
+    width: 100%;
+    border: 1px solid #dcdcdc;
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 0.95rem;
+    color: #111827;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .custom-form-input, .custom-form-select {
+    height: 52px;
+  }
+
+  .custom-form-textarea {
+    height: 120px;
+    resize: vertical;
+  }
+
+  .custom-form-input::placeholder, .custom-form-textarea::placeholder {
+    color: #9ca3af;
+  }
+
+  .custom-form-input:focus, .custom-form-select:focus, .custom-form-textarea:focus {
+    outline: none;
+    border-color: var(--accent-orange) !important;
+    box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.15) !important;
+  }
+
+  /* Custom styled select box */
+  .custom-form-select {
+    background-color: #ffffff;
+    color: #111827;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111827' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 16px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+
+  .custom-form-select option {
+    background-color: #ffffff;
+    color: #111827;
+    padding: 12px;
+  }
+
+  /* Custom Payment Dropdown Styling */
+  .custom-dropdown {
+    width: 100%;
+    position: relative;
+  }
+
+  #paymentDropdownTrigger {
+    border: 1px solid #dcdcdc !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    box-sizing: border-box;
+  }
+
+  #paymentDropdownTrigger:hover, #paymentDropdownTrigger:focus-visible {
+    border-color: var(--accent-orange) !important;
+    box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.15) !important;
+    outline: none;
+  }
+
+  .payment-dropdown-item {
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    padding: 12px 18px;
+    cursor: pointer;
+    color: #111827;
+    background: #ffffff;
+    transition: all 0.15s ease;
+    font-weight: 500;
+  }
+
+  .payment-dropdown-item:hover, .payment-dropdown-item:focus-visible {
+    background-color: #f3f4f6 !important;
+    color: var(--accent-orange) !important;
+    outline: none;
+  }
+
+  .payment-dropdown-item.active {
+    background-color: var(--accent-orange) !important;
+    color: #ffffff !important;
+  }
+
+  .payment-dropdown-item.active i {
+    color: #ffffff !important;
+  }
+
+  /* Uniform action buttons style */
+  .uniform-btn {
+    width: 100%;
+    height: 52px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+  }
+
+  .btn-submit-order {
+    background: var(--accent-orange);
+    color: #ffffff;
+  }
+
+  .btn-submit-order:hover {
+    background: #e86500;
+    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.25);
+  }
+
+  .btn-return-cart {
+    background: #ffffff;
+    color: #374151;
+    border: 2px solid #dcdcdc;
+    text-decoration: none;
+  }
+
+  .btn-return-cart:hover {
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
+  }
+</style>
+
+<section class="section" style="background: #f5f5f7; min-height: calc(100vh - 80px); padding: 50px 5%;">
+
+  <!-- Stepper Progress Tracker -->
+  <div class="checkout-stepper">
+    <a href="{% url 'orders:cart' %}" style="color: var(--color-text-secondary); text-decoration: none; transition: var(--transition-smooth);" onmouseover="this.style.color='var(--accent-orange)'" onmouseout="this.style.color='var(--color-text-secondary)'">Shopping Cart</a>
+    <span style="color: var(--color-text-muted);">&gt;</span>
+    <span style="color: var(--accent-orange); font-weight: 700;">Checkout Details</span>
+    <span style="color: var(--color-text-muted);">&gt;</span>
+    <span style="color: var(--color-text-muted);">Order Complete</span>
+  </div>
+
+  <div class="checkout-layout">
+
+    <!-- Left Column: Billing Details -->
+    <div class="checkout-billing-panel" style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); padding: 40px; box-shadow: var(--shadow-soft);">
+      <form action="{% url 'orders:checkout' %}" method="POST" id="checkoutForm">
+        {% csrf_token %}
+
+        <h3 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.3rem; margin-bottom: 25px; text-transform: uppercase; color: #111827; border-bottom: 1px solid var(--card-border); padding-bottom: 12px;">
+          Billing Details
+        </h3>
+
+        <!-- Form Rows Grid -->
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+
+          <div class="form-row-grid" style="margin-bottom: 4px;">
+            <div class="form-group">
+              <label for="id_full_name" class="custom-field-label">Full Name <span class="required-star">*</span></label>
+              <input type="text" id="id_full_name" name="full_name" class="custom-form-input" required
+                value="{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}">
+            </div>
+            <div class="form-group">
+              <label for="id_email" class="custom-field-label">Email Address <span class="required-star">*</span></label>
+              <input type="email" id="id_email" name="email" class="custom-form-input" required
+                value="{% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}">
+            </div>
+          </div>
+
+          <div class="form-row-grid" style="margin-bottom: 4px;">
+            <div class="form-group">
+              <label for="id_phone" class="custom-field-label">Phone <span class="required-star">*</span></label>
+              <input type="text" id="id_phone" name="phone" class="custom-form-input" required>
+            </div>
+            <div class="form-group">
+              <label for="id_city" class="custom-field-label">Town / City <span class="required-star">*</span></label>
+              <input type="text" id="id_city" name="city" class="custom-form-input" required>
+            </div>
+          </div>
+
+          <div class="form-row-grid" style="margin-bottom: 4px;">
+            <div class="form-group">
+              <label for="id_country" class="custom-field-label">Country / Region <span class="required-star">*</span></label>
+              <select id="id_country" name="country" class="custom-form-select" required>
+                <option value="IN" selected>India</option>
+                <option value="US">United States</option>
+                <option value="GB">United Kingdom</option>
+                <option value="CA">Canada</option>
+                <option value="AU">Australia</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="id_creator_channel" class="custom-field-label">YouTube Creator Link</label>
+              <input type="text" id="id_creator_channel" name="creator_channel" class="custom-form-input">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="id_billing_address" class="custom-field-label">Billing Address / Street Address <span class="required-star">*</span></label>
+            <textarea id="id_billing_address" name="billing_address" class="custom-form-textarea" required>{% if request.user.is_authenticated %}{{ request.user.profile.billing_address }}{% endif %}</textarea>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0 20px 0;">
+            <input type="checkbox" name="create_account" id="createAccount" style="accent-color: var(--accent-orange); width: 18px; height: 18px; cursor: pointer;">
+            <label for="createAccount" style="font-size: 0.88rem; color: #4b5563; cursor: pointer; user-select: none; font-weight: 500;">Create an account?</label>
+          </div>
+
+        </div>
+
+        <h3 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.3rem; margin: 30px 0 20px; text-transform: uppercase; color: #111827; border-bottom: 1px solid var(--card-border); padding-bottom: 12px;">
+          Additional Information
+        </h3>
+
+        <div class="form-group">
+          <label for="id_order_notes" class="custom-field-label">Additional Notes</label>
+          <textarea id="id_order_notes" name="order_notes" class="custom-form-textarea"></textarea>
+        </div>
+
+        <input type="hidden" name="payment_method" id="paymentMethodInput" value="UPI">
+      </form>
+    </div>
+
+    <!-- Right Column: Order Summary & Payment Method -->
+    <div class="checkout-summary-sidebar" style="display: flex; flex-direction: column; gap: 30px; position: sticky; top: 90px; align-self: start;">
+
+      <div style="border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); background: white; padding: 35px; box-shadow: var(--shadow-soft);">
+        <h3 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 25px; color: #111827; border-bottom: 2px solid var(--card-border); padding-bottom: 12px;">
+          Your Order
+        </h3>
+
+        <!-- Headers -->
+        <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.85rem; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; margin-bottom: 15px; color: #111827;">
+          <span>PRODUCT</span>
+          <span>SUBTOTAL</span>
+        </div>
+
+        <!-- Order Items Loop -->
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid var(--card-border); padding-bottom: 15px;">
+          {% for item in cart_items %}
+          <div style="display: flex; justify-content: space-between; font-size: 0.9rem; line-height: 1.4;">
+            <span style="max-width: 75%; color: #4b5563;">{{ item.product.name }} <strong>&times; {{ item.quantity }}</strong></span>
+            <span style="font-weight: 600; color: #111827; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">₹{{ item.total }}</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Subtotal and Grand Totals -->
+        <div style="display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 15px; margin-bottom: 25px; font-size: 0.95rem;">
+          <div style="display: flex; justify-content: space-between; color: #4b5563;">
+            <span>Subtotal</span>
+            <span style="color: #111827; font-weight: 600;">₹{{ cart_total }}</span>
+          </div>
+          {% if discount_amount > 0 %}
+          <div style="display: flex; justify-content: space-between; color: #4b5563;">
+            <span>Discount ({{ coupon.code }})</span>
+            <span style="color: var(--color-success); font-weight: 600;">-₹{{ discount_amount }}</span>
+          </div>
+          {% endif %}
+          <div style="display: flex; justify-content: space-between; font-size: 1.1rem; color: #111827; font-weight: 700;">
+            <span>Total</span>
+            <span style="color: var(--accent-orange);">₹{{ grand_total }}</span>
+          </div>
+        </div>
+
+        <!-- Payment Method Selection -->
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label id="paymentMethodLabel" class="custom-field-label" style="margin-bottom: 10px;">
+            Payment Method
+          </label>
+          <div class="custom-dropdown">
+            <!-- Accessible Trigger -->
+            <div id="paymentDropdownTrigger" tabindex="0" role="combobox" aria-labelledby="paymentMethodLabel" aria-expanded="false" aria-haspopup="listbox">
+              <span id="selectedPaymentText"><i class="fa-solid fa-qrcode" style="color: #6739b6; margin-right: 8px;"></i> Pay with UPI QR Code</span>
+              <i class="fa-solid fa-chevron-down" style="color: #9ca3af; transition: var(--transition-smooth);"></i>
+            </div>
+            <!-- Accessible Options menu -->
+            <ul id="paymentDropdownOptions" role="listbox" style="display: none; position: absolute; top: calc(100% + 5px); left: 0; right: 0; background: #ffffff; border: 1px solid var(--card-border); border-radius: 12px; box-shadow: var(--shadow-soft); z-index: 1000; margin: 0; padding: 5px 0; list-style: none;">
+              <li data-value="UPI" class="payment-dropdown-item active" role="option" aria-selected="true" tabindex="0">
+                <i class="fa-solid fa-qrcode" style="color: #6739b6; width: 24px; margin-right: 8px;"></i> Pay with UPI QR Code
+              </li>
+              <li data-value="PayPal" class="payment-dropdown-item" role="option" aria-selected="false" tabindex="0">
+                <i class="fa-brands fa-paypal" style="color: #0070ba; width: 24px; margin-right: 8px;"></i> PayPal
+              </li>
+              <li data-value="Cards" class="payment-dropdown-item" role="option" aria-selected="false" tabindex="0">
+                <i class="fa-solid fa-credit-card" style="color: var(--accent-orange); width: 24px; margin-right: 8px;"></i> Debit / Credit Card
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Actions Row -->
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 25px;">
+          <!-- Submit Button -->
+          <button type="button" id="submitOrderBtn" class="uniform-btn btn-submit-order">
+            <i class="fa-solid fa-lock"></i> <span>Proceed to Payment</span>
+          </button>
+
+          <a href="{% url 'orders:cart' %}" class="uniform-btn btn-return-cart">
+            &larr; Return to Cart
+          </a>
+        </div>
+
+        <!-- Disclaimer Text -->
+        <p style="font-size: 0.75rem; color: #6b7280; line-height: 1.5; text-align: center; margin-top: 20px;">
+          Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.
+        </p>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const trigger = document.getElementById('paymentDropdownTrigger');
+    const optionsMenu = document.getElementById('paymentDropdownOptions');
+    const options = document.querySelectorAll('.payment-dropdown-item');
+    const selectedText = document.getElementById('selectedPaymentText');
+    const paymentMethodInput = document.getElementById('paymentMethodInput');
+    const submitBtn = document.getElementById('submitOrderBtn');
+    const checkoutForm = document.getElementById('checkoutForm');
+
+    function toggleMenu(show) {
+      const isVisible = show !== undefined ? show : optionsMenu.style.display !== 'block';
+      optionsMenu.style.display = isVisible ? 'block' : 'none';
+      trigger.setAttribute('aria-expanded', isVisible ? 'true' : 'false');
+      const icon = trigger.querySelector('.fa-chevron-down');
+      if (icon) icon.style.transform = isVisible ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMenu();
+    });
+
+    trigger.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        toggleMenu(true);
+        options[0]?.focus();
+      } else if (e.key === 'Escape') {
+        toggleMenu(false);
+      }
+    });
+
+    document.addEventListener('click', () => {
+      toggleMenu(false);
+    });
+
+    options.forEach(option => {
+      const selectOption = (e) => {
+        if (e) e.stopPropagation();
+        options.forEach(opt => {
+          opt.classList.remove('active');
+          opt.setAttribute('aria-selected', 'false');
+        });
+        option.classList.add('active');
+        option.setAttribute('aria-selected', 'true');
+
+        const val = option.getAttribute('data-value');
+        paymentMethodInput.value = val;
+        selectedText.innerHTML = option.innerHTML;
+        toggleMenu(false);
+        trigger.focus();
+      };
+
+      option.addEventListener('click', selectOption);
+      option.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectOption(e);
+        } else if (e.key === 'Escape') {
+          toggleMenu(false);
+          trigger.focus();
+        }
+      });
+    });
+
+    // Form validation and submission
+    submitBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const requiredInputs = checkoutForm.querySelectorAll('[required]');
+      let valid = true;
+      let firstInvalid = null;
+
+      requiredInputs.forEach(input => {
+        if (!input.value.trim()) {
+          valid = false;
+          input.style.borderColor = 'var(--color-danger)';
+          input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.15)';
+          if (!firstInvalid) firstInvalid = input;
+        } else {
+          input.style.borderColor = '';
+          input.style.boxShadow = '';
+        }
+      });
+
+      if (!valid) {
+        if (window.showToast) {
+          window.showToast('Please fill out all required billing details.', 'error');
+        } else {
+          alert('Please fill out all billing details.');
+        }
+        if (firstInvalid) firstInvalid.focus();
+        return;
+      }
+
+      // Submit loading state
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+
+      checkoutForm.submit();
+    });
+  });
+</script>
+{% endblock %}

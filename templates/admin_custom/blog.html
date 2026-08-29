@@ -1,0 +1,236 @@
+{% extends 'admin_custom/base_admin.html' %}
+{% block title %}Blog Posts | PawanMod Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Filter bar ───────────────────────── */
+  .filter-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+  .filter-input {
+    padding:9px 14px; border:1px solid var(--border-color); border-radius:var(--radius-sm);
+    font-size:.875rem; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background:var(--bg-card);
+    color:var(--text-primary); outline:none; transition:var(--transition);
+  }
+  .filter-input:focus { border-color:var(--color-primary); box-shadow:0 0 0 3px rgba(255,107,0,.1); }
+  .filter-input[type="search"] { min-width:220px; }
+  .filter-input[type="select"], select.filter-input { min-width:150px; }
+  .filter-btn {
+    padding:9px 18px; border-radius:var(--radius-sm); font-size:.875rem;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight:600; cursor:pointer;
+    border:none; transition:var(--transition); display:flex; align-items:center; gap:6px;
+  }
+  .btn-orange  { background:var(--color-primary); color:white; }
+  .btn-orange:hover { background:#e85f00; }
+  .btn-outline { background:var(--bg-body); color:var(--text-secondary); border:1px solid var(--border-color)!important; text-decoration:none; }
+  .btn-outline:hover { background:var(--border-color); color:var(--text-primary); }
+
+  /* ── Table ────────────────────────────── */
+  .blog-thumb {
+    width:50px; height:35px; border-radius:6px; object-fit:cover;
+    background:#f3f4f6; border:1px solid var(--border-color);
+  }
+  .blog-thumb-ph {
+    width:50px; height:35px; border-radius:6px; background:#f3f4f6;
+    display:flex; align-items:center; justify-content:center;
+    color:#9ca3af; font-size:.75rem; border:1px solid var(--border-color);
+  }
+  .action-btn {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:30px; height:30px; border-radius:6px; font-size:.78rem;
+    text-decoration:none; transition:var(--transition); cursor:pointer;
+    border:none; background:none;
+  }
+  .action-btn:hover { filter:brightness(.85); }
+  .action-edit      { background:rgba(37,99,235,.08);  color:var(--color-blue); }
+  .action-preview   { background:rgba(34,197,94,.08);  color:var(--color-green); }
+  .action-delete    { background:rgba(239,68,68,.08);  color:var(--color-red); }
+
+  /* ── Status badges ────────────────────── */
+  .status-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    padding:4px 10px; border-radius:20px; font-size:.75rem; font-weight:600;
+  }
+  .status-published { background:rgba(34,197,94,.1); color:var(--color-green); }
+  .status-draft     { background:rgba(245,158,11,.1); color:var(--color-yellow); }
+
+  /* ── Pagination ───────────────────────── */
+  .pager { display:flex; align-items:center; justify-content:space-between; margin-top:20px; flex-wrap:wrap; gap:10px; }
+  .pager-info { font-size:.8rem; color:var(--text-secondary); }
+  .pager-links { display:flex; gap:6px; }
+  .plink {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:32px; height:32px; border-radius:var(--radius-sm);
+    border:1px solid var(--border-color); font-size:.8rem; font-weight:600;
+    color:var(--text-secondary); text-decoration:none; transition:var(--transition);
+  }
+  .plink:hover { border-color:var(--color-primary); color:var(--color-primary); }
+  .plink.active { background:var(--color-primary); border-color:var(--color-primary); color:white; }
+  .plink.disabled { opacity:.4; pointer-events:none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>
+    <i class="fa-solid fa-newspaper" style="color:var(--color-primary);margin-right:10px;"></i>Blog Posts
+    <span style="font-size:.85rem;font-weight:400;color:var(--text-secondary);margin-left:8px;">{{ total_count }} total</span>
+  </h1>
+  <a href="{% url 'custom_admin:blog_add' %}" class="filter-btn btn-orange" style="text-decoration:none;">
+    <i class="fa-solid fa-plus"></i> Add Blog Post
+  </a>
+</div>
+
+<!-- ── Filters ────────────────────────────────────── -->
+<form method="GET" id="filterForm">
+  <div class="filter-bar">
+    <input type="search" name="search" value="{{ search_query }}" placeholder="Search articles…" class="filter-input">
+
+    <select name="status" class="filter-input" onchange="this.form.submit()">
+      <option value="">All Statuses</option>
+      <option value="published" {% if status_filter == 'published' %}selected{% endif %}>Published</option>
+      <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+    </select>
+
+    <select name="category" class="filter-input" onchange="this.form.submit()">
+      <option value="">All Categories</option>
+      {% for code, label in category_choices %}
+        <option value="{{ code }}" {% if category_filter == code %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="sort_by" class="filter-input" onchange="this.form.submit()">
+      <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Created</option>
+      <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest Created</option>
+      <option value="views" {% if sort_by == 'views' %}selected{% endif %}>Most Viewed</option>
+      <option value="title" {% if sort_by == 'title' %}selected{% endif %}>Title (A-Z)</option>
+      <option value="title_desc" {% if sort_by == 'title_desc' %}selected{% endif %}>Title (Z-A)</option>
+    </select>
+
+    <button type="submit" class="filter-btn btn-orange"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
+
+    {% if search_query or status_filter or category_filter or sort_by != 'newest' %}
+      <a href="{% url 'custom_admin:blog' %}" class="filter-btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
+    {% endif %}
+  </div>
+</form>
+
+<!-- ── Table ─────────────────────────────────────── -->
+<div class="admin-card" style="padding:0;overflow:hidden;">
+  <div style="overflow-x:auto;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th style="width:60px;padding-left:20px;"></th>
+          <th>Article Title</th>
+          <th>Category</th>
+          <th>Author</th>
+          <th>Status</th>
+          <th style="text-align:center;">Views</th>
+          <th>Publish Date</th>
+          <th style="text-align:center;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for post in posts %}
+          <tr>
+            <!-- Image -->
+            <td style="padding-left:20px;">
+              {% if post.featured_image %}
+                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="blog-thumb">
+              {% else %}
+                <div class="blog-thumb-ph"><i class="fa-solid fa-image"></i></div>
+              {% endif %}
+            </td>
+
+            <!-- Title -->
+            <td>
+              <div style="font-weight:600;font-size:.875rem;max-width:250px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ post.title }}">{{ post.title }}</div>
+              <div style="font-size:.72rem;color:var(--text-secondary);font-family:monospace;">/blog/{{ post.slug }}/</div>
+            </td>
+
+            <!-- Category -->
+            <td>
+              <span style="font-size:.8rem;font-weight:600;color:var(--text-primary);">{{ post.get_category_display }}</span>
+            </td>
+
+            <!-- Author -->
+            <td>
+              <span style="font-size:.8rem;color:var(--text-secondary);">{{ post.author.username|default:"System" }}</span>
+            </td>
+
+            <!-- Status -->
+            <td>
+              {% if post.status == 'published' %}
+                <span class="status-badge status-published"><i class="fa-solid fa-circle-check"></i> Published</span>
+              {% else %}
+                <span class="status-badge status-draft"><i class="fa-solid fa-circle-minus"></i> Draft</span>
+              {% endif %}
+            </td>
+
+            <!-- Views -->
+            <td style="text-align:center;font-weight:600;font-size:.875rem;">
+              {{ post.views_count }}
+            </td>
+
+            <!-- Publish Date -->
+            <td style="font-size:.8rem;color:var(--text-secondary);">
+              {{ post.publish_date|date:"M d, Y H:i" }}
+            </td>
+
+            <!-- Actions -->
+            <td style="text-align:center;white-space:nowrap;">
+              <div style="display:inline-flex;gap:6px;">
+                <a href="{% url 'custom_admin:blog_edit' post.id %}" class="action-btn action-edit" title="Edit Article">
+                  <i class="fa-solid fa-pen"></i>
+                </a>
+                <a href="{% url 'blog:post_detail' post.slug %}" target="_blank" class="action-btn action-preview" title="Preview Article">
+                  <i class="fa-solid fa-eye"></i>
+                </a>
+                <a href="{% url 'custom_admin:blog_delete' post.id %}" class="action-btn action-delete" title="Delete Article">
+                  <i class="fa-solid fa-trash"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary);">
+              <i class="fa-solid fa-book-open fa-3x" style="color:var(--border-color);margin-bottom:15px;display:block;"></i>
+              No blog articles found matching criteria.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── Pagination ─────────────────────────────────── -->
+{% if posts.has_other_pages %}
+  <div class="pager">
+    <div class="pager-info">
+      Showing page {{ posts.number }} of {{ posts.paginator.num_pages }}
+    </div>
+    <div class="pager-links">
+      {% if posts.has_previous %}
+        <a href="?page={{ posts.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}&sort_by={{ sort_by }}" class="plink"><i class="fa-solid fa-chevron-left"></i></a>
+      {% else %}
+        <span class="plink disabled"><i class="fa-solid fa-chevron-left"></i></span>
+      {% endif %}
+
+      {% for num in posts.paginator.page_range %}
+        {% if posts.number == num %}
+          <span class="plink active">{{ num }}</span>
+        {% else %}
+          <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}&sort_by={{ sort_by }}" class="plink">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if posts.has_next %}
+        <a href="?page={{ posts.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}&sort_by={{ sort_by }}" class="plink"><i class="fa-solid fa-chevron-right"></i></a>
+      {% else %}
+        <span class="plink disabled"><i class="fa-solid fa-chevron-right"></i></span>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

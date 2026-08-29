@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Access Account | PawanMod Premium GTA Mods{% endblock %}
+
+{% block content %}
+<section class="section" style="display: flex; align-items: center; justify-content: center; min-height: 85vh; padding: 40px 5%;">
+  
+  <div style="width: 100%; max-width: 950px; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--shadow-soft); display: grid; grid-template-columns: 1fr 1px 1fr; gap: 40px; padding: 50px;" class="auth-grid-wrapper">
+    
+    <!-- Left Column: Login -->
+    <div style="display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.8rem; text-transform: uppercase; margin-bottom: 25px; color: var(--color-text-primary); letter-spacing: 0.5px;">Login</h2>
+        
+        <form method="POST" action="{% url 'accounts:login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+          {% csrf_token %}
+          
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label for="id_username" class="form-label" style="font-weight: 500; font-size: 0.9rem; margin-bottom: 8px; color: var(--color-text-primary);">Username or email address <span style="color: var(--accent-orange);">*</span></label>
+            <input type="text" id="id_username" name="username" class="form-input" required style="width: 100%;">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label for="id_password" class="form-label" style="font-weight: 500; font-size: 0.9rem; margin-bottom: 8px; color: var(--color-text-primary);">Password <span style="color: var(--accent-orange);">*</span></label>
+            <input type="password" id="id_password" name="password" class="form-input" required style="width: 100%;">
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 25px;">
+            <input type="checkbox" name="remember_me" id="rememberMe" style="accent-color: var(--accent-orange); width: 16px; height: 16px; cursor: pointer;">
+            <label for="rememberMe" style="font-size: 0.85rem; color: var(--color-text-secondary); cursor: pointer; user-select: none;">Remember me</label>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="font-size: 0.9rem; padding: 12px 30px; font-weight: 700; width: fit-content; text-transform: uppercase;">Log in</button>
+        </form>
+      </div>
+
+      <div style="margin-top: 25px;">
+        <a href="/accounts/password-reset/" style="font-size: 0.85rem; color: var(--color-text-secondary);"><i class="fa-solid fa-unlock-keyhole"></i> Lost your password?</a>
+      </div>
+    </div>
+
+    <!-- Middle Divider Line -->
+    <div style="background: var(--card-border); width: 100%; height: 100%;" class="auth-divider"></div>
+
+    <!-- Right Column: Register -->
+    <div style="display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.8rem; text-transform: uppercase; margin-bottom: 25px; color: var(--color-text-primary); letter-spacing: 0.5px;">Register</h2>
+        
+        <form method="POST" action="{% url 'accounts:register' %}">
+          {% csrf_token %}
+          
+          <div class="form-group" style="margin-bottom: 25px;">
+            <label for="id_register_email" class="form-label" style="font-weight: 500; font-size: 0.9rem; margin-bottom: 8px; color: var(--color-text-primary);">Email address <span style="color: var(--accent-orange);">*</span></label>
+            <input type="email" id="id_register_email" name="email" class="form-input" required style="width: 100%;">
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 18px;">
+            A link to set a new password will be sent to your email address.
+          </p>
+
+          <p style="font-size: 0.85rem; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 30px;">
+            Your personal data will be used to support your experience throughout this website, to manage access to your account, and for other purposes described in our privacy policy.
+          </p>
+
+          <button type="submit" class="btn btn-primary" style="font-size: 0.9rem; padding: 12px 30px; font-weight: 700; width: fit-content; text-transform: uppercase;">Register</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  @media (max-width: 850px) {
+    .auth-grid-wrapper {
+      grid-template-columns: 1fr !important;
+      padding: 30px !important;
+      gap: 30px !important;
+    }
+    .auth-divider {
+      height: 1px !important;
+      width: 100% !important;
+      margin: 10px 0;
+    }
+  }
+</style>
+{% endblock %}

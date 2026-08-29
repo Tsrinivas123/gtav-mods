@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Support | PawanMod Marketplace{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 40px;">
+  <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 50px;">
+    <div class="section-title-wrap">
+      <span class="section-tag">Moderator Hotline</span>
+      <h2 class="section-title" style="margin: 0 auto;">Connect with PawanMod</h2>
+      <p style="color: var(--color-text-secondary); margin-top: 10px; max-width: 600px; font-size: 0.95rem;">Have
+        questions regarding mod installations, custom scripts commissions, or payment configurations? Contact us
+        directly or join our community servers.</p>
+    </div>
+  </div>
+
+  <div class="contact-container">
+    <!-- Left panel: support channels links -->
+    <div class="contact-info-panel">
+      <div>
+        <h3 class="contact-info-title">Support Channels</h3>
+        <p class="contact-info-desc">Select your preferred communication network. Active moderators are responsive
+          across channels.</p>
+      </div>
+
+      <div class="contact-channels">
+        <a href="https://discord.gg/example" target="_blank" class="channel-card discord">
+          <div class="channel-icon"><i class="fa-brands fa-discord"></i></div>
+          <div class="channel-details">
+            <span>Join Discord Server</span>
+            <p>discord.gg/pawanmod</p>
+          </div>
+        </a>
+
+        <a href="https://t.me/example" target="_blank" class="channel-card telegram">
+          <div class="channel-icon"><i class="fa-brands fa-telegram"></i></div>
+          <div class="channel-details">
+            <span>Direct Telegram Channel</span>
+            <p>t.me/pawanmod_net</p>
+          </div>
+        </a>
+
+        <a href="https://wa.me/917566631481" target="_blank" class="channel-card whatsapp">
+          <div class="channel-icon"><i class="fa-brands fa-whatsapp"></i></div>
+          <div class="channel-details">
+            <span>WhatsApp Support</span>
+            <p>+91 75666 31481</p>
+          </div>
+        </a>
+
+        <div class="channel-card email" style="cursor: default;">
+          <div class="channel-icon" style="background: rgba(255, 107, 0, 0.08); color: var(--accent-orange);"><i
+              class="fa-solid fa-envelope"></i></div>
+          <div class="channel-details">
+            <span>Support Mailbox</span>
+            <p>support@pawanmod.com</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right panel: contact message form -->
+    <div class="contact-form-panel">
+      <h3 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-transform: uppercase; margin-bottom: 25px;">Send a Message</h3>
+
+      <form action="{% url 'marketplace:contact' %}" method="POST">
+        {% csrf_token %}
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" name="name" class="form-input" placeholder="Your Name" required
+              value="{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" name="email" class="form-input" placeholder="yourname@example.com" required
+              value="{% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}">
+          </div>
+          <div class="form-group full-width">
+            <label class="form-label">Category</label>
+            <select name="category" id="id_category" class="form-input" required style="background: var(--card-bg); color: var(--color-text); border: 1px solid var(--border-color); border-radius: 4px; height: 45px; padding: 0 10px; width: 100%;">
+              <option value="" style="background: var(--card-bg);">Select a Category</option>
+              <option value="payment" style="background: var(--card-bg);">Payment Issue</option>
+              <option value="download" style="background: var(--card-bg);">Download Issue</option>
+              <option value="installation" style="background: var(--card-bg);">Installation Help</option>
+              <option value="bug" style="background: var(--card-bg);">Bug Report</option>
+              <option value="feature" style="background: var(--card-bg);">Feature Request</option>
+              <option value="general" style="background: var(--card-bg);">General Inquiry</option>
+              <option value="other" style="background: var(--card-bg);">Other</option>
+            </select>
+          </div>
+          <div class="form-group full-width" id="subject-group" style="display: none;">
+            <label class="form-label">Subject</label>
+            <input type="text" name="subject" id="id_subject" class="form-input" placeholder="Please specify your subject...">
+          </div>
+          <div class="form-group full-width">
+            <label class="form-label">Message Details</label>
+            <textarea name="message" class="form-input" placeholder="Describe your request in detail..."
+              required></textarea>
+          </div>
+        </div>
+
+        <div style="margin: 20px 0;">
+          {% if TURNSTILE_SITE_KEY %}
+            <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+            <div class="cf-turnstile" data-sitekey="{{ TURNSTILE_SITE_KEY }}"></div>
+          {% else %}
+            <label class="form-label" style="display: block; margin-bottom: 5px;">Spam Verification: {{ math_challenge }}</label>
+            <input type="number" name="captcha_answer" class="form-input" placeholder="Your Answer" required style="max-width: 150px;">
+          {% endif %}
+        </div>
+
+        <script>
+          document.getElementById('id_category').addEventListener('change', function() {
+            var subjectGroup = document.getElementById('subject-group');
+            var subjectInput = document.getElementById('id_subject');
+            if (this.value === 'other') {
+              subjectGroup.style.display = 'block';
+              subjectInput.required = true;
+            } else {
+              subjectGroup.style.display = 'none';
+              subjectInput.required = false;
+              subjectInput.value = '';
+            }
+          });
+        </script>
+
+        <button type="submit" class="btn btn-primary" style="margin-top: 15px;"><i class="fa-solid fa-paper-plane"></i>
+          Submit Message</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

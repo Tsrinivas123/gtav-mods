@@ -1,0 +1,53 @@
+<div class="mod-card" id="productCard-{{ product.id }}">
+  <div class="mod-img-wrapper">
+    {% if product.main_image %}
+      <img src="{{ product.main_image.url }}" alt="{{ product.name }}" loading="lazy">
+    {% else %}
+      <div class="fallback-img"><i class="fa-solid fa-image fa-2x"></i></div>
+    {% endif %}
+    
+    <div class="mod-badges">
+      <span class="mod-badge-cat">{{ product.category.name }}</span>
+      {% if product.discount_percentage > 0 %}
+        <span class="mod-badge-discount">-{{ product.discount_percentage }}%</span>
+      {% endif %}
+    </div>
+  </div>
+  
+  <div class="mod-info">
+    <h3 class="mod-name">
+      <a href="{% url 'marketplace:product_detail' product.slug %}" title="{{ product.name }}">
+        {{ product.name }}
+      </a>
+    </h3>
+    
+    <div class="mod-price-box">
+      {% if product.price == 0 %}
+        <span class="mod-price free">FREE</span>
+      {% else %}
+        {% if product.old_price %}
+          <span class="mod-old-price">₹{{ product.old_price }}</span>
+        {% endif %}
+        <span class="mod-price">₹{{ product.price }}</span>
+      {% endif %}
+    </div>
+    
+    <div class="mod-card-actions">
+      <!-- Add to Cart (AJAX/standard form submit) -->
+      <form action="{% url 'orders:cart_add' product.id %}" method="POST" class="ajax-cart-form" style="flex: 1; display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="card-btn-cart" title="Add to Cart">
+          <i class="fa-solid fa-cart-shopping"></i> Add
+        </button>
+      </form>
+      <!-- Buy Now -->
+      <form action="{% url 'orders:cart_add' product.id %}" method="POST" style="flex: 1; display: inline;">
+        {% csrf_token %}
+        <input type="hidden" name="checkout_direct" value="true">
+        <button type="submit" class="card-btn-buy" title="Buy Now">
+          Buy Now
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

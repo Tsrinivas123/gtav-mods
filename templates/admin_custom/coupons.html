@@ -1,0 +1,58 @@
+{% extends 'admin_custom/base_admin.html' %}
+{% block title %}Coupons | PawanMod Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="fa-solid fa-tag" style="color:var(--color-primary);margin-right:10px;"></i>Coupons</h1>
+  <span style="font-size:.85rem;color:var(--text-secondary);">{{ total_count }} total</span>
+</div>
+
+<div class="admin-card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+    <h3 style="font-size:1rem;font-weight:700;">All Coupons</h3>
+    <span style="font-size:.8rem;background:rgba(255,107,0,.1);color:var(--color-primary);padding:4px 12px;border-radius:20px;font-weight:600;">Phase 2: CRUD Coming Soon</span>
+  </div>
+
+  <div style="overflow-x:auto;">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Coupon Code</th>
+          <th>Discount Type</th>
+          <th>Value</th>
+          <th>Expiry Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for coupon in coupons %}
+          <tr>
+            <td style="color:var(--text-secondary);font-size:.8rem;">#{{ coupon.id }}</td>
+            <td style="font-family:monospace;font-weight:700;letter-spacing:1px;color:var(--color-primary);">{{ coupon.code }}</td>
+            <td>
+              {% if coupon.discount_type == 'percentage' %}
+                <span class="badge badge-blue">Percentage (%)</span>
+              {% else %}
+                <span class="badge badge-green">Fixed (₹)</span>
+              {% endif %}
+            </td>
+            <td style="font-weight:700;">
+              {% if coupon.discount_type == 'percentage' %}{{ coupon.discount_value }}%{% else %}₹{{ coupon.discount_value }}{% endif %}
+            </td>
+            <td style="color:var(--text-secondary);font-size:.875rem;">{{ coupon.expiration_date|date:"M d, Y" }}</td>
+            <td>
+              {% if coupon.active %}
+                <span class="badge badge-green">Active</span>
+              {% else %}
+                <span class="badge badge-red">Inactive</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:40px 0;">No coupons found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

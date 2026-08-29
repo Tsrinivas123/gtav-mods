@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if post.seo_title %}{{ post.seo_title }}{% else %}{{ post.title }} | PawanMod Blog{% endif %}{% endblock %}
+
+{% block meta_description %}{% if post.meta_description %}{{ post.meta_description }}{% else %}{{ post.excerpt|truncatechars:160 }}{% endif %}{% endblock %}
+
+{% block og_title %}{% if post.og_title %}{{ post.og_title }}{% else %}{{ post.title }}{% endif %}{% endblock %}
+
+{% block og_description %}{% if post.og_description %}{{ post.og_description }}{% else %}{{ post.excerpt|truncatechars:200 }}{% endif %}{% endblock %}
+
+{% block extra_head %}
+  {% if post.meta_keywords %}
+    <meta name="keywords" content="{{ post.meta_keywords }}">
+  {% endif %}
+  {% if post.canonical_url %}
+    <link rel="canonical" href="{{ post.canonical_url }}">
+  {% else %}
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  {% endif %}
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% if post.seo_title %}{{ post.seo_title }}{% else %}{{ post.title }}{% endif %}">
+  <meta name="twitter:description" content="{% if post.meta_description %}{{ post.meta_description }}{% else %}{{ post.excerpt|truncatechars:160 }}{% endif %}">
+  {% if post.featured_image %}
+    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ post.featured_image.url }}">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ post.featured_image.url }}">
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 40px;">
+  <div class="store-layout" style="grid-template-columns: 1fr 340px;">
+    
+    <!-- Left side: Article Content -->
+    <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); padding: 40px; height: fit-content;">
+      <!-- Category & date & author -->
+      <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
+        <span class="blog-cat-badge" style="position: static;">{{ post.get_category_display }}</span>
+        <span style="font-size: 0.85rem; color: var(--color-text-secondary);"><i class="fa-regular fa-calendar-days"></i> {{ post.publish_date|date:"F d, Y" }}</span>
+        <span style="font-size: 0.85rem; color: var(--color-text-secondary);"><i class="fa-regular fa-clock"></i> {{ post.reading_time }} min read</span>
+        <span style="font-size: 0.85rem; color: var(--color-text-secondary);"><i class="fa-regular fa-eye"></i> {{ post.views_count }} views</span>
+        <span style="font-size: 0.85rem; color: var(--color-text-secondary);"><i class="fa-regular fa-user"></i> By {{ post.author.username|default:"System" }}</span>
+      </div>
+
+      <!-- Title -->
+      <h1 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 2.2rem; line-height: 1.3; margin-bottom: 25px; color: var(--color-text-primary);">{{ post.title }}</h1>
+      
+      <!-- Featured Image -->
+      {% if post.featured_image %}
+        <div style="border-radius: var(--border-radius); overflow: hidden; margin-bottom: 30px; height: 350px;">
+          <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+      {% endif %}
+
+      <!-- Rich Article Content -->
+      <article class="rich-content" style="font-size: 1.05rem; line-height: 1.8; margin-bottom: 50px;">
+        {{ post.content|safe }}
+      </article>
+
+      <!-- Comments Feed -->
+      <div style="border-top: 1px solid var(--card-border); padding-top: 40px; margin-top: 40px;">
+        <h3 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.4rem; margin-bottom: 25px;"><i class="fa-regular fa-comments"></i> Reader Discussion ({{ post.comments.count }})</h3>
+        
+        <div style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 45px;">
+          {% for comment in post.comments.all %}
+            <div style="background: var(--bg-primary); border: 1px solid var(--glass-border); padding: 20px 25px; border-radius: var(--border-radius); position: relative;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-weight: 700; color: var(--color-text-primary); font-size: 0.95rem;">{{ comment.name }}</span>
+                <span style="font-size: 0.75rem; color: var(--color-text-muted);">{{ comment.created_at|date:"F d, Y \a\t H:i" }}</span>
+              </div>
+              <p style="font-size: 0.9rem; color: var(--color-text-secondary);">{{ comment.content|linebreaksbr }}</p>
+            </div>
+          {% empty %}
+            <div style="text-align: center; color: var(--color-text-muted); padding: 30px 0; border: 1px dashed var(--glass-border); border-radius: var(--border-radius-sm);">
+              No discussions started yet. Be the first to add a comment!
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- Submit Comment Form -->
+        <div style="background: var(--bg-primary); border: 1px solid var(--glass-border); padding: 35px; border-radius: var(--border-radius-lg);">
+          <h4 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.1rem; text-transform: uppercase; margin-bottom: 20px;">Join the Conversation</h4>
+          <form action="{% url 'blog:submit_comment' post.slug %}" method="POST">
+            {% csrf_token %}
+            <div class="form-grid" style="margin-bottom: 15px;">
+              <div class="form-group">
+                <label class="form-label">Name</label>
+                <input type="text" name="name" placeholder="John" class="form-input" required 
+                  value="{% if request.user.is_authenticated %}{{ request.user.username }}{% endif %}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" placeholder="john@example.com" class="form-input" required
+                  value="{% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+              <label class="form-label">Comment</label>
+              <textarea name="content" placeholder="Share your thoughts on this article..." class="form-input" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Publish Comment</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right side: Recent articles column -->
+    <aside style="display: flex; flex-direction: column; gap: 30px;">
+      <div style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 25px;">
+        <h4 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-transform: uppercase; font-size: 0.95rem; margin-bottom: 20px; border-bottom: 1px solid var(--card-border); padding-bottom: 8px;">Recent Releases</h4>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+          {% for r in recent_posts %}
+            <div>
+              <a href="{% url 'blog:post_detail' r.slug %}" style="font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3;">{{ r.title }}</a>
+              <span style="font-size: 0.75rem; color: var(--color-text-muted);">{{ r.created_at|date:"M d, Y" }}</span>
+            </div>
+          {% empty %}
+            <p style="font-size: 0.8rem; color: var(--color-text-muted);">No other articles found.</p>
+          {% endfor %}
+        </div>
+      </div>
+      
+      <a href="{% url 'blog:post_list' %}" class="btn btn-secondary" style="width: 100%;"><i class="fa-solid fa-arrow-left"></i> Return to Blog</a>
+    </aside>
+
+  </div>
+</section>
+{% endblock %}

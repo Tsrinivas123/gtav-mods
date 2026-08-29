@@ -1,0 +1,105 @@
+{% extends 'admin_custom/base_admin.html' %}
+{% block title %}Delete Category | PawanMod Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .delete-card {
+    max-width: 550px; margin: 40px auto; background: var(--bg-card);
+    border: 1px solid var(--border-color); border-radius: var(--radius);
+    padding: 35px; box-shadow: var(--shadow-md); text-align: center;
+  }
+  .warning-icon { font-size: 3.5rem; color: var(--color-red); margin-bottom: 20px; }
+  .delete-title { font-size: 1.3rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; }
+  .delete-desc  { font-size: .9rem; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6; }
+  
+  .reassign-box {
+    text-align: left; background: var(--bg-body); border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm); padding: 20px; margin-bottom: 25px;
+  }
+  .reassign-label {
+    display: block; font-size: .8rem; font-weight: 700; color: var(--text-secondary);
+    text-transform: uppercase; margin-bottom: 8px; letter-spacing: .5px;
+  }
+  .reassign-select {
+    width: 100%; padding: 10px 14px; border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm); font-size: .875rem;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: var(--text-primary);
+    background: var(--bg-card); outline: none; transition: var(--transition);
+  }
+  .reassign-select:focus { border-color: var(--color-primary); }
+
+  .actions-row { display: flex; gap: 12px; justify-content: center; }
+  .btn-delete-confirm {
+    padding: 10px 24px; background: var(--color-red); color: white;
+    border: none; border-radius: var(--radius-sm); font-size: .875rem;
+    font-weight: 700; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; text-decoration: none;
+    transition: var(--transition);
+  }
+  .btn-delete-confirm:hover { background: #dc2626; }
+  .btn-cancel {
+    padding: 10px 20px; background: var(--bg-body); color: var(--text-secondary);
+    border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+    font-size: .875rem; font-weight: 600; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    text-decoration: none; transition: var(--transition);
+  }
+  .btn-cancel:hover { background: var(--border-color); color: var(--text-primary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-card">
+  <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+  <h2 class="delete-title">Are you absolutely sure?</h2>
+  
+  <p class="delete-desc">
+    You are about to delete the category <strong>"{{ category.name }}"</strong>.
+  </p>
+
+  <form method="POST">
+    {% csrf_token %}
+    
+    {% if product_count > 0 %}
+      <div class="reassign-box">
+        <div style="color: var(--color-red); font-weight: 700; font-size: .875rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-circle-exclamation"></i> Category Contains Products
+        </div>
+        <p style="font-size: .82rem; color: var(--text-secondary); margin: 0 0 15px; line-height: 1.5;">
+          There are currently <strong>{{ product_count }} product{{ product_count|pluralize }}</strong> assigned to this category. To protect them from orphan status, select another category to move these products to:
+        </p>
+
+        <label class="reassign-label" for="target_category">Target Category <span style="color:var(--color-red);">*</span></label>
+        <select name="target_category" id="target_category" class="reassign-select" required>
+          <option value="">— Select Target Category —</option>
+          {% for cat in other_categories %}
+            <option value="{{ cat.id }}">{{ cat.name }} ({{ cat.slug }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="actions-row">
+        <button type="submit" class="btn-delete-confirm">
+          <i class="fa-solid fa-shuffle"></i> Move Products & Delete
+        </button>
+        <a href="{% url 'custom_admin:categories' %}" class="btn-cancel">
+          Cancel
+        </a>
+      </div>
+    {% else %}
+      <p class="delete-desc" style="color: var(--text-secondary); margin-top: -10px;">
+        This category has <strong>0 products</strong> assigned. It is safe to delete immediately.
+      </p>
+      
+      <div class="actions-row">
+        <button type="submit" class="btn-delete-confirm">
+          <i class="fa-solid fa-trash"></i> Delete Category
+        </button>
+        <a href="{% url 'custom_admin:categories' %}" class="btn-cancel">
+          Cancel
+        </a>
+      </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

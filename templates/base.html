@@ -1,0 +1,198 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}PawanMod | Premium GTA Mods Marketplace{% endblock %}</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description"
+    content="{% block meta_description %}Experience GTA 5 like never before. Premium, safe, and exclusive GTA V mods, script mods, vehicle packs, maps, and graphics enhancers.{% endblock %}">
+  <meta name="keywords"
+    content="gta mods, gta 5 mods, premium gta mods, gta script mods, gta vehicle packs, cyber mods">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{% block og_title %}PawanMod - Premium GTA V Mods Marketplace{% endblock %}">
+  <meta property="og:description"
+    content="{% block og_description %}Get access to premium, high-quality script mods, custom maps, realistic vehicle textures, and complete graphic packs for GTA 5.{% endblock %}">
+
+  <!-- Icons & Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Background Particle Effects -->
+  <canvas id="bg-particles"></canvas>
+  <div class="ambient-glow"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- Redesigned Main Glass Header -->
+  <header>
+    <div class="nav-container">
+      <a href="{% url 'marketplace:home' %}" class="logo" aria-label="PawanMod Homepage">
+        <i class="fa-solid fa-cube"></i> PAWAN<span>MOD</span>
+      </a>
+
+      <nav class="nav-menu" id="navMenu" aria-label="Main Navigation">
+        <a href="{% url 'marketplace:home' %}"
+          class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+        <a href="{% url 'marketplace:store' %}"
+          class="nav-link {% if request.resolver_match.url_name == 'store' or request.resolver_match.url_name == 'product_detail' %}active{% endif %}">Store</a>
+        <a href="{% url 'marketplace:categories_list' %}"
+          class="nav-link {% if request.resolver_match.url_name == 'categories_list' or request.resolver_match.url_name == 'category_detail' %}active{% endif %}">Categories</a>
+        <a href="{% url 'marketplace:membership_info' %}"
+          class="nav-link {% if request.resolver_match.url_name == 'membership_info' %}active{% endif %}">Membership</a>
+        <a href="{% url 'blog:post_list' %}"
+          class="nav-link {% if request.resolver_match.url_name == 'post_list' or request.resolver_match.url_name == 'post_detail' %}active{% endif %}">Blog</a>
+        <a href="{% url 'marketplace:contact' %}"
+          class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Search Bar -->
+        <form action="{% url 'marketplace:store' %}" method="GET" class="header-search" role="search">
+          <input type="text" name="search" id="headerSearchInput" placeholder="Search mods..." value="{{ search_query|default:'' }}" aria-label="Search mods catalogue">
+          <button type="submit" style="background:none; border:none; color:inherit; cursor:pointer;" aria-label="Submit search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </form>
+
+        <!-- Modern Cart Icon -->
+        <a href="{% url 'orders:cart' %}" class="header-cart" id="cartIcon" aria-label="Shopping Cart, {{ cart_count|default:'0' }} items">
+          <div style="position: relative; display: flex; align-items: center;">
+            <i class="fa-solid fa-cart-shopping"></i>
+            {% if cart_count > 0 %}
+            <span class="header-cart-badge cart-badge">{{ cart_count }}</span>
+            {% endif %}
+          </div>
+          <span class="header-cart-total">₹{{ cart_total|default:'0.00' }}</span>
+        </a>
+
+        <!-- User Account Dropdown -->
+        <div class="header-profile-dropdown">
+          <div class="profile-trigger" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false" aria-label="User Account Menu">
+            {% if request.user.is_authenticated and request.user.profile.avatar %}
+            <img src="{{ request.user.profile.avatar.url }}" alt="Profile" class="profile-avatar-nav">
+            {% else %}
+            <i class="fa-solid fa-circle-user profile-icon-nav"></i>
+            {% endif %}
+          </div>
+          <div class="dropdown-menu-nav" role="menu">
+            {% if request.user.is_authenticated %}
+            <div class="dropdown-user-info">
+              <span class="dropdown-username">{{ request.user.username }}</span>
+            </div>
+            <a href="{% url 'accounts:profile' %}" role="menuitem"><i class="fa-solid fa-id-card"></i> Dashboard</a>
+            <a href="{% url 'accounts:profile' %}#panelOrders" class="tab-redirect" role="menuitem"><i class="fa-solid fa-receipt"></i> Orders</a>
+            <a href="{% url 'accounts:profile' %}#panelDownloads" class="tab-redirect" role="menuitem"><i class="fa-solid fa-circle-down"></i> Downloads</a>
+            {% if request.user.is_staff or request.user.is_superuser %}
+            <a href="{% url 'marketplace:custom_admin' %}" role="menuitem"><i class="fa-solid fa-screwdriver-wrench"></i> Admin Panel</a>
+            {% endif %}
+            <a href="{% url 'accounts:logout' %}" class="logout-link" role="menuitem"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            {% else %}
+            <a href="{% url 'accounts:login' %}" role="menuitem"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+            <a href="{% url 'accounts:register' %}" role="menuitem"><i class="fa-solid fa-user-plus"></i> Register</a>
+            {% endif %}
+          </div>
+        </div>
+
+        <button class="hamburger" id="hamburger" aria-label="Toggle navigation menu" aria-expanded="false">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Django Messages (Bridge to Toast System) -->
+  {% if messages %}
+  <div style="display: none;">
+    {% for message in messages %}
+    <div class="flash-msg-data" data-message="{{ message|escapejs }}" data-tags="{{ message.tags }}"></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Core Content Wrapper -->
+  <main class="fade-up" style="min-height: 70vh;">
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <!-- Immersive Cyberpunk Footer -->
+  <footer>
+    <div class="footer-top">
+      <div class="footer-logo-desc">
+        <a href="{% url 'marketplace:home' %}" class="logo">
+          <i class="fa-solid fa-cube"></i> PAWAN<span>MOD</span>
+        </a>
+        <p>A premium marketplace for high-performance GTA V modifications, scripting additions, vehicle packs, map
+          environments, and visual enhancements. Level up your Los Santos experience.</p>
+        <div class="footer-socials">
+          <a href="https://discord.gg/example" class="footer-social-btn" aria-label="Discord Server" target="_blank" rel="noopener"><i class="fa-brands fa-discord"></i></a>
+          <a href="https://youtube.com/example" class="footer-social-btn" aria-label="YouTube Channel" target="_blank" rel="noopener"><i class="fa-brands fa-youtube"></i></a>
+          <a href="https://instagram.com/example" class="footer-social-btn" aria-label="Instagram Profile" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i></a>
+          <a href="https://telegram.me/example" class="footer-social-btn" aria-label="Telegram Channel" target="_blank" rel="noopener"><i class="fa-brands fa-telegram"></i></a>
+        </div>
+      </div>
+
+      <div class="footer-links-col">
+        <h4 class="footer-col-title">Categories</h4>
+        <ul>
+          <li><a href="{% url 'marketplace:store' %}?category=vehicles">🚗 Vehicles</a></li>
+          <li><a href="{% url 'marketplace:store' %}?category=maps">🗺️ Custom Maps</a></li>
+          <li><a href="{% url 'marketplace:store' %}?category=scripts">📦 Script Packs</a></li>
+          <li><a href="{% url 'marketplace:store' %}?category=graphics">🎨 Graphics Packs</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links-col">
+        <h4 class="footer-col-title">Support</h4>
+        <ul>
+          <li><a href="{% url 'marketplace:contact' %}">Contact Moderators</a></li>
+          <li><a href="{% url 'blog:post_list' %}">Tutorials & Guides</a></li>
+          <li><a href="/faq/">Frequently Asked Questions</a></li>
+          <li><a href="/terms/">Terms & Service</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links-col">
+        <h4 class="footer-col-title">Newsletter</h4>
+        <p class="footer-newsletter-desc">Subscribe to receive exclusive beta mod releases and weekly promo codes.</p>
+        <form class="newsletter-form" onsubmit="event.preventDefault(); window.showToast('Subscribed to newsletter successfully!', 'success');">
+          <input type="email" placeholder="Enter email address" class="form-input" required aria-label="Email address for newsletter">
+          <button type="submit" class="btn btn-primary" style="padding: 10px 15px;" aria-label="Subscribe to newsletter"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 PawanMod Marketplace. All rights reserved. Not affiliated with Rockstar Games or Take-Two
+        Interactive.</p>
+      <div class="footer-legal-links">
+        <a href="/privacy/">Privacy Policy</a>
+        <a href="/refunds/">Refund Policy</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating WhatsApp Support Button -->
+  <a href="https://wa.me/917566631481" target="_blank" rel="noopener" class="whatsapp-float" title="Support via WhatsApp" aria-label="Contact support on WhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+  </a>
+
+  <!-- Global Particle System and Header Interaction JS -->
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+
+</html>

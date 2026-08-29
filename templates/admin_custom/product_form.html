@@ -1,0 +1,837 @@
+{% extends 'admin_custom/base_admin.html' %}
+{% block title %}{{ page_title }} | PawanMod Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-section {
+    background: var(--bg-card); border: 1px solid var(--border-color);
+    border-radius: var(--radius); padding: 28px; margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  .form-section-title {
+    font-size: .95rem; font-weight: 700; color: var(--text-primary);
+    margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .form-section-title i { color: var(--color-primary); }
+
+  .form-row        { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-row.single { grid-template-columns: 1fr; }
+  @media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+
+  .admin-field  { display: flex; flex-direction: column; gap: 6px; }
+  .admin-label  { font-size: .78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
+  .admin-label .req { color: var(--color-red); margin-left: 2px; }
+  .admin-form-input {
+    width: 100%; padding: 10px 14px; border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm); font-size: .875rem;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: var(--text-primary);
+    background: var(--bg-card); outline: none; transition: var(--transition); resize: vertical;
+  }
+  .admin-form-input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(255,107,0,.1); }
+  .field-error { font-size: .75rem; color: var(--color-red); display: flex; align-items: center; gap: 5px; }
+  .field-hint  { font-size: .72rem; color: var(--text-secondary); }
+
+  #slug-preview { font-family: monospace; font-size: .8rem; color: var(--text-secondary); padding: 4px 10px; background: var(--bg-body); border-radius: 4px; margin-top: 4px; display: none; }
+
+  .toggle-row {
+    display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+    background: var(--bg-body); border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color); cursor: pointer; transition: var(--transition);
+  }
+  .toggle-row:hover { border-color: var(--color-primary); }
+  .admin-form-checkbox { width: 18px; height: 18px; accent-color: var(--color-primary); cursor: pointer; flex-shrink: 0; }
+  .toggle-label    { font-size: .875rem; font-weight: 600; color: var(--text-primary); cursor: pointer; }
+  .toggle-sublabel { font-size: .75rem; color: var(--text-secondary); margin-top: 2px; }
+
+  .form-actions {
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+    background: var(--bg-card); border: 1px solid var(--border-color);
+    border-radius: var(--radius); padding: 20px 28px; box-shadow: var(--shadow);
+  }
+  .btn-save {
+    padding: 11px 28px; background: var(--color-primary); color: white;
+    border: none; border-radius: var(--radius-sm); font-size: .875rem;
+    font-weight: 700; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; transition: var(--transition);
+    text-decoration: none;
+  }
+  .btn-save:hover { background: #e85f00; }
+  .btn-draft {
+    padding: 11px 20px; background: rgba(37,99,235,.08); color: var(--color-blue);
+    border: 1px solid rgba(37,99,235,.2); border-radius: var(--radius-sm);
+    font-size: .875rem; font-weight: 600; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    cursor: pointer; display: flex; align-items: center; gap: 8px; transition: var(--transition);
+  }
+  .btn-draft:hover { background: rgba(37,99,235,.15); }
+  .btn-cancel {
+    padding: 11px 20px; background: var(--bg-body); color: var(--text-secondary);
+    border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+    font-size: .875rem; font-weight: 600; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    text-decoration: none; transition: var(--transition);
+  }
+  .btn-cancel:hover { background: var(--border-color); color: var(--text-primary); }
+  {% if mode == 'edit' %}
+  .btn-danger {
+    margin-left: auto; padding: 11px 20px;
+    background: rgba(239,68,68,.08); color: var(--color-red);
+    border: 1px solid rgba(239,68,68,.2); border-radius: var(--radius-sm);
+    font-size: .875rem; font-weight: 600; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    cursor: pointer; display: flex; align-items: center; gap: 8px; transition: var(--transition);
+  }
+  .btn-danger:hover { background: rgba(239,68,68,.15); }
+  {% endif %}
+
+  /* Delete modal */
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.5); z-index: 9998;
+    align-items: center; justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal-box {
+    background: var(--bg-card); border-radius: var(--radius);
+    padding: 32px; max-width: 440px; width: 90%; box-shadow: var(--shadow-md);
+    text-align: center;
+  }
+  .modal-icon { font-size: 2.5rem; color: var(--color-red); margin-bottom: 14px; }
+  .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+  .modal-body  { font-size: .875rem; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6; }
+  .modal-actions { display: flex; gap: 12px; justify-content: center; }
+
+  /* ── Media management styles ──────────────────────── */
+  .upload-zone {
+    border: 2px dashed var(--border-color); border-radius: var(--radius);
+    padding: 30px; text-align: center; background: var(--bg-body);
+    transition: var(--transition); cursor: pointer; display: flex;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; position: relative;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--color-primary); background: rgba(255,107,0,0.03);
+  }
+  .upload-icon { font-size: 2.2rem; color: var(--text-secondary); transition: var(--transition); }
+  .upload-zone:hover .upload-icon { color: var(--color-primary); }
+  .upload-title { font-size: 0.875rem; font-weight: 700; color: var(--text-primary); }
+  .upload-subtitle { font-size: 0.75rem; color: var(--text-secondary); }
+  
+  .progress-container {
+    width: 100%; height: 6px; background: var(--border-color);
+    border-radius: 3px; overflow: hidden; display: none; margin-top: 10px;
+  }
+  .progress-bar {
+    width: 0%; height: 100%; background: var(--color-primary);
+    transition: width 0.1s linear;
+  }
+  
+  .preview-card {
+    border: 1px solid var(--border-color); border-radius: var(--radius);
+    padding: 16px; display: flex; align-items: center; gap: 16px;
+    background: var(--bg-card); position: relative; margin-top: 14px;
+  }
+  .preview-thumbnail {
+    width: 80px; height: 80px; border-radius: var(--radius-sm);
+    object-fit: cover; border: 1px solid var(--border-color);
+  }
+  .preview-info { flex: 1; min-width: 0; }
+  .preview-name {
+    font-size: 0.85rem; font-weight: 700; color: var(--text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .preview-size { font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px; }
+  
+  /* Gallery grid */
+  .gallery-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 16px; margin-top: 16px;
+  }
+  .gallery-card {
+    border: 1px solid var(--border-color); border-radius: var(--radius-sm);
+    background: var(--bg-card); overflow: hidden; position: relative;
+    cursor: grab; transition: var(--transition);
+  }
+  .gallery-card:active { cursor: grabbing; transform: scale(0.98); }
+  .gallery-card.dragging { opacity: 0.5; border-color: var(--color-primary); }
+  .gallery-card-img {
+    width: 100%; height: 110px; object-fit: cover; display: block;
+  }
+  .gallery-card-actions {
+    padding: 8px; display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--border-color); background: var(--bg-body);
+  }
+  .gallery-handle { color: var(--text-secondary); cursor: grab; font-size: 0.75rem; }
+  .gallery-btn-delete {
+    background: none; border: none; padding: 2px 6px; font-size: 0.75rem;
+    color: var(--color-red); cursor: pointer; border-radius: 4px;
+    transition: var(--transition);
+  }
+  .gallery-btn-delete:hover { background: rgba(239,68,68,0.1); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1><i class="fa-solid fa-{% if mode == 'edit' %}pen{% else %}plus{% endif %}" style="color:var(--color-primary);margin-right:10px;"></i>{{ page_title }}</h1>
+  {% if mode == 'edit' %}
+    <a href="{% url 'marketplace:product_detail' product.slug %}" target="_blank"
+       style="font-size:.8rem;color:var(--color-blue);text-decoration:none;display:flex;align-items:center;gap:6px;">
+      <i class="fa-solid fa-arrow-up-right-from-square"></i> Preview on Store
+    </a>
+  {% endif %}
+</div>
+
+<form method="POST" id="productForm">
+  {% csrf_token %}
+  <input type="hidden" name="_stock_status_override" id="stockOverride" value="">
+
+  <!-- ── Basic Info ──────────────────────────────────── -->
+  <div class="form-section">
+    <div class="form-section-title"><i class="fa-solid fa-circle-info"></i> Basic Information</div>
+
+    <div class="form-row" style="margin-bottom:20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_name">Product Name <span class="req">*</span></label>
+        {{ form.name }}
+        {% for e in form.name.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="id_category">Category <span class="req">*</span></label>
+        {{ form.category }}
+        {% for e in form.category.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row single" style="margin-bottom:20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_slug">Slug <span class="req">*</span></label>
+        {{ form.slug }}
+        <div id="slug-preview"></div>
+        <span class="field-hint"><i class="fa-solid fa-wand-magic-sparkles"></i> Leave blank to auto-generate from product name.</span>
+        {% for e in form.slug.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row single" style="margin-bottom:20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_short_description">Short Description <span class="req">*</span></label>
+        {{ form.short_description }}
+        <span class="field-hint">Shown on product cards. Max 255 characters.</span>
+        {% for e in form.short_description.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+
+    <div class="form-row single">
+      <div class="admin-field">
+        <label class="admin-label" for="id_description">Full Description <span class="req">*</span></label>
+        {{ form.description }}
+        {% for e in form.description.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Pricing ────────────────────────────────────── -->
+  <div class="form-section">
+    <div class="form-section-title"><i class="fa-solid fa-indian-rupee-sign"></i> Pricing</div>
+    <div class="form-row">
+      <div class="admin-field">
+        <label class="admin-label" for="id_price">Price (₹) <span class="req">*</span></label>
+        {{ form.price }}
+        <span class="field-hint">Set to 0.00 for free mods.</span>
+        {% for e in form.price.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+      <div class="admin-field">
+        <label class="admin-label" for="id_old_price">Original Price (₹) — Optional</label>
+        {{ form.old_price }}
+        <span class="field-hint">Must be greater than Price to show a discount badge.</span>
+        {% for e in form.old_price.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tech Details ───────────────────────────────── -->
+  <div class="form-section">
+    <div class="form-section-title"><i class="fa-solid fa-screwdriver-wrench"></i> Technical Details</div>
+    <div class="form-row single" style="margin-bottom:20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_requirements">Requirements <span class="req">*</span></label>
+        {{ form.requirements }}
+        <span class="field-hint">List dependencies (ScriptHookV, OpenIV, etc.).</span>
+        {% for e in form.requirements.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+    <div class="form-row single">
+      <div class="admin-field">
+        <label class="admin-label" for="id_installation_guide">Installation Guide <span class="req">*</span></label>
+        {{ form.installation_guide }}
+        {% for e in form.installation_guide.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Status & Visibility ──────────────────────── -->
+  <div class="form-section">
+    <div class="form-section-title"><i class="fa-solid fa-toggle-on"></i> Status &amp; Visibility</div>
+    <div class="form-row" style="margin-bottom:20px;">
+      <div class="admin-field">
+        <label class="admin-label" for="id_stock_status">Availability <span class="req">*</span></label>
+        {{ form.stock_status }}
+        {% for e in form.stock_status.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <label class="toggle-row" for="id_is_featured">
+        {{ form.is_featured }}
+        <div>
+          <div class="toggle-label"><i class="fa-solid fa-star" style="color:#F59E0B;margin-right:6px;"></i>Featured Product</div>
+          <div class="toggle-sublabel">Shows in the Featured Mods section on the homepage.</div>
+        </div>
+      </label>
+      <label class="toggle-row" for="id_is_trending">
+        {{ form.is_trending }}
+        <div>
+          <div class="toggle-label"><i class="fa-solid fa-fire" style="color:var(--color-primary);margin-right:6px;"></i>Trending Product</div>
+          <div class="toggle-sublabel">Shows in the Trending Mods carousel on the homepage.</div>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <!-- Non-field errors -->
+  {% if form.non_field_errors %}
+    <div style="background:rgba(239,68,68,.08);border:1px solid var(--color-red);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:20px;color:var(--color-red);font-size:.875rem;">
+      {% for e in form.non_field_errors %}
+        <div style="display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-triangle-exclamation"></i> {{ e }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- ── Media Management Sections (Phase 2.3) ── -->
+  <div class="form-section" style="position: relative; {% if mode == 'add' %}opacity: 0.6; pointer-events: none;{% endif %}" id="mediaContainer">
+    {% if mode == 'add' %}
+      <!-- Overlay block to guide users -->
+      <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: center; z-index: 10; border-radius: var(--radius); pointer-events: auto;">
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 22px 30px; border-radius: var(--radius-sm); box-shadow: var(--shadow-md); text-align: center; max-width: 420px;">
+          <i class="fa-solid fa-circle-info fa-2x" style="color: var(--color-primary); margin-bottom: 12px; display: block;"></i>
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 6px; color: var(--text-primary);">Media Uploads Disabled</div>
+          <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">Please save the product before uploading images or download files.</div>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="form-section-title"><i class="fa-solid fa-photo-film"></i> Product Media &amp; Files</div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+      <!-- Main Product Image -->
+      <div class="admin-field">
+        <label class="admin-label">Main Product Image</label>
+        <div class="upload-zone" id="mainImageDropzone" onclick="document.getElementById('mainImageInput').click()">
+          <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+          <div class="upload-title">Drag &amp; drop main image or click to upload</div>
+          <div class="upload-subtitle">Supports: JPG, JPEG, PNG, WEBP (Max 1920x1920px resizing automatically)</div>
+          <input type="file" id="mainImageInput" style="display:none;" accept="image/jpeg,image/png,image/webp">
+          <div class="progress-container" id="mainImageProgressContainer">
+            <div class="progress-bar" id="mainImageProgressBar"></div>
+          </div>
+        </div>
+        <div id="mainImagePreviewContainer" style="{% if not product or not product.main_image %}display:none;{% endif %}">
+          <div class="preview-card">
+            <img src="{% if product and product.main_image %}{{ product.main_image.url }}{% endif %}" alt="Main Image Preview" class="preview-thumbnail" id="mainImagePreview">
+            <div class="preview-info">
+              <div class="preview-name" id="mainImageFilename">{% if product and product.main_image %}{{ product.main_image.name }}{% endif %}</div>
+              <div class="preview-size">Main Image</div>
+            </div>
+            <div class="preview-actions">
+              <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 0.75rem;" onclick="document.getElementById('mainImageInput').click()">
+                <i class="fa-solid fa-arrows-rotate"></i> Replace
+              </button>
+              <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 0.75rem; color: var(--color-red); border-color: rgba(239,68,68,0.2);" onclick="deleteMainImage()">
+                <i class="fa-solid fa-trash"></i> Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mod Download File -->
+      <div class="admin-field">
+        <label class="admin-label">ZIP / RAR / 7Z Mod File</label>
+        <div class="upload-zone" id="modFileDropzone" onclick="document.getElementById('modFileInput').click()">
+          <i class="fa-solid fa-file-zipper upload-icon"></i>
+          <div class="upload-title">Drag &amp; drop mod package or click to upload</div>
+          <div class="upload-subtitle">Allowed formats: .zip, .rar, .7z (Max 100MB)</div>
+          <input type="file" id="modFileInput" style="display:none;" accept=".zip,.rar,.7z">
+          <div class="progress-container" id="modFileProgressContainer">
+            <div class="progress-bar" id="modFileProgressBar"></div>
+          </div>
+        </div>
+        {% if mode == 'edit' %}
+          {% with latest_version=product.versions.first %}
+          <div id="modFilePreviewContainer" style="{% if not latest_version or not latest_version.download_file %}display:none;{% endif %}">
+            <div class="preview-card">
+              <div class="preview-thumbnail" style="display:flex; align-items:center; justify-content:center; background: var(--bg-body); color: var(--color-primary); font-size: 1.8rem;">
+                <i class="fa-solid fa-file-zipper"></i>
+              </div>
+              <div class="preview-info">
+                <div class="preview-name" id="modFilename">{% if latest_version and latest_version.download_file %}{{ latest_version.download_file.name }}{% endif %}</div>
+                <div class="preview-size">Mod Archive File</div>
+              </div>
+              <div class="preview-actions">
+                <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 0.75rem;" onclick="document.getElementById('modFileInput').click()">
+                  <i class="fa-solid fa-arrows-rotate"></i> Replace
+                </button>
+                <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 0.75rem; color: var(--color-red); border-color: rgba(239,68,68,0.2);" onclick="deleteModFile()">
+                  <i class="fa-solid fa-trash"></i> Remove
+                </button>
+              </div>
+            </div>
+          </div>
+          {% endwith %}
+        {% else %}
+          <div id="modFilePreviewContainer" style="display:none;"></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Product Gallery Screenshots -->
+    <div class="admin-field">
+      <label class="admin-label">Product Gallery Screenshots</label>
+      <div class="upload-zone" id="galleryDropzone" onclick="document.getElementById('galleryInput').click()" style="padding: 20px;">
+        <i class="fa-solid fa-images upload-icon" style="font-size: 1.8rem;"></i>
+        <div class="upload-title" style="font-size: 0.8rem;">Drag &amp; drop multiple gallery screenshots or click to upload</div>
+        <input type="file" id="galleryInput" style="display:none;" multiple accept="image/jpeg,image/png,image/webp">
+        <div class="progress-container" id="galleryProgressContainer">
+          <div class="progress-bar" id="galleryProgressBar"></div>
+        </div>
+      </div>
+      
+      <div class="gallery-grid" id="galleryGrid">
+        {% if mode == 'edit' %}
+          {% for screenshot in product.screenshots.all %}
+            <div class="gallery-card" data-id="{{ screenshot.id }}" draggable="true">
+              <img src="{{ screenshot.image.url }}" alt="Gallery Image" class="gallery-card-img">
+              <div class="gallery-card-actions">
+                <span class="gallery-handle" title="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i> Order</span>
+                <button type="button" class="gallery-btn-delete" onclick="deleteGalleryImage({{ screenshot.id }})">
+                  <i class="fa-solid fa-trash"></i> Delete
+                </button>
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Actions ──────────────────────────────────── -->
+  <div class="form-actions">
+    <button type="submit" id="btnPublish" class="btn-save" onclick="setStatus('available')">
+      <i class="fa-solid fa-circle-check"></i>
+      {% if mode == 'edit' %}Save Changes{% else %}Save &amp; Publish{% endif %}
+    </button>
+
+    <button type="submit" id="btnDraft" class="btn-draft" onclick="setStatus('coming_soon')">
+      <i class="fa-solid fa-file-pen"></i> Save as Draft
+    </button>
+
+    <a href="{% url 'custom_admin:products' %}" class="btn-cancel">
+      <i class="fa-solid fa-xmark"></i> Cancel
+    </a>
+
+    {% if mode == 'edit' %}
+      <button type="button" class="btn-danger" onclick="openDeleteModal()">
+        <i class="fa-solid fa-trash"></i> Delete Product
+      </button>
+    {% endif %}
+  </div>
+</form>
+
+<!-- ── Delete Confirmation Modal (edit mode only) ─ -->
+{% if mode == 'edit' %}
+<div class="modal-backdrop" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <div class="modal-title">Delete "{{ product.name }}"?</div>
+    <div class="modal-body">This action is permanent and cannot be undone. The product will be removed from the store immediately.</div>
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+      <form method="POST" action="{% url 'custom_admin:product_delete' product.id %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn-save" style="background:var(--color-red);">
+          <i class="fa-solid fa-trash"></i> Yes, Delete
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Auto slug from name ──────────────────────────────────
+  const nameField  = document.getElementById('id_name');
+  const slugField  = document.getElementById('id_slug');
+  const slugPreview = document.getElementById('slug-preview');
+
+  function toSlug(s) {
+    return s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+  }
+
+  if (nameField && slugField) {
+    nameField.addEventListener('input', () => {
+      if (!slugField.dataset.manual) {
+        const s = toSlug(nameField.value);
+        slugField.value = s;
+        slugPreview.textContent = s ? 'Preview: /products/' + s + '/' : '';
+        slugPreview.style.display = s ? 'block' : 'none';
+      }
+    });
+    slugField.addEventListener('input', () => {
+      slugField.dataset.manual = '1';
+      const s = slugField.value;
+      slugPreview.textContent = s ? 'Preview: /products/' + s + '/' : '';
+      slugPreview.style.display = s ? 'block' : 'none';
+    });
+    // Show preview on load (edit mode)
+    if (slugField.value) {
+      slugPreview.textContent = 'Preview: /products/' + slugField.value + '/';
+      slugPreview.style.display = 'block';
+    }
+  }
+
+  // ── Publish / Draft override ─────────────────────────────
+  function setStatus(status) {
+    const override = document.getElementById('stockOverride');
+    const statusField = document.getElementById('id_stock_status');
+    if (override) override.value = status;
+    if (statusField && status) statusField.value = status;
+  }
+
+  // ── Media uploads AJAX (Phase 2.3) ───────────────────────
+  {% if mode == 'edit' %}
+  const productId = "{{ product.id }}";
+  const csrfToken = "{{ csrf_token }}";
+
+  function uploadMediaFile(file, fieldName, uploadUrl, progressContainer, progressBar, successCallback) {
+    progressContainer.style.display = 'block';
+    progressBar.style.width = '0%';
+    
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append(fieldName, file);
+    
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        progressBar.style.width = percent + '%';
+      }
+    });
+    
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        progressContainer.style.display = 'none';
+        if (xhr.status === 200) {
+          try {
+            const resp = JSON.parse(xhr.responseText);
+            if (resp.status === 'success') {
+              successCallback(resp);
+            } else {
+              alert("Upload failed: " + resp.message);
+            }
+          } catch(e) {
+            alert("Upload failed: Invalid response from server.");
+          }
+        } else {
+          try {
+            const resp = JSON.parse(xhr.responseText);
+            alert("Error: " + resp.message);
+          } catch(e) {
+            alert("An error occurred during upload. Please verify file extension and size.");
+          }
+        }
+      }
+    };
+    
+    xhr.open('POST', uploadUrl, true);
+    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.send(formData);
+  }
+
+  // Setup Drag & Drop zone
+  function setupDragDropZone(zoneId, inputId, onFileDrop) {
+    const zone = document.getElementById(zoneId);
+    const input = document.getElementById(inputId);
+    if (!zone || !input) return;
+    
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      zone.classList.add('dragover');
+    });
+    
+    zone.addEventListener('dragleave', () => {
+      zone.classList.remove('dragover');
+    });
+    
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        onFileDrop(e.dataTransfer.files);
+      }
+    });
+    
+    input.addEventListener('change', () => {
+      if (input.files.length > 0) {
+        onFileDrop(input.files);
+      }
+    });
+  }
+
+  // Setup Main Image Drag & Drop
+  setupDragDropZone('mainImageDropzone', 'mainImageInput', (files) => {
+    uploadMediaFile(
+      files[0],
+      'main_image',
+      `/custom-admin/products/${productId}/media/main/upload/`,
+      document.getElementById('mainImageProgressContainer'),
+      document.getElementById('mainImageProgressBar'),
+      (resp) => {
+        // Show Preview
+        document.getElementById('mainImagePreview').src = resp.url;
+        document.getElementById('mainImageFilename').textContent = resp.filename;
+        document.getElementById('mainImagePreviewContainer').style.display = 'block';
+      }
+    );
+  });
+
+  // Delete Main Image
+  window.deleteMainImage = function() {
+    if (!confirm("Are you sure you want to remove the main image?")) return;
+    fetch(`/custom-admin/products/${productId}/media/main/delete/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(resp => resp.json())
+    .then(resp => {
+      if (resp.status === 'success') {
+        document.getElementById('mainImagePreviewContainer').style.display = 'none';
+        document.getElementById('mainImageInput').value = '';
+      } else {
+        alert("Error: " + resp.message);
+      }
+    });
+  };
+
+  // Setup Mod File Drag & Drop
+  setupDragDropZone('modFileDropzone', 'modFileInput', (files) => {
+    uploadMediaFile(
+      files[0],
+      'download_file',
+      `/custom-admin/products/${productId}/media/file/upload/`,
+      document.getElementById('modFileProgressContainer'),
+      document.getElementById('modFileProgressBar'),
+      (resp) => {
+        document.getElementById('modFilename').textContent = resp.filename;
+        document.getElementById('modFilePreviewContainer').style.display = 'block';
+      }
+    );
+  });
+
+  // Delete Mod File
+  window.deleteModFile = function() {
+    if (!confirm("Are you sure you want to remove the mod file?")) return;
+    fetch(`/custom-admin/products/${productId}/media/file/delete/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(resp => resp.json())
+    .then(resp => {
+      if (resp.status === 'success') {
+        document.getElementById('modFilePreviewContainer').style.display = 'none';
+        document.getElementById('modFileInput').value = '';
+      } else {
+        alert("Error: " + resp.message);
+      }
+    });
+  };
+
+  // Setup Gallery Images Upload
+  setupDragDropZone('galleryDropzone', 'galleryInput', (files) => {
+    const progressContainer = document.getElementById('galleryProgressContainer');
+    const progressBar = document.getElementById('galleryProgressBar');
+    progressContainer.style.display = 'block';
+    progressBar.style.width = '0%';
+    
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('gallery_images', files[i]);
+    }
+    
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        progressBar.style.width = percent + '%';
+      }
+    });
+    
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        progressContainer.style.display = 'none';
+        if (xhr.status === 200) {
+          try {
+            const resp = JSON.parse(xhr.responseText);
+            if (resp.status === 'success') {
+              resp.images.forEach(img => {
+                appendGalleryCard(img.id, img.url);
+              });
+              if (resp.errors) {
+                alert("Some files were skipped: " + resp.errors.join("; "));
+              }
+            } else {
+              alert("Upload failed: " + resp.message);
+            }
+          } catch(e) {
+            alert("Upload failed: Invalid response from server.");
+          }
+        } else {
+          try {
+            const resp = JSON.parse(xhr.responseText);
+            alert("Error: " + resp.message);
+          } catch(e) {
+            alert("Gallery upload failed. Verify image extensions.");
+          }
+        }
+      }
+    };
+    
+    xhr.open('POST', `/custom-admin/products/${productId}/media/gallery/upload/`, true);
+    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.send(formData);
+  });
+
+  function appendGalleryCard(id, url) {
+    const grid = document.getElementById('galleryGrid');
+    const card = document.createElement('div');
+    card.className = 'gallery-card';
+    card.dataset.id = id;
+    card.draggable = true;
+    card.innerHTML = `
+      <img src="${url}" alt="Gallery Image" class="gallery-card-img">
+      <div class="gallery-card-actions">
+        <span class="gallery-handle" title="Drag to reorder"><i class="fa-solid fa-grip-vertical"></i> Order</span>
+        <button type="button" class="gallery-btn-delete" onclick="deleteGalleryImage(${id})">
+          <i class="fa-solid fa-trash"></i> Delete
+        </button>
+      </div>
+    `;
+    grid.appendChild(card);
+    setupGalleryDragEvents(card);
+  }
+
+  // Delete Gallery Image
+  window.deleteGalleryImage = function(imageId) {
+    if (!confirm("Remove this gallery image?")) return;
+    fetch(`/custom-admin/products/${productId}/media/gallery/delete/${imageId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(resp => resp.json())
+    .then(resp => {
+      if (resp.status === 'success') {
+        const card = document.querySelector(`.gallery-card[data-id="${imageId}"]`);
+        if (card) card.remove();
+      } else {
+        alert("Error: " + resp.message);
+      }
+    });
+  };
+
+  // Gallery Drag & Drop Reordering (HTML5 Drag and Drop API)
+  let draggedCard = null;
+
+  function setupGalleryDragEvents(card) {
+    card.addEventListener('dragstart', (e) => {
+      draggedCard = card;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      draggedCard = null;
+      saveGalleryOrder();
+    });
+    
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+    
+    card.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+    });
+    
+    card.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (draggedCard && draggedCard !== card) {
+        const grid = document.getElementById('galleryGrid');
+        const children = Array.from(grid.children);
+        const draggedIndex = children.indexOf(draggedCard);
+        const targetIndex = children.indexOf(card);
+        
+        if (draggedIndex < targetIndex) {
+          card.after(draggedCard);
+        } else {
+          card.before(draggedCard);
+        }
+      }
+    });
+  }
+
+  // Bind existing cards
+  document.querySelectorAll('.gallery-card').forEach(setupGalleryDragEvents);
+
+  function saveGalleryOrder() {
+    const grid = document.getElementById('galleryGrid');
+    const imageIds = Array.from(grid.querySelectorAll('.gallery-card')).map(card => card.dataset.id);
+    
+    fetch(`/custom-admin/products/${productId}/media/gallery/reorder/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ image_ids: imageIds })
+    })
+    .then(resp => resp.json())
+    .then(resp => {
+      if (resp.status !== 'success') {
+        alert("Failed to save gallery order: " + resp.message);
+      }
+    });
+  }
+  {% endif %}
+
+  // ── Delete modal ─────────────────────────────────────────
+  function openDeleteModal()  { document.getElementById('deleteModal').classList.add('open'); }
+  function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('open'); }
+  document.getElementById('deleteModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+</script>
+{% endblock %}
