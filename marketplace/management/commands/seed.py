@@ -4,25 +4,41 @@ from django.utils import timezone
 from marketplace.models import Category, Product, Review
 from blog.models import BlogPost
 from orders.models import Coupon
+import os
 import datetime
 
 class Command(BaseCommand):
-    help = 'Seeds the database with default categories, mods, articles, and coupon codes.'
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--clear',
+            action='store_true',
+            help='Clear existing products, categories, blog posts, and coupons before seeding.',
+        )
 
-    def handle(self, *args, **kwargs):
-        self.stdout.write('Clearing existing database entries...')
-        # Clear database
-        Category.objects.all().delete()
-        Product.objects.all().delete()
-        BlogPost.objects.all().delete()
-        Coupon.objects.all().delete()
-        
+    def handle(self, *args, **options):
+        if options.get('clear'):
+            self.stdout.write('Clearing existing database entries...')
+            Category.objects.all().delete()
+            Product.objects.all().delete()
+            BlogPost.objects.all().delete()
+            Coupon.objects.all().delete()
+
         # 1. Create Default Superuser
-        if not User.objects.filter(username='admin').exists():
-            self.stdout.write('Creating administrative superuser (admin/admin123)...')
-            User.objects.create_superuser('admin', 'admin@pawanmod.com', 'admin123')
+        username = os.getenv('ADMIN_USERNAME', 'admin')
+        email = os.getenv('ADMIN_EMAIL', 'admin@pawanmod.com')
+        password = os.getenv('ADMIN_PASSWORD', 'admin123')
+
+        if not User.objects.filter(is_superuser=True).exists():
+            self.stdout.write(f'Creating administrative superuser ({username})...')
+            User.objects.create_superuser(username, email, password)
+        else:
+            self.stdout.write('Superuser already exists. Skipping creation.')
         
         # 2. Create Categories
+        if Category.objects.exists():
+            self.stdout.write('Database already seeded with categories. Skipping.')
+            return
+
         self.stdout.write('Seeding categories...')
         categories_data = [
             {'name': 'Vehicles', 'icon': 'fa-car', 'description': 'Hypercars, sports coupes, roleplay emergency cruisers.'},
