@@ -23,16 +23,23 @@ class Command(BaseCommand):
             BlogPost.objects.all().delete()
             Coupon.objects.all().delete()
 
-        # 1. Create Default Superuser
+        # 1. Create or Update Superuser
         username = os.getenv('ADMIN_USERNAME', 'admin')
         email = os.getenv('ADMIN_EMAIL', 'admin@pawanmod.com')
         password = os.getenv('ADMIN_PASSWORD', 'admin123')
 
-        if not User.objects.filter(is_superuser=True).exists():
-            self.stdout.write(f'Creating administrative superuser ({username})...')
-            User.objects.create_superuser(username, email, password)
+        superuser = User.objects.filter(is_superuser=True).first() or User.objects.filter(username=username).first()
+        if superuser:
+            self.stdout.write(f'Updating superuser credentials for user "{username}"...')
+            superuser.username = username
+            superuser.email = email
+            superuser.set_password(password)
+            superuser.is_superuser = True
+            superuser.is_staff = True
+            superuser.save()
         else:
-            self.stdout.write('Superuser already exists. Skipping creation.')
+            self.stdout.write(f'Creating administrative superuser ({username})...')
+            User.objects.create_superuser(username=username, email=email, password=password)
         
         # 2. Create Categories
         if Category.objects.exists():

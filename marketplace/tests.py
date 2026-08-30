@@ -183,3 +183,17 @@ class MarketplaceModelTests(TestCase):
         self.assertIn(response.status_code, [200, 302])
         from marketplace.models import ContactMessage
         self.assertTrue(ContactMessage.objects.filter(email='janedoe@example.com').exists())
+
+    def test_createsuperuser_if_none_creates_and_updates(self):
+        """Verify createsuperuser_if_none creates and safely updates superuser credentials."""
+        from django.core.management import call_command
+        from django.contrib.auth.models import User
+        
+        # Test creation
+        call_command('createsuperuser_if_none')
+        self.assertTrue(User.objects.filter(username='admin', is_superuser=True).exists())
+
+        # Test updating password / credentials
+        call_command('createsuperuser_if_none')
+        user = User.objects.get(username='admin')
+        self.assertTrue(user.check_password('admin123'))
