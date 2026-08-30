@@ -4,6 +4,10 @@ from core import admin_views, admin_views_media
 app_name = 'custom_admin'
 
 urlpatterns = [
+    # Auth
+    path('login/',  admin_views.admin_login,  name='login'),
+    path('logout/', admin_views.admin_logout, name='logout'),
+
     # Dashboard
     path('',  admin_views.dashboard_home, name='dashboard'),
 

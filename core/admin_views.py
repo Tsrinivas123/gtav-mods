@@ -12,19 +12,68 @@ from functools import wraps
 import datetime
 
 
+from django.contrib.auth import authenticate, login, logout
+
 # ─── Admin Guard ───────────────────────────────────────────────────────────────
 
 def admin_required(view_func):
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            messages.warning(request, "Please log in to access the admin panel.")
-            return redirect('accounts:login')
-        if not (request.user.is_staff or request.user.is_superuser):
-            messages.error(request, "You do not have permission to access this area.")
-            return redirect('accounts:profile')
+            messages.warning(request, "Please log in with admin credentials to access the Custom Admin Panel.")
+            return redirect('custom_admin:login')
+        if not (request.user.is_staff or request.user.is_superuser) or not request.user.is_active:
+            messages.error(request, "Access denied. Administrative privileges are required.")
+            return redirect('custom_admin:login')
         return view_func(request, *args, **kwargs)
     return _wrapped
+
+
+def admin_login(request):
+    """Dedicated login view for Custom Admin Panel."""
+    if request.user.is_authenticated:
+        if request.user.is_staff or request.user.is_superuser:
+            return redirect('custom_admin:dashboard')
+        messages.error(request, "Access denied. Regular user accounts cannot access the Custom Admin Panel.")
+        return redirect('custom_admin:login')
+
+    if request.method == 'POST':
+        raw_input = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+
+        username = raw_input
+        if '@' in raw_input:
+            user_obj = User.objects.filter(email__iexact=raw_input).first()
+            if user_obj:
+                username = user_obj.username
+        else:
+            user_obj = User.objects.filter(username__iexact=raw_input).first()
+            if user_obj:
+                username = user_obj.username
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            if not user.is_active:
+                messages.error(request, "This administrative account is inactive.")
+                return render(request, 'admin_custom/login.html')
+            if not (user.is_staff or user.is_superuser):
+                messages.error(request, "Access denied. Regular user accounts are not permitted in the Admin Portal.")
+                return render(request, 'admin_custom/login.html')
+
+            login(request, user)
+            messages.success(request, f"Welcome to Custom Admin, {user.username}!")
+            return redirect('custom_admin:dashboard')
+        else:
+            messages.error(request, "Invalid admin username/email or password.")
+
+    return render(request, 'admin_custom/login.html')
+
+
+def admin_logout(request):
+    """Dedicated logout view for Custom Admin Panel."""
+    logout(request)
+    messages.info(request, "You have been logged out of the Custom Admin Panel.")
+    return redirect('custom_admin:login')
 
 
 def _base_ctx():

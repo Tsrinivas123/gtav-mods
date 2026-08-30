@@ -1,0 +1,311 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal Login | PawanMod</title>
+  
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-dark: #0A0D14;
+      --bg-card: #121824;
+      --border-color: rgba(255, 107, 0, 0.2);
+      --accent-color: #FF6B00;
+      --accent-hover: #E55C00;
+      --text-main: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --danger-color: #EF4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+
+    /* Ambient background glowing elements */
+    body::before {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(255, 107, 0, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+      top: 10%;
+      left: 15%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: absolute;
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(255, 107, 0, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+      bottom: 10%;
+      right: 15%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .admin-login-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .admin-login-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 40px 32px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 107, 0, 0.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .brand-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-logo span {
+      color: var(--accent-color);
+    }
+
+    .admin-badge {
+      display: inline-block;
+      margin-top: 8px;
+      background: rgba(255, 107, 0, 0.15);
+      color: var(--accent-color);
+      border: 1px solid rgba(255, 107, 0, 0.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .login-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-top: 16px;
+      color: #FFFFFF;
+    }
+
+    .login-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Flash Messages */
+    .messages-container {
+      margin-bottom: 24px;
+    }
+
+    .alert-msg {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .alert-error, .alert-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #FCA5A5;
+    }
+
+    .alert-success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #6EE7B7;
+    }
+
+    .alert-info, .alert-warning {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #FCD34D;
+    }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .form-input {
+      width: 100%;
+      background: #0B0F19;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 12px 16px 12px 42px;
+      color: #FFFFFF;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.15);
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--accent-color);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-submit:active {
+      transform: scale(0.99);
+    }
+
+    .back-home {
+      display: block;
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .back-home:hover {
+      color: var(--accent-color);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-login-wrapper">
+    <div class="admin-login-card">
+      <div class="brand-header">
+        <a href="{% url 'marketplace:home' %}" class="brand-logo">
+          <i class="fa-solid fa-gamepad" style="color: var(--accent-color);"></i>
+          Pawan<span>Mod</span>
+        </a>
+        <div>
+          <span class="admin-badge"><i class="fa-solid fa-shield-halved"></i> Control Center</span>
+        </div>
+        <h1 class="login-title">Admin Portal Login</h1>
+        <p class="login-subtitle">Enter active staff or superuser credentials to continue.</p>
+      </div>
+
+      {% if messages %}
+      <div class="messages-container">
+        {% for message in messages %}
+          <div class="alert-msg alert-{{ message.tags|default:'info' }}">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <div>{{ message|safe }}</div>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <form method="POST" action="{% url 'custom_admin:login' %}">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="admin-username" class="form-label">Admin Username or Email</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-user input-icon"></i>
+            <input type="text" id="admin-username" name="username" class="form-input" placeholder="e.g. Tushar or admin@pawanmod.com" required autofocus autocomplete="username">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="admin-password" class="form-label">Password</label>
+          <div class="input-wrapper">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input type="password" id="admin-password" name="password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In to Admin Panel
+        </button>
+      </form>
+
+      <a href="{% url 'marketplace:home' %}" class="back-home">
+        <i class="fa-solid fa-arrow-left"></i> Return to Main Storefront
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>
