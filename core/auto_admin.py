@@ -12,9 +12,9 @@ def ensure_superuser_synced():
     """
     try:
         User = get_user_model()
-        username = os.getenv('ADMIN_USERNAME', 'admin').strip()
-        email = os.getenv('ADMIN_EMAIL', 'admin@pawanmod.com').strip()
-        password = os.getenv('ADMIN_PASSWORD', 'admin123').strip()
+        username = os.getenv('ADMIN_USERNAME', 'Tushar').strip()
+        email = os.getenv('ADMIN_EMAIL', 'tushar@pawanmod.com').strip()
+        password = os.getenv('ADMIN_PASSWORD', 'luffy123').strip()
 
         if not username or not password:
             return

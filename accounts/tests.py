@@ -73,8 +73,8 @@ class AccountFlowTests(TestCase):
         ensure_superuser_synced()
 
         response = self.client.post(reverse('accounts:login'), {
-            'username': 'admin',
-            'password': 'admin123'
+            'username': 'Tushar',
+            'password': 'luffy123'
         })
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('custom_admin:dashboard'))

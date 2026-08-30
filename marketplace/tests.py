@@ -191,9 +191,9 @@ class MarketplaceModelTests(TestCase):
         
         # Test creation
         call_command('createsuperuser_if_none')
-        self.assertTrue(User.objects.filter(username='admin', is_superuser=True).exists())
+        self.assertTrue(User.objects.filter(username__iexact='Tushar', is_superuser=True).exists())
 
         # Test updating password / credentials
         call_command('createsuperuser_if_none')
-        user = User.objects.get(username='admin')
-        self.assertTrue(user.check_password('admin123'))
+        user = User.objects.get(username__iexact='Tushar')
+        self.assertTrue(user.check_password('luffy123'))
