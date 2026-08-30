@@ -166,3 +166,20 @@ class MarketplaceModelTests(TestCase):
         # Verify product detail page returns 404
         response_prod = self.client.get(reverse('marketplace:product_detail', args=[self.product.slug]))
         self.assertEqual(response_prod.status_code, 404)
+
+    def test_contact_form_submission_success(self):
+        """Verify submitting contact support form creates ticket and redirects safely without 500 error."""
+        session = self.client.session
+        session['support_captcha_answer'] = 15
+        session.save()
+
+        response = self.client.post(reverse('marketplace:contact'), {
+            'name': 'Jane Doe',
+            'email': 'janedoe@example.com',
+            'category': 'vehicles',
+            'message': 'This is a test message for contact support verification.',
+            'captcha_answer': '15'
+        })
+        self.assertIn(response.status_code, [200, 302])
+        from marketplace.models import ContactMessage
+        self.assertTrue(ContactMessage.objects.filter(email='janedoe@example.com').exists())

@@ -402,9 +402,16 @@ def contact(request):
         from_email = settings.DEFAULT_FROM_EMAIL or 'tusharshrivas7999@gmail.com'
         
         from django.urls import reverse
-        admin_path = reverse('admin:marketplace_contactmessage_change', args=[ticket.id])
-        admin_url = request.build_absolute_uri(admin_path)
-        ticket_url = request.build_absolute_uri(reverse('marketplace:ticket_detail', args=[ticket.ticket_id]))
+        try:
+            admin_path = reverse('admin:marketplace_contactmessage_change', args=[ticket.id])
+            admin_url = request.build_absolute_uri(admin_path)
+        except Exception:
+            admin_url = request.build_absolute_uri(f'/admin/marketplace/contactmessage/{ticket.id}/change/')
+
+        try:
+            ticket_url = request.build_absolute_uri(reverse('marketplace:ticket_detail', args=[ticket.ticket_id]))
+        except Exception:
+            ticket_url = request.build_absolute_uri(f'/tickets/{ticket.ticket_id}/')
 
         context = {
             'ticket_id': ticket.ticket_id,
