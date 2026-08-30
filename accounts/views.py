@@ -20,19 +20,24 @@ def user_login(request):
         return redirect('accounts:profile')
         
     if request.method == 'POST':
-        username_or_email = request.POST.get('username')
-        password = request.POST.get('password')
+        raw_input = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
         
-        username = username_or_email
-        if '@' in username_or_email:
-            try:
-                user_obj = User.objects.get(email=username_or_email)
+        username = raw_input
+        if '@' in raw_input:
+            user_obj = User.objects.filter(email__iexact=raw_input).first()
+            if user_obj:
                 username = user_obj.username
-            except User.DoesNotExist:
-                pass
+        else:
+            user_obj = User.objects.filter(username__iexact=raw_input).first()
+            if user_obj:
+                username = user_obj.username
         
         user = authenticate(request, username=username, password=password)
         if user is not None:
+            if not user.is_active:
+                messages.error(request, "This account is inactive.")
+                return render(request, 'login.html')
             login(request, user)
             messages.success(request, f"Welcome back, {user.username}!")
             if user.is_staff or user.is_superuser:

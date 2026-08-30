@@ -66,3 +66,16 @@ class AccountFlowTests(TestCase):
         response = self.client.get(reverse('accounts:logout'))
         self.assertEqual(response.status_code, 302)
         self.assertFalse('_auth_user_id' in self.client.session)
+
+    def test_superuser_env_authentication_and_admin_redirect(self):
+        """Verify superuser synced from environment can authenticate and is redirected to custom admin dashboard."""
+        from core.auto_admin import ensure_superuser_synced
+        ensure_superuser_synced()
+
+        response = self.client.post(reverse('accounts:login'), {
+            'username': 'admin',
+            'password': 'admin123'
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('custom_admin:dashboard'))
+        self.assertTrue('_auth_user_id' in self.client.session)
