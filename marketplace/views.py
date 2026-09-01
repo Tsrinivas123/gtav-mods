@@ -566,47 +566,10 @@ def ticket_detail(request, ticket_id):
 def is_admin(user):
     return user.is_authenticated and (user.is_staff or user.is_superuser)
 
-@login_required
-@user_passes_test(is_admin, login_url='accounts:login')
 def custom_admin_dashboard(request):
-    products = Product.objects.all().order_by('-created_at')
-    orders = Order.objects.all().order_by('-created_at')
-    
-    # Calculate statistics
-    total_sales = Order.objects.filter(payment_status='Completed').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
-    total_orders = Order.objects.count()
-    total_users = User.objects.count()
-    total_downloads = Product.objects.aggregate(Sum('downloads_count'))['downloads_count__sum'] or 0
-    
-    # Category Distribution
-    categories = Category.objects.annotate(num_products=Count('products'))
-    
-    context = {
-        'products': products,
-        'orders': orders[:10], # Show last 10 orders
-        'total_sales': total_sales,
-        'total_orders': total_orders,
-        'total_users': total_users,
-        'total_downloads': total_downloads,
-        'categories': categories,
-    }
-    return render(request, 'admin_custom/dashboard.html', context)
+    return redirect('custom_admin:dashboard')
 
-@login_required
-@user_passes_test(is_admin, login_url='accounts:login')
 def custom_admin_product_edit(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            product.price = float(data.get('price', product.price))
-            product.old_price = float(data.get('old_price')) if data.get('old_price') else None
-            product.stock_status = data.get('stock_status', product.stock_status)
-            product.is_featured = bool(data.get('is_featured', product.is_featured))
-            product.is_trending = bool(data.get('is_trending', product.is_trending))
-            product.save()
-            return JsonResponse({'status': 'success', 'message': 'Product updated successfully.'})
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return redirect('custom_admin:product_edit', product_id=pk)
             
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)

@@ -338,6 +338,11 @@ def payment_complete(request):
         request.session.pop('cart', None)
         request.session.pop('coupon_code', None)
 
+        purchased = request.session.get('purchased_orders', [])
+        if order.code not in purchased:
+            purchased.append(order.code)
+            request.session['purchased_orders'] = purchased
+
         return JsonResponse({
             'status': 'success',
             'redirect_url': reverse('orders:order_complete', args=[order.code]),
@@ -356,24 +361,21 @@ def payment_complete(request):
 
 def download_file(request, version_id):
     """Secure download: increments downloads_count only after confirming purchase entitlement."""
-    if not request.user.is_authenticated:
-        messages.error(request, "Guests are not allowed to download files. Please log in.")
-        return redirect('accounts:login')
-
     version = get_object_or_404(VersionHistory, pk=version_id)
     product = version.product
 
     is_allowed = False
 
-    if request.user.is_staff or request.user.is_superuser:
+    if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
         is_allowed = True
     elif product.price == 0:
         is_allowed = True
     else:
+        purchased_orders = request.session.get('purchased_orders', [])
         is_allowed = Order.objects.filter(
-            user=request.user,
-            status__in=['paid', 'completed'],
+            status__in=['paid', 'completed', 'Success'],
             items__product=product,
+            code__in=purchased_orders
         ).exists()
 
     if not is_allowed:

@@ -78,33 +78,11 @@
           <span class="header-cart-total">₹{{ cart_total|default:'0.00' }}</span>
         </a>
 
-        <!-- User Account Dropdown -->
-        <div class="header-profile-dropdown">
-          <div class="profile-trigger" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false" aria-label="User Account Menu">
-            {% if request.user.is_authenticated and request.user.profile.avatar %}
-            <img src="{{ request.user.profile.avatar.url }}" alt="Profile" class="profile-avatar-nav">
-            {% else %}
-            <i class="fa-solid fa-circle-user profile-icon-nav"></i>
-            {% endif %}
-          </div>
-          <div class="dropdown-menu-nav" role="menu">
-            {% if request.user.is_authenticated %}
-            <div class="dropdown-user-info">
-              <span class="dropdown-username">{{ request.user.username }}</span>
-            </div>
-            <a href="{% url 'accounts:profile' %}" role="menuitem"><i class="fa-solid fa-id-card"></i> Dashboard</a>
-            <a href="{% url 'accounts:profile' %}#panelOrders" class="tab-redirect" role="menuitem"><i class="fa-solid fa-receipt"></i> Orders</a>
-            <a href="{% url 'accounts:profile' %}#panelDownloads" class="tab-redirect" role="menuitem"><i class="fa-solid fa-circle-down"></i> Downloads</a>
-            {% if request.user.is_staff or request.user.is_superuser %}
-            <a href="{% url 'marketplace:custom_admin' %}" role="menuitem"><i class="fa-solid fa-screwdriver-wrench"></i> Admin Panel</a>
-            {% endif %}
-            <a href="{% url 'accounts:logout' %}" class="logout-link" role="menuitem"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-            {% else %}
-            <a href="{% url 'accounts:login' %}" role="menuitem"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
-            <a href="{% url 'accounts:register' %}" role="menuitem"><i class="fa-solid fa-user-plus"></i> Register</a>
-            {% endif %}
-          </div>
-        </div>
+        {% if request.user.is_authenticated and request.user.is_staff or request.user.is_superuser %}
+        <a href="{% url 'custom_admin:dashboard' %}" class="btn-admin-nav" style="color: #FF6B00; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; padding: 6px 12px; border: 1px solid rgba(255,107,0,0.3); border-radius: 20px; background: rgba(255,107,0,0.1);">
+          <i class="fa-solid fa-shield-halved"></i> Admin
+        </a>
+        {% endif %}
 
         <button class="hamburger" id="hamburger" aria-label="Toggle navigation menu" aria-expanded="false">
           <i class="fa-solid fa-bars"></i>

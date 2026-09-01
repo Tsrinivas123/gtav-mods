@@ -14,116 +14,75 @@ import uuid
 import random
 
 def user_login(request):
+    """Customer login disabled on public site. Redirect staff to admin login, guests to store."""
     if request.user.is_authenticated:
         if request.user.is_staff or request.user.is_superuser:
             return redirect('custom_admin:dashboard')
-        return redirect('accounts:profile')
-        
-    if request.method == 'POST':
-        raw_input = request.POST.get('username', '').strip()
-        password = request.POST.get('password', '')
-        
-        username = raw_input
-        if '@' in raw_input:
-            user_obj = User.objects.filter(email__iexact=raw_input).first()
-            if user_obj:
-                username = user_obj.username
-        else:
-            user_obj = User.objects.filter(username__iexact=raw_input).first()
-            if user_obj:
-                username = user_obj.username
-        
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            if not user.is_active:
-                messages.error(request, "This account is inactive.")
-                return render(request, 'login.html')
-            login(request, user)
-            messages.success(request, f"Welcome back, {user.username}!")
-            if user.is_staff or user.is_superuser:
-                return redirect('custom_admin:dashboard')
-            next_url = request.GET.get('next', 'accounts:profile')
-            return redirect(next_url)
-        else:
-            messages.error(request, "Invalid username or password.")
-            
-    return render(request, 'login.html')
+        return redirect('marketplace:store')
+    return redirect('custom_admin:login')
 
 def user_register(request):
-    if request.user.is_authenticated:
-        return redirect('accounts:profile')
-        
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        
-        if not email:
-            messages.error(request, "Please enter an email address.")
-            return render(request, 'login.html')
-            
-        if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already registered. Please login instead.")
-            return render(request, 'login.html')
-            
-        username = email.split('@')[0]
-        if User.objects.filter(username=username).exists():
-            username = f"{username}_{uuid.uuid4().hex[:4]}"
-            
-        # Set random password
-        password = "".join(random.choices("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", k=12))
-        
-        user = User.objects.create_user(username=username, email=email, password=password)
-        login(request, user)
-        messages.success(request, f"Registration successful! Your auto-generated username is '{username}'. A password set link has been simulated.")
-        return redirect('accounts:profile')
-        
-    return render(request, 'login.html')
+    """Customer registration disabled. Public storefront is guest-first."""
+    return redirect('marketplace:store')
 
 def user_logout(request):
+    is_admin = request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser)
     logout(request)
-    messages.info(request, "You have been logged out.")
+    if is_admin:
+        messages.info(request, "Logged out of admin panel.")
+        return redirect('custom_admin:login')
     return redirect('marketplace:home')
 
-@login_required
 def profile(request):
-    # Fetch orders, wishlist, profile stats
-    orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    wishlist = request.user.profile.wishlist.all()
-    
-    # Fetch all completed purchased items (OrderItem objects)
-    from orders.models import OrderItem
-    purchased_items = OrderItem.objects.filter(
-        order__user=request.user,
-        order__status__in=['paid', 'completed']
-    ).select_related('order', 'product').order_by('-order__created_at')
-    
-    free_mods = Product.objects.filter(price=0.00, stock_status='available', is_deleted=False)
-    
-    context = {
-        'orders': orders,
-        'wishlist': wishlist,
-        'purchased_items': purchased_items,
-        'free_mods': free_mods,
-        'profile': request.user.profile,
-    }
-    return render(request, 'dashboard.html', context)
+    if request.user.is_authenticated:
+        if request.user.is_staff or request.user.is_superuser:
+            return redirect('custom_admin:dashboard')
+        orders = Order.objects.filter(user=request.user).order_by('-created_at')
+        wishlist = request.user.profile.wishlist.all()
+        from orders.models import OrderItem
+        purchased_items = OrderItem.objects.filter(
+            order__user=request.user,
+            order__status__in=['paid', 'completed']
+        ).select_related('order', 'product').order_by('-order__created_at')
+        free_mods = Product.objects.filter(price=0.00, stock_status='available', is_deleted=False)
+        context = {
+            'orders': orders,
+            'wishlist': wishlist,
+            'purchased_items': purchased_items,
+            'free_mods': free_mods,
+            'profile': request.user.profile,
+        }
+        return render(request, 'dashboard.html', context)
+    return redirect('marketplace:store')
 
-@login_required
 def toggle_wishlist(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    profile = request.user.profile
     
-    if profile.wishlist.filter(id=product.id).exists():
-        profile.wishlist.remove(product)
-        added = False
-        message = "Removed from wishlist"
+    if request.user.is_authenticated:
+        profile = request.user.profile
+        if profile.wishlist.filter(id=product.id).exists():
+            profile.wishlist.remove(product)
+            added = False
+            message = f"Removed {product.name} from wishlist."
+        else:
+            profile.wishlist.add(product)
+            added = True
+            message = f"Added {product.name} to wishlist."
     else:
-        profile.wishlist.add(product)
-        added = True
-        message = "Added to wishlist"
-        
+        wishlist = request.session.get('wishlist', [])
+        if product.id in wishlist:
+            wishlist.remove(product.id)
+            added = False
+            message = f"Removed {product.name} from wishlist."
+        else:
+            wishlist.append(product.id)
+            added = True
+            message = f"Added {product.name} to wishlist."
+        request.session['wishlist'] = wishlist
+
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({'status': 'success', 'added': added, 'message': message})
-        
+
     messages.success(request, message)
     return redirect(request.META.get('HTTP_REFERER', 'marketplace:store'))
 

@@ -4,12 +4,9 @@ from core import admin_views, admin_views_media
 app_name = 'custom_admin'
 
 urlpatterns = [
-    # Auth
     path('login/',  admin_views.admin_login,  name='login'),
     path('logout/', admin_views.admin_logout, name='logout'),
-
-    # Dashboard
-    path('',  admin_views.dashboard_home, name='dashboard'),
+    path('',        admin_views.dashboard_home, name='dashboard'),
 
     # ── Products – Phase 2.1 / 2.2 ─────────────────────────────────────────
     path('products/',                               admin_views.admin_products,        name='products'),

@@ -20,7 +20,6 @@ def admin_required(view_func):
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            messages.warning(request, "Please log in with admin credentials to access the Custom Admin Panel.")
             return redirect('custom_admin:login')
         if not (request.user.is_staff or request.user.is_superuser) or not request.user.is_active:
             messages.error(request, "Access denied. Administrative privileges are required.")
@@ -30,11 +29,11 @@ def admin_required(view_func):
 
 
 def admin_login(request):
-    """Dedicated login view for Custom Admin Panel."""
+    """Dedicated login view for Admin Panel at /admin/login/."""
     if request.user.is_authenticated:
         if request.user.is_staff or request.user.is_superuser:
             return redirect('custom_admin:dashboard')
-        messages.error(request, "Access denied. Regular user accounts cannot access the Custom Admin Panel.")
+        messages.error(request, "Access denied. Regular user accounts cannot access the admin portal.")
         return redirect('custom_admin:login')
 
     if request.method == 'POST':
@@ -57,11 +56,11 @@ def admin_login(request):
                 messages.error(request, "This administrative account is inactive.")
                 return render(request, 'admin_custom/login.html')
             if not (user.is_staff or user.is_superuser):
-                messages.error(request, "Access denied. Regular user accounts are not permitted in the Admin Portal.")
+                messages.error(request, "Access denied. Only staff and admin users can log into the Admin Portal.")
                 return render(request, 'admin_custom/login.html')
 
             login(request, user)
-            messages.success(request, f"Welcome to Custom Admin, {user.username}!")
+            messages.success(request, f"Welcome to Admin Panel, {user.username}!")
             return redirect('custom_admin:dashboard')
         else:
             messages.error(request, "Invalid admin username/email or password.")
@@ -70,9 +69,9 @@ def admin_login(request):
 
 
 def admin_logout(request):
-    """Dedicated logout view for Custom Admin Panel."""
+    """Dedicated logout view for Admin Panel."""
     logout(request)
-    messages.info(request, "You have been logged out of the Custom Admin Panel.")
+    messages.info(request, "You have been logged out of the Admin Panel.")
     return redirect('custom_admin:login')
 
 

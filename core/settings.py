@@ -123,8 +123,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Auth URLs
-LOGIN_URL = 'accounts:login'
-LOGIN_REDIRECT_URL = 'accounts:profile'
+LOGIN_URL = 'custom_admin:login'
+LOGIN_REDIRECT_URL = 'custom_admin:dashboard'
 LOGOUT_REDIRECT_URL = 'marketplace:home'
 
 # ── Payment Gateways ────────────────────────────────────────────────────────
