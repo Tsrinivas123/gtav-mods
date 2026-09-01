@@ -16,7 +16,11 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        from django.conf import settings
         if options.get('clear'):
+            if not settings.DEBUG:
+                self.stdout.write(self.style.ERROR('Refusing to clear database in production mode (DEBUG=False).'))
+                return
             self.stdout.write('Clearing existing database entries...')
             Category.objects.all().delete()
             Product.objects.all().delete()
@@ -24,11 +28,11 @@ class Command(BaseCommand):
             Coupon.objects.all().delete()
 
         # 1. Create or Update Superuser
-        username = os.getenv('ADMIN_USERNAME', 'admin')
-        email = os.getenv('ADMIN_EMAIL', 'admin@pawanmod.com')
-        password = os.getenv('ADMIN_PASSWORD', 'admin123')
+        username = os.getenv('ADMIN_USERNAME', 'Tushar').strip()
+        email = os.getenv('ADMIN_EMAIL', 'tushar@pawanmod.com').strip()
+        password = os.getenv('ADMIN_PASSWORD', 'luffy123').strip()
 
-        superuser = User.objects.filter(is_superuser=True).first() or User.objects.filter(username=username).first()
+        superuser = User.objects.filter(is_superuser=True).first() or User.objects.filter(username__iexact=username).first()
         if superuser:
             self.stdout.write(f'Updating superuser credentials for user "{username}"...')
             superuser.username = username
@@ -43,10 +47,10 @@ class Command(BaseCommand):
         
         # 2. Create Categories
         if Category.objects.exists():
-            self.stdout.write('Database already seeded with categories. Skipping.')
+            self.stdout.write('Database already contains categories. Preserving existing data and skipping seed.')
             return
 
-        self.stdout.write('Seeding categories...')
+        self.stdout.write('Seeding initial default categories...')
         categories_data = [
             {'name': 'Vehicles', 'icon': 'fa-car', 'description': 'Hypercars, sports coupes, roleplay emergency cruisers.'},
             {'name': 'Maps & Safehouses', 'icon': 'fa-map', 'description': 'Custom island addons, safehouse structures, roleplay settings.'},
@@ -58,10 +62,9 @@ class Command(BaseCommand):
         
         categories = {}
         for cat in categories_data:
-            c = Category.objects.create(
+            c, _ = Category.objects.get_or_create(
                 name=cat['name'],
-                icon=cat['icon'],
-                description=cat['description']
+                defaults={'icon': cat['icon'], 'description': cat['description']}
             )
             categories[cat['name']] = c
 

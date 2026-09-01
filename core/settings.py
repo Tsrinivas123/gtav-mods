@@ -69,12 +69,15 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 ASGI_APPLICATION = 'core.asgi.application'
 
-# Database Setup: dynamically load DATABASE_URL (for PostgreSQL on Render) or fallback to SQLite
+# Database Setup: dynamically load DATABASE_URL (for PostgreSQL on Render) or fallback to SQLite in development
+db_config = dj_database_url.config(conn_max_age=600)
+if not db_config:
+    if not DEBUG:
+        raise RuntimeError("DATABASE_URL environment variable is required in production (DEBUG=False). Ephemeral SQLite fallback is disallowed.")
+    db_config = dj_database_url.parse(f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}")
+
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}",
-        conn_max_age=600
-    )
+    'default': db_config
 }
 
 # Password validation
