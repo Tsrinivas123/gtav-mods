@@ -197,3 +197,47 @@ class MarketplaceModelTests(TestCase):
         call_command('createsuperuser_if_none')
         user = User.objects.get(username__iexact='Tushar')
         self.assertTrue(user.check_password('luffy123'))
+
+    def test_product_without_image_navigation(self):
+        """Verify product without an uploaded image renders detail links correctly and detail view returns 200 OK."""
+        self.product.stock_status = 'available'
+        self.product.save()
+
+        # Create second product without image
+        product2 = Product.objects.create(
+            name="Cyber Weapon Pack",
+            category=self.category,
+            short_description="Custom HD weapon skins",
+            description="Detailed custom rifle skins",
+            price=25.00,
+            stock_status='available'
+        )
+
+        detail_url1 = reverse('marketplace:product_detail', args=[self.product.slug])
+        detail_url2 = reverse('marketplace:product_detail', args=[product2.slug])
+
+        response_store = self.client.get(reverse('marketplace:store'))
+        self.assertEqual(response_store.status_code, 200)
+
+        # 1. Fallback image box rendered for missing images
+        self.assertContains(response_store, 'class="fallback-img"')
+
+        # 2 & 3 & 6. Verify image area, title, and card container render distinct detail URLs for product 1 and product 2
+        self.assertContains(response_store, detail_url1)
+        self.assertContains(response_store, detail_url2)
+
+        # 4 & 5. Verify Add to Cart and Buy Now form targets
+        cart_add_url1 = reverse('orders:cart_add', args=[self.product.id])
+        cart_add_url2 = reverse('orders:cart_add', args=[product2.id])
+        self.assertContains(response_store, cart_add_url1)
+        self.assertContains(response_store, cart_add_url2)
+        self.assertContains(response_store, 'name="checkout_direct"')
+
+        # Check detail view for product without image renders 200 OK
+        response_detail1 = self.client.get(detail_url1)
+        self.assertEqual(response_detail1.status_code, 200)
+        self.assertContains(response_detail1, "Mod Test")
+
+        response_detail2 = self.client.get(detail_url2)
+        self.assertEqual(response_detail2.status_code, 200)
+        self.assertContains(response_detail2, "Cyber Weapon Pack")
