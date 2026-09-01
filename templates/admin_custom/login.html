@@ -190,6 +190,7 @@
       transform: translateY(-50%);
       color: var(--text-muted);
       font-size: 0.95rem;
+      pointer-events: none;
     }
 
     .form-input {
@@ -207,6 +208,30 @@
       outline: none;
       border-color: var(--accent-color);
       box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.15);
+    }
+
+    .toggle-password-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.95rem;
+      padding: 6px 8px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s ease, outline 0.2s ease;
+    }
+
+    .toggle-password-btn:hover,
+    .toggle-password-btn:focus-visible {
+      color: var(--accent-color);
+      outline: 1px solid var(--accent-color);
     }
 
     .btn-submit {
@@ -284,7 +309,7 @@
           <label for="admin-username" class="form-label">Admin Username or Email</label>
           <div class="input-wrapper">
             <i class="fa-solid fa-user input-icon"></i>
-            <input type="text" id="admin-username" name="username" class="form-input" placeholder="e.g. Tushar or admin@pawanmod.com" required autofocus autocomplete="username">
+            <input type="text" id="admin-username" name="username" class="form-input" placeholder="Enter admin username or email" value="" required autofocus autocomplete="username">
           </div>
         </div>
 
@@ -292,7 +317,10 @@
           <label for="admin-password" class="form-label">Password</label>
           <div class="input-wrapper">
             <i class="fa-solid fa-lock input-icon"></i>
-            <input type="password" id="admin-password" name="password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+            <input type="password" id="admin-password" name="password" class="form-input" style="padding-right: 46px;" placeholder="Enter password" value="" required autocomplete="current-password">
+            <button type="button" id="togglePasswordBtn" class="toggle-password-btn" aria-label="Show password" title="Show password">
+              <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+            </button>
           </div>
         </div>
 
@@ -306,6 +334,34 @@
       </a>
     </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var toggleBtn = document.getElementById('togglePasswordBtn');
+      var passwordInput = document.getElementById('admin-password');
+      var toggleIcon = document.getElementById('togglePasswordIcon');
+
+      if (toggleBtn && passwordInput && toggleIcon) {
+        toggleBtn.addEventListener('click', function () {
+          var isPassword = passwordInput.getAttribute('type') === 'password';
+          var newType = isPassword ? 'text' : 'password';
+          passwordInput.setAttribute('type', newType);
+
+          if (isPassword) {
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+            toggleBtn.setAttribute('aria-label', 'Hide password');
+            toggleBtn.setAttribute('title', 'Hide password');
+          } else {
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+            toggleBtn.setAttribute('aria-label', 'Show password');
+            toggleBtn.setAttribute('title', 'Show password');
+          }
+        });
+      }
+    });
+  </script>
 
 </body>
 </html>
