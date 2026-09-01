@@ -302,14 +302,14 @@
       </div>
       {% endif %}
 
-      <form method="POST" action="{% url 'custom_admin:login' %}">
+      <form method="POST" action="{% url 'custom_admin:login' %}" autocomplete="off">
         {% csrf_token %}
 
         <div class="form-group">
           <label for="admin-username" class="form-label">Admin Username or Email</label>
           <div class="input-wrapper">
             <i class="fa-solid fa-user input-icon"></i>
-            <input type="text" id="admin-username" name="username" class="form-input" placeholder="Enter admin username or email" value="" required autofocus autocomplete="username">
+            <input type="text" id="admin-username" name="username" class="form-input" placeholder="Enter admin username or email" value="" required autofocus autocomplete="off">
           </div>
         </div>
 
@@ -317,7 +317,7 @@
           <label for="admin-password" class="form-label">Password</label>
           <div class="input-wrapper">
             <i class="fa-solid fa-lock input-icon"></i>
-            <input type="password" id="admin-password" name="password" class="form-input" style="padding-right: 46px;" placeholder="Enter password" value="" required autocomplete="current-password">
+            <input type="password" id="admin-password" name="password" class="form-input" style="padding-right: 46px;" placeholder="Enter password" value="" required autocomplete="new-password">
             <button type="button" id="togglePasswordBtn" class="toggle-password-btn" aria-label="Show password" title="Show password">
               <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
             </button>
@@ -337,9 +337,19 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-      var toggleBtn = document.getElementById('togglePasswordBtn');
+      var usernameInput = document.getElementById('admin-username');
       var passwordInput = document.getElementById('admin-password');
+      var toggleBtn = document.getElementById('togglePasswordBtn');
       var toggleIcon = document.getElementById('togglePasswordIcon');
+
+      // Clear any initial value or browser auto-fill injection on page load
+      function clearFields() {
+        if (usernameInput) usernameInput.value = '';
+        if (passwordInput) passwordInput.value = '';
+      }
+      clearFields();
+      setTimeout(clearFields, 50);
+      setTimeout(clearFields, 200);
 
       if (toggleBtn && passwordInput && toggleIcon) {
         toggleBtn.addEventListener('click', function () {
