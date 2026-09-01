@@ -59,38 +59,89 @@
   
   <form method="POST" action="{% url 'custom_admin:settings' %}">
     {% csrf_token %}
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 0;border-bottom:1px solid var(--border-color);margin-bottom:20px;gap:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 0;border-bottom:1px solid var(--border-color);margin-bottom:20px;gap:20px;">
       <div style="flex:1;">
-        <h4 style="margin:0 0 5px;font-size:.9rem;font-weight:600;">Enable Coupon System</h4>
-        <p style="margin:0;font-size:.8rem;color:var(--text-secondary);line-height:1.4;">Toggle checkout and homepage coupon discount functionalities. When disabled, the Coupon promo hub and inputs are hidden from customers.</p>
+        <h4 style="margin:0 0 5px;font-size:.95rem;font-weight:600;color:var(--text-primary);">Enable Coupon System</h4>
+        <p style="margin:0;font-size:.85rem;color:var(--text-secondary);line-height:1.4;">Toggle checkout and storefront coupon discount functionalities. When disabled, coupon promo hubs and inputs are hidden.</p>
       </div>
-      <div>
-        <label class="switch" style="position:relative;display:inline-block;width:50px;height:24px;">
-          <input type="checkbox" name="enable_coupons" {% if enable_coupons %}checked{% endif %} style="opacity:0;width:0;height:0;" id="id_enable_coupons">
-          <span class="slider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background-color:#ccc;transition:.4s;border-radius:24px;"></span>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span id="couponStateBadge" style="font-size:0.75rem;font-weight:700;letter-spacing:0.5px;padding:4px 10px;border-radius:12px;text-transform:uppercase;{% if enable_coupons %}background:rgba(34,197,94,0.15);color:#4ADE80;border:1px solid rgba(34,197,94,0.3);{% else %}background:rgba(239,68,68,0.15);color:#FCA5A5;border:1px solid rgba(239,68,68,0.3);{% endif %}">
+          {% if enable_coupons %}ENABLED{% else %}DISABLED{% endif %}
+        </span>
+        
+        <label for="id_enable_coupons" class="toggle-switch-wrapper" style="position:relative;display:inline-block;width:52px;height:28px;cursor:pointer;" aria-label="Toggle Enable Coupon System">
+          <input type="checkbox" name="enable_coupons" id="id_enable_coupons" class="toggle-checkbox" {% if enable_coupons %}checked{% endif %}>
+          <span class="toggle-slider-track"></span>
         </label>
-        <style>
-          .switch input:checked + .slider {
-            background-color: var(--color-primary);
-          }
-          .switch input:checked + .slider:before {
-            transform: translateX(26px);
-          }
-          .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-          }
-        </style>
       </div>
     </div>
-    <button type="submit" class="btn btn-primary" style="padding:10px 20px;font-size:.875rem;font-weight:600;cursor:pointer;border-radius:6px;display:inline-flex;align-items:center;gap:8px;">
+
+    <style>
+      .toggle-checkbox {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .toggle-slider-track {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #1A2234;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 28px;
+      }
+      .toggle-slider-track:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: #9CA3AF;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      }
+      .toggle-checkbox:checked + .toggle-slider-track {
+        background-color: var(--color-primary, #FF6B00);
+        border-color: var(--color-primary, #FF6B00);
+        box-shadow: 0 0 14px rgba(255, 107, 0, 0.4);
+      }
+      .toggle-checkbox:checked + .toggle-slider-track:before {
+        transform: translateX(24px);
+        background-color: #FFFFFF;
+      }
+      .toggle-checkbox:focus-visible + .toggle-slider-track {
+        outline: 2px solid #FF6B00;
+        outline-offset: 3px;
+      }
+    </style>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var toggleInput = document.getElementById('id_enable_coupons');
+        var stateBadge = document.getElementById('couponStateBadge');
+        if (toggleInput && stateBadge) {
+          toggleInput.addEventListener('change', function() {
+            if (toggleInput.checked) {
+              stateBadge.textContent = 'ENABLED';
+              stateBadge.style.background = 'rgba(34,197,94,0.15)';
+              stateBadge.style.color = '#4ADE80';
+              stateBadge.style.borderColor = 'rgba(34,197,94,0.3)';
+            } else {
+              stateBadge.textContent = 'DISABLED';
+              stateBadge.style.background = 'rgba(239,68,68,0.15)';
+              stateBadge.style.color = '#FCA5A5';
+              stateBadge.style.borderColor = 'rgba(239,68,68,0.3)';
+            }
+          });
+        }
+      });
+    </script>
+
+    <button type="submit" class="btn btn-primary" style="padding:10px 22px;font-size:.875rem;font-weight:600;cursor:pointer;border-radius:6px;display:inline-flex;align-items:center;gap:8px;">
       <i class="fa-solid fa-save"></i> Save Settings
     </button>
   </form>

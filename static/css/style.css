@@ -121,11 +121,25 @@ textarea {
   padding: 12px 18px;
   border-radius: var(--border-radius);
   border: 1px solid var(--card-border);
-  background: white;
-  color: var(--color-text-primary);
+  background: #0B0F19;
+  color: #F8FAFC;
   font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 0.9rem;
   transition: var(--transition-smooth);
+}
+
+select option {
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+  font-size: 0.9rem !important;
+  padding: 10px 14px !important;
+}
+
+select option:hover,
+select option:focus,
+select option:checked {
+  background-color: #FF6B00 !important;
+  color: #FFFFFF !important;
 }
 
 .form-input:focus,
@@ -137,8 +151,8 @@ input[type="url"]:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--accent-orange, #FF6B00);
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.2);
 }
 
 ul {
@@ -404,89 +418,72 @@ header {
 /* Wide Search Bar Redesign - Stable Width constraints */
 .header-search {
   position: relative;
-  width: 320px;
+  width: 300px;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
 }
 
 .header-search input {
-  width: 300px;
-  height: 44px;
-  background: #2b2b2b;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 22px;
-  padding: 0 16px 0 42px;
-  color: white;
+  width: 100% !important;
+  height: 42px;
+  background: #141A26 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 22px !important;
+  padding: 0 16px 0 42px !important;
+  color: #FFFFFF !important;
   font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
-  font-size: 0.9rem;
+  font-size: 0.9rem !important;
   outline: none !important;
-  box-shadow: none;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: none !important;
+  transition: all 0.25s ease !important;
 }
 
 .header-search input::placeholder {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.65) !important;
   font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 .header-search input:focus {
-  width: 320px;
-  border-color: #ff7a00;
-  box-shadow: 0 0 15px rgba(255, 122, 0, 0.18) !important;
-  outline: none !important;
+  border-color: #FF6B00 !important;
+  box-shadow: 0 0 12px rgba(255, 107, 0, 0.3) !important;
+  background: #0B0F19 !important;
 }
 
-.header-search i {
+.header-search .header-search-btn {
   position: absolute;
-  left: 36px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #cccccc;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.95rem;
-  pointer-events: none;
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
+  transition: color 0.2s ease;
+  z-index: 2;
 }
 
-.header-search input:focus + i {
-  left: 16px;
-  color: #ff7a00;
+.header-search input:focus ~ .header-search-btn,
+.header-search .header-search-btn:hover {
+  color: #FF6B00;
 }
 
-/* Responsive Search Bar overrides to prevent layout shifts */
-@media (max-width: 1200px) {
-  .header-search {
-    width: 280px;
-  }
-  .header-search input {
-    width: 260px;
-  }
-  .header-search input:focus {
-    width: 280px;
-  }
-  .header-search i {
-    left: 36px;
-  }
-  .header-search input:focus + i {
-    left: 16px;
-  }
+.header-search .header-search-btn i {
+  position: static !important;
+  transform: none !important;
+  color: inherit !important;
+  font-size: inherit !important;
 }
 
 @media (max-width: 991px) {
   .header-search {
-    width: 260px;
-  }
-  .header-search input {
-    width: 240px;
-  }
-  .header-search input:focus {
-    width: 260px;
-  }
-  .header-search i {
-    left: 36px;
-  }
-  .header-search input:focus + i {
-    left: 16px;
+    width: 250px;
   }
 }
 
@@ -494,12 +491,6 @@ header {
   .header-search {
     width: 100%;
     margin: 10px 0;
-  }
-  .header-search input {
-    width: 100% !important;
-  }
-  .header-search i {
-    left: 16px !important;
   }
 }
 

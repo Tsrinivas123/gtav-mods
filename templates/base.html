@@ -62,7 +62,7 @@
         <!-- Search Bar -->
         <form action="{% url 'marketplace:store' %}" method="GET" class="header-search" role="search">
           <input type="text" name="search" id="headerSearchInput" placeholder="Search mods..." value="{{ search_query|default:'' }}" aria-label="Search mods catalogue">
-          <button type="submit" style="background:none; border:none; color:inherit; cursor:pointer;" aria-label="Submit search">
+          <button type="submit" class="header-search-btn" aria-label="Submit search">
             <i class="fa-solid fa-magnifying-glass"></i>
           </button>
         </form>

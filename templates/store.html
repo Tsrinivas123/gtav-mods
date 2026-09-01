@@ -89,11 +89,11 @@
         <!-- Stock Status Section -->
         <div class="filter-section">
           <label for="stockStatusSelect" class="filter-section-title" style="display: block;">Availability</label>
-          <select id="stockStatusSelect" name="stock_status" class="form-input autosubmit-filter" style="width: 100%;" aria-label="Availability status filter">
-            <option value="">All Statuses</option>
-            <option value="available" {% if stock_status == 'available' %}selected{% endif %}>Available</option>
-            <option value="coming_soon" {% if stock_status == 'coming_soon' %}selected{% endif %}>Coming Soon</option>
-            <option value="deprecated" {% if stock_status == 'deprecated' %}selected{% endif %}>Deprecated</option>
+          <select id="stockStatusSelect" name="stock_status" class="form-input autosubmit-filter" style="width: 100%; color: #F8FAFC; background-color: #0F172A; border: 1px solid rgba(255, 107, 0, 0.3);" aria-label="Availability status filter">
+            <option value="" style="background-color: #0F172A; color: #F8FAFC;">All Statuses</option>
+            <option value="available" {% if stock_status == 'available' %}selected{% endif %} style="background-color: #0F172A; color: #F8FAFC;">Available</option>
+            <option value="coming_soon" {% if stock_status == 'coming_soon' %}selected{% endif %} style="background-color: #0F172A; color: #F8FAFC;">Coming Soon</option>
+            <option value="deprecated" {% if stock_status == 'deprecated' %}selected{% endif %} style="background-color: #0F172A; color: #F8FAFC;">Deprecated</option>
           </select>
         </div>
 
