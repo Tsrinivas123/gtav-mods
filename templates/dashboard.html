@@ -17,10 +17,7 @@
         {% endif %}
       </div>
       
-      <h3 class="user-name" style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.25rem; margin-bottom: 5px; color: var(--color-text-primary);">{{ request.user.username }}</h3>
-      <span class="user-membership-badge" style="background: {% if profile.is_premium %}var(--accent-orange){% else %}var(--accent-cyan){% endif %}; color: white; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 0.75rem; font-weight: 700; padding: 3px 12px; border-radius: 50px; text-transform: uppercase; margin-bottom: 30px; display: inline-block;">
-        {{ profile.get_membership_type_display }} Member
-      </span>
+      <h3 class="user-name" style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.25rem; margin-bottom: 25px; color: var(--color-text-primary);">{{ request.user.username }}</h3>
       
       <div class="dashboard-menu" role="tablist" aria-label="User Account Dashboard Panels" style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
         <div class="dashboard-menu-item active" role="tab" aria-selected="true" tabindex="0" data-panel="panelProfile" style="width: 100%; padding: 12px 20px; border-radius: var(--border-radius-sm); display: flex; align-items: center; gap: 15px; font-weight: 600; color: var(--color-text-secondary); cursor: pointer; transition: var(--transition-smooth);">
@@ -34,9 +31,6 @@
         </div>
         <div class="dashboard-menu-item" role="tab" aria-selected="false" tabindex="0" data-panel="panelWishlist" style="width: 100%; padding: 12px 20px; border-radius: var(--border-radius-sm); display: flex; align-items: center; gap: 15px; font-weight: 600; color: var(--color-text-secondary); cursor: pointer; transition: var(--transition-smooth);">
           <i class="fa-solid fa-heart"></i> My Wishlist
-        </div>
-        <div class="dashboard-menu-item" role="tab" aria-selected="false" tabindex="0" data-panel="panelMembership" style="width: 100%; padding: 12px 20px; border-radius: var(--border-radius-sm); display: flex; align-items: center; gap: 15px; font-weight: 600; color: var(--color-text-secondary); cursor: pointer; transition: var(--transition-smooth);">
-          <i class="fa-solid fa-crown"></i> Membership Setup
         </div>
       </div>
     </aside>
@@ -277,64 +271,6 @@
               Your wishlist is currently empty.
             </div>
           {% endfor %}
-        </div>
-      </div>
-
-      <!-- Panel 5: Membership Setup -->
-      <div class="dashboard-panel" id="panelMembership" style="display: none;">
-        <h3 class="dashboard-panel-title" style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.3rem; margin-bottom: 25px; text-transform: uppercase; color: var(--color-text-primary); border-bottom: 2px solid var(--card-border); padding-bottom: 12px;">Subscription Level</h3>
-        
-        <div style="background: rgba(255, 107, 0, 0.04); border: 1px dashed var(--accent-orange); padding: 30px; border-radius: var(--border-radius); margin-bottom: 35px;">
-          <h4 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1rem; text-transform: uppercase; margin-bottom: 8px; color: var(--accent-orange);">Active plan</h4>
-          <p style="font-size: 1.4rem; font-weight: 700; color: var(--color-text-primary);">
-            {{ profile.get_membership_type_display }} Membership
-          </p>
-          {% if profile.is_premium %}
-            <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-top: 5px;">
-              Expires/Renews on: <strong>{{ profile.membership_expires|date:"F d, Y" }}</strong>
-            </p>
-          {% else %}
-            <p style="font-size: 0.85rem; color: var(--color-text-secondary); margin-top: 5px;">
-              You are currently using the Free tier. Upgrade to unlock premium mod downloads automatically.
-            </p>
-          {% endif %}
-        </div>
-
-        <h4 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-transform: uppercase; margin-bottom: 20px; color: var(--color-text-primary);">Upgrade / Change Plans</h4>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-          
-          <!-- Tier 1 -->
-          <div style="background: #f9fafb; border: 1px solid var(--card-border); padding: 25px; border-radius: var(--border-radius); text-align: center;">
-            <h5 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-transform: uppercase; font-size: 0.9rem; color: var(--accent-cyan); margin-bottom: 8px; font-weight: 700;">Premium Pass</h5>
-            <h4 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.6rem; margin-bottom: 15px; color: var(--color-text-primary);">₹499.00<span style="font-size: 0.85rem; font-weight: normal; color: var(--color-text-secondary);"> / mo</span></h4>
-            <ul style="font-size: 0.8rem; color: var(--color-text-secondary); text-align: left; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; list-style: none; padding: 0;">
-              <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> 50 Downloads per day</li>
-              <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> Standard discord support channels</li>
-              <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> Free updates on patches</li>
-            </ul>
-            <form action="{% url 'accounts:buy_membership' %}" method="POST">
-              {% csrf_token %}
-              <input type="hidden" name="tier" value="premium">
-              <button type="submit" class="btn btn-primary" style="width: 100%;">Upgrade to Premium</button>
-            </form>
-          </div>
-
-          <!-- Tier 2 -->
-          <div style="background: #f9fafb; border: 1px solid var(--card-border); padding: 25px; border-radius: var(--border-radius); text-align: center;">
-            <h5 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-transform: uppercase; font-size: 0.9rem; color: var(--accent-orange); margin-bottom: 8px; font-weight: 700;">Ultimate VIP</h5>
-            <h4 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.6rem; margin-bottom: 15px; color: var(--color-text-primary);">₹999.00<span style="font-size: 0.85rem; font-weight: normal; color: var(--color-text-secondary);"> / mo</span></h4>
-            <ul style="font-size: 0.8rem; color: var(--color-text-secondary); text-align: left; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; list-style: none; padding: 0;">
-              <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> Unlimited daily files download</li>
-              <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> Dedicated support and VIP chats</li>
-              <li><i class="fa-solid fa-check" style="color: var(--color-success); margin-right: 8px;"></i> Beta test pre-release builds</li>
-            </ul>
-            <form action="{% url 'accounts:buy_membership' %}" method="POST">
-              {% csrf_token %}
-              <input type="hidden" name="tier" value="vip">
-              <button type="submit" class="btn btn-secondary" style="width: 100%;">Upgrade to VIP</button>
-            </form>
-          </div>
-
         </div>
       </div>
 

@@ -131,9 +131,6 @@ def category_detail(request, slug):
     }
     return render(request, 'category_detail.html', context)
 
-def membership_info(request):
-    return render(request, 'membership.html')
-
 def store(request):
     products_query = Product.objects.select_related('category').filter(stock_status='available', category__status='active')
     categories = Category.objects.filter(status='active')

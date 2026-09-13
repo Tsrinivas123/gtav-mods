@@ -1206,121 +1206,6 @@ footer .logo span {
   color: var(--color-text-secondary);
 }
 
-/* --- Membership Section --- */
-.membership-sec {
-  background: linear-gradient(180deg, var(--bg-primary) 0%, #0e0e12 100%);
-  border-top: 1px solid var(--glass-border);
-  border-bottom: 1px solid var(--glass-border);
-}
-
-.membership-container {
-  display: flex;
-  background: radial-gradient(circle at 0% 0%, rgba(255, 107, 0, 0.08) 0%, rgba(0, 229, 255, 0.05) 50%, var(--card-bg) 100%);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-  padding: 50px;
-  align-items: center;
-  gap: 50px;
-  position: relative;
-}
-
-.membership-info {
-  flex: 1;
-}
-
-.membership-tag {
-  color: var(--accent-cyan);
-  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  text-transform: uppercase;
-  font-size: 0.85rem;
-  letter-spacing: 2px;
-  margin-bottom: 15px;
-  display: block;
-}
-
-.membership-title {
-  font-size: 2.5rem;
-  margin-bottom: 20px;
-  text-transform: uppercase;
-}
-
-.membership-desc {
-  color: var(--color-text-secondary);
-  margin-bottom: 30px;
-}
-
-.membership-benefits {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-}
-
-.benefit-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.95rem;
-}
-
-.benefit-item i {
-  color: var(--color-success);
-}
-
-.membership-card {
-  width: 360px;
-  background: rgba(22, 24, 29, 0.8);
-  border: 2px solid var(--accent-orange);
-  border-radius: var(--border-radius);
-  padding: 40px;
-  box-shadow: var(--shadow-neon-orange);
-  position: relative;
-  text-align: center;
-}
-
-.membership-card::after {
-  content: 'BEST VALUE';
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--accent-orange);
-  color: white;
-  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 14px;
-  border-radius: 50px;
-  letter-spacing: 1px;
-}
-
-.member-price-box {
-  margin-bottom: 25px;
-}
-
-.member-tier {
-  font-size: 1.5rem;
-  text-transform: uppercase;
-  color: var(--accent-orange);
-  margin-bottom: 5px;
-}
-
-.member-price {
-  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-size: 2.8rem;
-  font-weight: 900;
-}
-
-.member-price span {
-  font-size: 1rem;
-  color: var(--color-text-secondary);
-}
-
-.member-btn {
-  width: 100%;
-  margin-top: 15px;
-}
-
 /* --- Blog / Articles Section --- */
 .blog-grid {
   display: grid;
@@ -2588,19 +2473,7 @@ footer {
 .user-name {
   font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   font-size: 1.25rem;
-  margin-bottom: 5px;
-}
-
-.user-membership-badge {
-  background: var(--accent-cyan);
-  color: var(--bg-primary);
-  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 3px 12px;
-  border-radius: 50px;
-  text-transform: uppercase;
-  margin-bottom: 30px;
+  margin-bottom: 25px;
 }
 
 .dashboard-menu {
@@ -2923,16 +2796,6 @@ footer {
 
   .footer-top {
     grid-template-columns: 1fr 1fr;
-  }
-
-  .membership-container {
-    flex-direction: column;
-    padding: 30px;
-    gap: 30px;
-  }
-
-  .membership-card {
-    width: 100%;
   }
 
   .form-grid {

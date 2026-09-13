@@ -6,7 +6,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.utils.text import slugify
 from marketplace.models import Product, Category
-from orders.models import Order, Coupon
+from orders.models import Order, Coupon, OrderItem
 from blog.models import BlogPost
 from functools import wraps
 import datetime
@@ -637,44 +637,153 @@ def admin_coupons(request):
     })
 
 
-# ─── Membership ────────────────────────────────────────────────────────────────
-
-@admin_required
-def admin_membership(request):
-    from accounts.models import Profile
-    premium_users = Profile.objects.filter(membership_type__in=['premium', 'legend'])
-    return render(request, 'admin_custom/membership.html', {
-        **_base_ctx(),
-        'page_title':    'Membership',
-        'breadcrumb':    [('Dashboard', 'custom_admin:dashboard'), ('Membership', None)],
-        'premium_users': premium_users,
-        'total_count':   premium_users.count(),
-    })
-
-
 # ─── Analytics ─────────────────────────────────────────────────────────────────
 
 @admin_required
 def admin_analytics(request):
     from django.utils import timezone
-    from django.db.models import Count
+    from django.db.models import Sum, Count, Q
+    from django.http import JsonResponse
+    import json
 
-    seven_days_ago = timezone.now() - datetime.timedelta(days=7)
-    daily_orders   = (
-        Order.objects.filter(created_at__gte=seven_days_ago)
-        .extra(select={'day': "date(created_at)"})
-        .values('day')
-        .annotate(count=Count('id'), revenue=Sum('total_amount'))
-        .order_by('day')
+    period = request.GET.get('period', '30d').lower().strip()
+    now_dt = timezone.now()
+    today = now_dt.date()
+
+    if period == '7d':
+        start_date = today - datetime.timedelta(days=6)
+        period_label = 'Last 7 Days'
+    elif period == '90d':
+        start_date = today - datetime.timedelta(days=89)
+        period_label = 'Last 90 Days'
+    elif period == 'year':
+        start_date = datetime.date(today.year, 1, 1)
+        period_label = f'This Year ({today.year})'
+    elif period == 'all':
+        first_order = Order.objects.order_by('created_at').first()
+        start_date = first_order.created_at.date() if first_order else today - datetime.timedelta(days=29)
+        period_label = 'All Time'
+    else:  # default '30d'
+        period = '30d'
+        start_date = today - datetime.timedelta(days=29)
+        period_label = 'Last 30 Days'
+
+    # Filter paid orders in period
+    period_paid_qs = Order.objects.filter(
+        payment_status='Success',
+        created_at__date__gte=start_date,
+        created_at__date__lte=today
     )
-    top_products = Product.objects.order_by('-downloads_count')[:10]
+
+    # Build continuous timeline (map by date)
+    date_map = {}
+    for o in period_paid_qs:
+        d = o.created_at.date()
+        if d not in date_map:
+            date_map[d] = {'revenue': 0.0, 'orders': 0}
+        date_map[d]['revenue'] += float(o.total_amount)
+        date_map[d]['orders'] += 1
+
+    chart_labels = []
+    chart_revenue = []
+    chart_orders = []
+    chart_raw_dates = []
+
+    cur_date = start_date
+    while cur_date <= today:
+        label = cur_date.strftime('%b %d') if (today - start_date).days <= 90 else cur_date.strftime('%b %d, %Y')
+        chart_labels.append(label)
+        chart_raw_dates.append(cur_date.strftime('%Y-%m-%d'))
+        if cur_date in date_map:
+            chart_revenue.append(round(date_map[cur_date]['revenue'], 2))
+            chart_orders.append(date_map[cur_date]['orders'])
+        else:
+            chart_revenue.append(0.0)
+            chart_orders.append(0)
+        cur_date += datetime.timedelta(days=1)
+
+    # Period aggregates
+    period_revenue = float(period_paid_qs.aggregate(s=Sum('total_amount'))['s'] or 0.0)
+    period_orders_count = period_paid_qs.count()
+    period_aov = round(period_revenue / period_orders_count, 2) if period_orders_count > 0 else 0.0
+
+    # All-Time Global KPI aggregates
+    all_paid_qs = Order.objects.filter(payment_status='Success')
+    total_revenue = float(all_paid_qs.aggregate(s=Sum('total_amount'))['s'] or 0.0)
+    total_paid_orders = all_paid_qs.count()
+    total_all_orders = Order.objects.count()
+    overall_aov = round(total_revenue / total_paid_orders, 2) if total_paid_orders > 0 else 0.0
+
+    # Order Status Breakdown
+    status_counts = {
+        'paid': Order.objects.filter(payment_status='Success').count(),
+        'pending': Order.objects.filter(payment_status='Pending').count(),
+        'failed': Order.objects.filter(payment_status__in=['Failed', 'Cancelled']).count(),
+    }
+
+    # Top Products by Revenue
+    top_revenue_products = list(
+        OrderItem.objects.filter(order__payment_status='Success')
+        .values('product__name')
+        .annotate(total_revenue=Sum('price'), units_sold=Count('id'))
+        .order_by('-total_revenue')[:5]
+    )
+
+    # Top Products by Downloads
+    top_products = Product.objects.order_by('-downloads_count')[:5]
+
+    # Recent daily order table for the selected period (sorted descending)
+    recent_daily_rows = []
+    rev_cur = today
+    while rev_cur >= start_date:
+        if rev_cur in date_map and date_map[rev_cur]['orders'] > 0:
+            recent_daily_rows.append({
+                'day': rev_cur.strftime('%Y-%m-%d'),
+                'count': date_map[rev_cur]['orders'],
+                'revenue': date_map[rev_cur]['revenue'],
+            })
+        rev_cur -= datetime.timedelta(days=1)
+
+    # Handle AJAX dynamic response
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('format') == 'json':
+        return JsonResponse({
+            'status': 'success',
+            'period': period,
+            'period_label': period_label,
+            'labels': chart_labels,
+            'raw_dates': chart_raw_dates,
+            'revenue': chart_revenue,
+            'orders': chart_orders,
+            'period_revenue': period_revenue,
+            'period_orders_count': period_orders_count,
+            'period_aov': period_aov,
+            'recent_daily_rows': recent_daily_rows,
+        })
 
     return render(request, 'admin_custom/analytics.html', {
         **_base_ctx(),
-        'page_title':   'Analytics',
-        'breadcrumb':   [('Dashboard', 'custom_admin:dashboard'), ('Analytics', None)],
-        'daily_orders': list(daily_orders),
+        'page_title': 'Analytics',
+        'breadcrumb': [('Dashboard', 'custom_admin:dashboard'), ('Analytics', None)],
+        'period': period,
+        'period_label': period_label,
+        'total_revenue': total_revenue,
+        'total_paid_orders': total_paid_orders,
+        'total_all_orders': total_all_orders,
+        'overall_aov': overall_aov,
+        'period_revenue': period_revenue,
+        'period_orders_count': period_orders_count,
+        'period_aov': period_aov,
+        'status_counts': status_counts,
+        'top_revenue_products': top_revenue_products,
         'top_products': top_products,
+        'recent_daily_rows': recent_daily_rows,
+        'chart_data_json': json.dumps({
+            'labels': chart_labels,
+            'raw_dates': chart_raw_dates,
+            'revenue': chart_revenue,
+            'orders': chart_orders,
+            'status_counts': status_counts,
+        }),
     })
 
 

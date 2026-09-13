@@ -50,8 +50,6 @@
           class="nav-link {% if request.resolver_match.url_name == 'store' or request.resolver_match.url_name == 'product_detail' %}active{% endif %}">Store</a>
         <a href="{% url 'marketplace:categories_list' %}"
           class="nav-link {% if request.resolver_match.url_name == 'categories_list' or request.resolver_match.url_name == 'category_detail' %}active{% endif %}">Categories</a>
-        <a href="{% url 'marketplace:membership_info' %}"
-          class="nav-link {% if request.resolver_match.url_name == 'membership_info' %}active{% endif %}">Membership</a>
         <a href="{% url 'blog:post_list' %}"
           class="nav-link {% if request.resolver_match.url_name == 'post_list' or request.resolver_match.url_name == 'post_detail' %}active{% endif %}">Blog</a>
         <a href="{% url 'marketplace:contact' %}"

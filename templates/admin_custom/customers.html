@@ -19,7 +19,6 @@
           <th>ID</th>
           <th>Username</th>
           <th>Email</th>
-          <th>Membership</th>
           <th>Joined</th>
           <th>Last Login</th>
           <th>Active</th>
@@ -38,13 +37,6 @@
               </div>
             </td>
             <td style="color:var(--text-secondary);font-size:.875rem;">{{ customer.email }}</td>
-            <td>
-              {% if customer.profile.is_premium %}
-                <span class="badge badge-blue"><i class="fa-solid fa-crown" style="margin-right:4px;"></i>Premium</span>
-              {% else %}
-                <span class="badge badge-gray">Free</span>
-              {% endif %}
-            </td>
             <td style="color:var(--text-secondary);font-size:.8rem;">{{ customer.date_joined|date:"M d, Y" }}</td>
             <td style="color:var(--text-secondary);font-size:.8rem;">
               {% if customer.last_login %}{{ customer.last_login|date:"M d, Y" }}{% else %}—{% endif %}
@@ -58,7 +50,7 @@
             </td>
           </tr>
         {% empty %}
-          <tr><td colspan="7" style="text-align:center;color:var(--text-secondary);padding:40px 0;">No customers found.</td></tr>
+          <tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:40px 0;">No customers found.</td></tr>
         {% endfor %}
       </tbody>
     </table>

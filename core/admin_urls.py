@@ -40,7 +40,6 @@ urlpatterns = [
     path('blog/<int:post_id>/edit/',           admin_views.admin_blog_edit,       name='blog_edit'),
     path('blog/<int:post_id>/delete/',         admin_views.admin_blog_delete,     name='blog_delete'),
     path('coupons/',     admin_views.admin_coupons,      name='coupons'),
-    path('membership/',  admin_views.admin_membership,   name='membership'),
     path('analytics/',   admin_views.admin_analytics,    name='analytics'),
     path('settings/',    admin_views.admin_settings,     name='settings'),
 ]

@@ -87,25 +87,6 @@ def toggle_wishlist(request, product_id):
     return redirect(request.META.get('HTTP_REFERER', 'marketplace:store'))
 
 @login_required
-def buy_membership(request):
-    if request.method == 'POST':
-        tier = request.POST.get('tier')
-        if tier not in ['premium', 'legend']:
-            messages.error(request, "Invalid membership selection.")
-            return redirect('accounts:profile')
-            
-        profile = request.user.profile
-        profile.membership_type = tier
-        # Add 30 days validation
-        profile.membership_expires = timezone.now() + datetime.timedelta(days=30)
-        profile.save()
-        
-        messages.success(request, f"Congratulations! You are now a {tier.upper()} member!")
-        return redirect('accounts:profile')
-        
-    return redirect('marketplace:home')
-
-@login_required
 def profile_update(request):
     if request.method == 'POST':
         user = request.user
