@@ -91,19 +91,36 @@
 
     .brand-logo {
       font-family: 'Orbitron', sans-serif;
-      font-size: 1.75rem;
-      font-weight: 900;
+      font-size: 1.85rem;
+      font-weight: 800;
       color: #FFFFFF;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       display: inline-flex;
       align-items: center;
       gap: 10px;
       text-decoration: none;
+      background: transparent;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .brand-logo:hover {
+      opacity: 0.95;
+    }
+
+    .brand-logo i {
+      color: var(--accent-color);
+      font-size: 1.85rem;
+      transition: transform 0.25s ease;
+    }
+
+    .brand-logo:hover i {
+      transform: rotate(6deg) scale(1.05);
     }
 
     .brand-logo span {
       color: var(--accent-color);
+      font-weight: 900;
     }
 
     .admin-badge {
@@ -281,8 +298,8 @@
     <div class="admin-login-card">
       <div class="brand-header">
         <a href="{% url 'marketplace:home' %}" class="brand-logo">
-          <i class="fa-solid fa-gamepad" style="color: var(--accent-color);"></i>
-          Pawan<span>Mod</span>
+          <i class="fa-solid fa-cube"></i>
+          PAWAN<span>MOD</span>
         </a>
         <div>
           <span class="admin-badge"><i class="fa-solid fa-shield-halved"></i> Control Center</span>

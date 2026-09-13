@@ -8,7 +8,9 @@
   <title>{% block title %}Admin | PawanMod{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@700;900&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     /* ── CSS Variables ─────────────────────────────── */
@@ -83,31 +85,46 @@
       border-bottom: 1px solid rgba(255, 255, 255, .06);
       text-decoration: none;
       flex-shrink: 0;
+      background: transparent;
+      transition: opacity 0.2s ease;
+    }
+
+    .sidebar-brand:hover {
+      opacity: 0.95;
     }
 
     .sidebar-brand .brand-icon {
       width: 36px;
       height: 36px;
-      background: var(--sidebar-accent);
+      background: rgba(255, 107, 0, 0.12);
+      border: 1px solid rgba(255, 107, 0, 0.35);
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-size: 1rem;
+      color: var(--sidebar-accent);
+      font-size: 1.05rem;
       flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    .sidebar-brand:hover .brand-icon {
+      transform: scale(1.05);
     }
 
     .sidebar-brand .brand-text {
-      font-family: 'Orbitron', monospace;
-      font-size: .9rem;
-      color: #FFF;
+      font-family: 'Orbitron', sans-serif;
+      font-size: .95rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #FFFFFF;
       white-space: nowrap;
       overflow: hidden;
     }
 
     .sidebar-brand .brand-text span {
       color: var(--sidebar-accent);
+      font-weight: 900;
     }
 
     .sidebar-section-label {
@@ -626,8 +643,8 @@
   <!-- ── SIDEBAR ──────────────────────────────────────────────── -->
   <aside class="admin-sidebar" id="adminSidebar">
     <a href="{% url 'custom_admin:dashboard' %}" class="sidebar-brand">
-      <div class="brand-icon"><i class="fa-solid fa-gamepad"></i></div>
-      <div class="brand-text">Pawan<span>Mod</span> Admin</div>
+      <div class="brand-icon"><i class="fa-solid fa-cube"></i></div>
+      <div class="brand-text">PAWAN<span>MOD</span></div>
     </a>
 
     <nav class="sidebar-nav">

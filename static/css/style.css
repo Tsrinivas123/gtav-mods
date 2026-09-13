@@ -334,34 +334,59 @@ header {
 
 .logo {
   font-family: var(--font-logo) !important;
-  font-size: 1.9rem;
-  font-weight: 900;
-  display: flex;
+  font-size: 1.75rem;
+  font-weight: 800;
+  display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: var(--color-text-primary);
-  text-shadow: 0 0 12px rgba(255, 107, 0, 0.5);
-  transition: all 0.3s ease;
+  color: #FFFFFF;
+  text-decoration: none;
+  background: transparent;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  user-select: none;
+}
+
+.logo:hover {
+  opacity: 0.95;
+  color: #FFFFFF;
 }
 
 .logo i {
-  font-size: 2.1rem;
+  font-size: 1.75rem;
+  color: var(--accent-orange);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: transform 0.25s ease;
+}
+
+.logo:hover i {
+  transform: rotate(6deg) scale(1.05);
 }
 
 .logo span {
   color: var(--accent-orange);
-  position: relative;
+  font-weight: 900;
 }
 
-.logo span::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: var(--accent-cyan);
-  box-shadow: var(--shadow-neon-cyan);
+/* Footer Specific Logo Contrast */
+footer .logo {
+  color: var(--color-text-primary);
+}
+
+footer .logo:hover {
+  color: var(--color-text-primary);
+}
+
+footer .logo i {
+  color: var(--accent-orange);
+}
+
+footer .logo span {
+  color: var(--accent-orange);
 }
 
 .nav-menu {
@@ -2839,6 +2864,15 @@ footer {
 }
 
 @media (max-width: 968px) {
+  .logo {
+    font-size: 1.5rem;
+    gap: 8px;
+  }
+
+  .logo i {
+    font-size: 1.55rem;
+  }
+
   .hamburger {
     display: block;
   }
@@ -2919,6 +2953,16 @@ footer {
 }
 
 @media (max-width: 576px) {
+  .logo {
+    font-size: 1.25rem;
+    gap: 6px;
+    letter-spacing: 0;
+  }
+
+  .logo i {
+    font-size: 1.3rem;
+  }
+
   .hero-title {
     font-size: 2.2rem;
   }

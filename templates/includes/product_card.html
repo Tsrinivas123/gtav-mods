@@ -1,40 +1,46 @@
-<div class="mod-card" id="productCard-{{ product.id }}" onclick="if(!event.target.closest('form') && !event.target.closest('button') && !event.target.closest('a')){ window.location.href='{% url 'marketplace:product_detail' product.slug %}'; }" style="cursor: pointer;">
-  <a href="{% url 'marketplace:product_detail' product.slug %}" class="mod-img-wrapper" title="{{ product.name }}" style="display: block; text-decoration: none; color: inherit;">
+<div class="mod-card" id="productCard-{{ product.id }}"
+  onclick="if(!event.target.closest('form') && !event.target.closest('button') && !event.target.closest('a')){ window.location.href='{% url 'marketplace:product_detail' product.slug %}'; }"
+  style="cursor: pointer;">
+  <a href="{% url 'marketplace:product_detail' product.slug %}" class="mod-img-wrapper" title="{{ product.name }}"
+    style="display: block; text-decoration: none; color: inherit;">
     {% if product.main_image and product.main_image.name %}
-      <img src="{{ product.main_image.url }}" alt="{{ product.name }}" loading="lazy">
+    <img src="{{ product.main_image.url }}" alt="{{ product.name }}" loading="lazy">
     {% else %}
-      <div class="fallback-img" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #16181d; color: var(--color-text-muted, #9ca3af);"><i class="fa-solid fa-image fa-2x"></i></div>
+    <div class="fallback-img"
+      style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #16181d; color: var(--color-text-muted, #9ca3af);">
+      <i class="fa-solid fa-image fa-2x"></i></div>
     {% endif %}
-    
+
     <div class="mod-badges">
       <span class="mod-badge-cat">{{ product.category.name }}</span>
       {% if product.discount_percentage > 0 %}
-        <span class="mod-badge-discount">-{{ product.discount_percentage }}%</span>
+      <span class="mod-badge-discount">-{{ product.discount_percentage }}%</span>
       {% endif %}
     </div>
   </a>
-  
+
   <div class="mod-info">
     <h3 class="mod-name">
       <a href="{% url 'marketplace:product_detail' product.slug %}" title="{{ product.name }}">
         {{ product.name }}
       </a>
     </h3>
-    
+
     <div class="mod-price-box">
       {% if product.price == 0 %}
-        <span class="mod-price free">FREE</span>
+      <span class="mod-price free">FREE</span>
       {% else %}
-        {% if product.old_price %}
-          <span class="mod-old-price">₹{{ product.old_price }}</span>
-        {% endif %}
-        <span class="mod-price">₹{{ product.price }}</span>
+      {% if product.old_price %}
+      <span class="mod-old-price">₹{{ product.old_price }}</span>
+      {% endif %}
+      <span class="mod-price">₹{{ product.price }}</span>
       {% endif %}
     </div>
-    
+
     <div class="mod-card-actions">
       <!-- Add to Cart (AJAX/standard form submit) -->
-      <form action="{% url 'orders:cart_add' product.id %}" method="POST" class="ajax-cart-form" style="flex: 1; display: inline;">
+      <form action="{% url 'orders:cart_add' product.id %}" method="POST" class="ajax-cart-form"
+        style="flex: 1; display: inline;">
         {% csrf_token %}
         <button type="submit" class="card-btn-cart" title="Add to Cart">
           <i class="fa-solid fa-cart-shopping"></i> Add
