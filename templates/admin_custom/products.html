@@ -543,7 +543,7 @@
   function openDeleteModal(id, name) {
     document.getElementById('deleteModalBody').textContent =
       `"${name}" will be deleted. (You can restore it later if needed).`;
-    document.getElementById('deleteForm').action = `/custom-admin/products/${id}/delete/`;
+    document.getElementById('deleteForm').action = `/admin/products/${id}/delete/`;
     document.getElementById('deleteModal').classList.add('open');
   }
   function closeDeleteModal() {

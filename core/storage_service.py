@@ -7,13 +7,19 @@ from django.core.exceptions import ValidationError
 from PIL import Image
 import zipfile
 
+# Ensure standard MIME types are registered (e.g. webp on minimal Linux containers)
+mimetypes.add_type('image/webp', '.webp')
+mimetypes.add_type('image/jpeg', '.jpg')
+mimetypes.add_type('image/jpeg', '.jpeg')
+mimetypes.add_type('image/png', '.png')
+
 # Security configurations
 BLOCKED_EXTENSIONS = {'.exe', '.bat', '.cmd', '.ps1', '.sh', '.php', '.py', '.js'}
 ALLOWED_IMAGE_TYPES = {
-    'jpg': ['image/jpeg', 'image/pjpeg'],
-    'jpeg': ['image/jpeg', 'image/pjpeg'],
-    'png': ['image/png'],
-    'webp': ['image/webp']
+    'jpg': ['image/jpeg', 'image/pjpeg', 'image/jpg', 'image/jfif', 'application/octet-stream'],
+    'jpeg': ['image/jpeg', 'image/pjpeg', 'image/jpg', 'image/jfif', 'application/octet-stream'],
+    'png': ['image/png', 'image/x-png', 'application/octet-stream'],
+    'webp': ['image/webp', 'application/octet-stream']
 }
 ALLOWED_ARCHIVE_MIMES = {
     'application/zip',
@@ -42,10 +48,10 @@ def validate_image_file(uploaded_file):
     
     # Validate MIME type
     content_type = uploaded_file.content_type
-    if content_type not in ALLOWED_IMAGE_TYPES[ext]:
+    if content_type and content_type not in ALLOWED_IMAGE_TYPES[ext]:
         # Fallback guessed mime type checking
         guessed_type, _ = mimetypes.guess_type(filename)
-        if guessed_type not in ALLOWED_IMAGE_TYPES[ext]:
+        if guessed_type and guessed_type not in ALLOWED_IMAGE_TYPES[ext]:
             raise ValidationError(f"MIME type '{content_type}' does not match file extension '.{ext}'.")
             
     # Validate file contents by opening with Pillow
@@ -53,14 +59,20 @@ def validate_image_file(uploaded_file):
         # Save current pointer, read and reset
         uploaded_file.seek(0)
         img = Image.open(uploaded_file)
+        img_format = img.format.upper() if img.format else ''
+        if img_format not in ('JPEG', 'JPG', 'PNG', 'WEBP'):
+            raise ValidationError(f"Unsupported image format: {img_format}. Must be JPEG, PNG, or WEBP.")
         img.verify()
         uploaded_file.seek(0)
+    except ValidationError:
+        raise
     except Exception:
         raise ValidationError("Corrupt or invalid image file contents.")
 
 def resize_image_if_large(uploaded_file, max_dim=1920):
     """
     Checks dimensions of an image and resizes it to fit within max_dim x max_dim.
+    Properly handles color modes (RGBA/P to RGB for JPEG) and retains transparency for PNG/WEBP.
     Returns a ContentFile if resized, otherwise returns original.
     """
     uploaded_file.seek(0)
@@ -68,16 +80,27 @@ def resize_image_if_large(uploaded_file, max_dim=1920):
         img = Image.open(uploaded_file)
         width, height = img.size
         if width > max_dim or height > max_dim:
-            # Calculate new size
+            # Calculate new size maintaining aspect ratio
             img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
             
-            # Save to bytes
-            buffer = BytesIO()
-            # Retain format or use PNG/JPEG
-            format = img.format if img.format else 'JPEG'
-            img.save(buffer, format=format, quality=85)
-            buffer.seek(0)
+            format_name = img.format if img.format else 'JPEG'
+            format_upper = format_name.upper()
             
+            buffer = BytesIO()
+            if format_upper in ('JPEG', 'JPG'):
+                if img.mode in ('RGBA', 'LA', 'P'):
+                    img = img.convert('RGB')
+                img.save(buffer, format='JPEG', quality=85, optimize=True)
+            elif format_upper == 'PNG':
+                img.save(buffer, format='PNG', optimize=True)
+            elif format_upper == 'WEBP':
+                img.save(buffer, format='WEBP', quality=85)
+            else:
+                if img.mode in ('RGBA', 'LA', 'P'):
+                    img = img.convert('RGB')
+                img.save(buffer, format='JPEG', quality=85)
+                
+            buffer.seek(0)
             return ContentFile(buffer.read(), name=uploaded_file.name)
     except Exception:
         pass
@@ -105,9 +128,9 @@ def validate_archive_file(uploaded_file):
     
     # Validate MIME type
     content_type = uploaded_file.content_type
-    if content_type not in ALLOWED_ARCHIVE_MIMES:
+    if content_type and content_type not in ALLOWED_ARCHIVE_MIMES:
         guessed_type, _ = mimetypes.guess_type(filename)
-        if guessed_type not in ALLOWED_ARCHIVE_MIMES:
+        if guessed_type and guessed_type not in ALLOWED_ARCHIVE_MIMES:
             raise ValidationError(f"MIME type '{content_type}' does not match file extension '.{ext}'.")
             
     # Check Magic Signature Bytes
@@ -147,8 +170,8 @@ def save_main_image(product, uploaded_file):
     validate_image_file(uploaded_file)
     processed_file = resize_image_if_large(uploaded_file)
     
-    # Cleanup old file if it exists
-    if product.main_image:
+    # Cleanup old file if it exists (excluding placeholder)
+    if product.main_image and product.main_image.name:
         delete_file_from_storage(product.main_image.name)
         
     # Save the new file
@@ -159,7 +182,7 @@ def delete_main_image(product):
     """
     Removes the main product image from disk and database field.
     """
-    if product.main_image:
+    if product.main_image and product.main_image.name:
         delete_file_from_storage(product.main_image.name)
         product.main_image = None
         product.save()
@@ -189,7 +212,7 @@ def delete_gallery_image(image_id):
     from marketplace.models import ProductImage
     try:
         img = ProductImage.objects.get(pk=image_id)
-        if img.image:
+        if img.image and img.image.name:
             delete_file_from_storage(img.image.name)
         img.delete()
     except ProductImage.DoesNotExist:
@@ -213,7 +236,7 @@ def save_download_file(product, uploaded_file):
         )
     else:
         # Delete old file from storage if updating
-        if version_instance.download_file:
+        if version_instance.download_file and version_instance.download_file.name:
             delete_file_from_storage(version_instance.download_file.name)
             
     version_instance.download_file.save(uploaded_file.name, uploaded_file, save=True)
@@ -224,7 +247,7 @@ def delete_download_file(product):
     Removes the download file from storage and clears the download_file field on the VersionHistory record.
     """
     version_instance = product.versions.first()
-    if version_instance and version_instance.download_file:
+    if version_instance and version_instance.download_file and version_instance.download_file.name:
         delete_file_from_storage(version_instance.download_file.name)
         version_instance.download_file = None
         version_instance.save()
@@ -232,6 +255,14 @@ def delete_download_file(product):
 def delete_file_from_storage(file_path):
     """
     Utility method to physically remove a file from Django storage, preventing orphans.
+    Protects default placeholder files from accidental deletion.
     """
-    if file_path and default_storage.exists(file_path):
-        default_storage.delete(file_path)
+    if not file_path:
+        return
+    if 'placeholder' in file_path.lower():
+        return
+    try:
+        if default_storage.exists(file_path):
+            default_storage.delete(file_path)
+    except Exception:
+        pass

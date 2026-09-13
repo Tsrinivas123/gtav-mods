@@ -595,7 +595,7 @@
     uploadMediaFile(
       files[0],
       'main_image',
-      `/custom-admin/products/${productId}/media/main/upload/`,
+      `/admin/products/${productId}/media/main/upload/`,
       document.getElementById('mainImageProgressContainer'),
       document.getElementById('mainImageProgressBar'),
       (resp) => {
@@ -610,7 +610,7 @@
   // Delete Main Image
   window.deleteMainImage = function() {
     if (!confirm("Are you sure you want to remove the main image?")) return;
-    fetch(`/custom-admin/products/${productId}/media/main/delete/`, {
+    fetch(`/admin/products/${productId}/media/main/delete/`, {
       method: 'POST',
       headers: {
         'X-CSRFToken': csrfToken,
@@ -633,7 +633,7 @@
     uploadMediaFile(
       files[0],
       'download_file',
-      `/custom-admin/products/${productId}/media/file/upload/`,
+      `/admin/products/${productId}/media/file/upload/`,
       document.getElementById('modFileProgressContainer'),
       document.getElementById('modFileProgressBar'),
       (resp) => {
@@ -646,7 +646,7 @@
   // Delete Mod File
   window.deleteModFile = function() {
     if (!confirm("Are you sure you want to remove the mod file?")) return;
-    fetch(`/custom-admin/products/${productId}/media/file/delete/`, {
+    fetch(`/admin/products/${productId}/media/file/delete/`, {
       method: 'POST',
       headers: {
         'X-CSRFToken': csrfToken,
@@ -714,7 +714,7 @@
       }
     };
     
-    xhr.open('POST', `/custom-admin/products/${productId}/media/gallery/upload/`, true);
+    xhr.open('POST', `/admin/products/${productId}/media/gallery/upload/`, true);
     xhr.setRequestHeader('X-CSRFToken', csrfToken);
     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     xhr.send(formData);
@@ -742,7 +742,7 @@
   // Delete Gallery Image
   window.deleteGalleryImage = function(imageId) {
     if (!confirm("Remove this gallery image?")) return;
-    fetch(`/custom-admin/products/${productId}/media/gallery/delete/${imageId}/`, {
+    fetch(`/admin/products/${productId}/media/gallery/delete/${imageId}/`, {
       method: 'POST',
       headers: {
         'X-CSRFToken': csrfToken,
@@ -809,7 +809,7 @@
     const grid = document.getElementById('galleryGrid');
     const imageIds = Array.from(grid.querySelectorAll('.gallery-card')).map(card => card.dataset.id);
     
-    fetch(`/custom-admin/products/${productId}/media/gallery/reorder/`, {
+    fetch(`/admin/products/${productId}/media/gallery/reorder/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

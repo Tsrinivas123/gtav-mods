@@ -109,10 +109,15 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-# Whitenoise compression and caching
+# Supabase Storage Configuration (Private Bucket)
+SUPABASE_URL = os.getenv('SUPABASE_URL', '').rstrip('/')
+SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY', os.getenv('SUPABASE_KEY', ''))
+SUPABASE_BUCKET = os.getenv('SUPABASE_BUCKET', 'pawanmod-files')
+
+# Whitenoise compression and Supabase/Local Storage backend
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "core.supabase_backend.SupabaseStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
@@ -121,7 +126,13 @@ STORAGES = {
 
 # Media files (Product uploads, screenshots)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.getenv('RENDER_DISK_PATH', os.path.join(BASE_DIR, 'media')))
+
+# Ensure media storage directories exist
+os.makedirs(MEDIA_ROOT, exist_ok=True)
+os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'images'), exist_ok=True)
+os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'gallery'), exist_ok=True)
+os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'files'), exist_ok=True)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

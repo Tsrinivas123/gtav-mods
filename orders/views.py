@@ -361,6 +361,7 @@ def payment_complete(request):
 
 def download_file(request, version_id):
     """Secure download: increments downloads_count only after confirming purchase entitlement."""
+    from core import supabase_storage
     version = get_object_or_404(VersionHistory, pk=version_id)
     product = version.product
 
@@ -382,11 +383,17 @@ def download_file(request, version_id):
         messages.error(request, "You must purchase this mod before downloading.")
         return redirect('marketplace:product_detail', slug=product.slug)
 
-    # Increment only on actual download, not on payment
+    # Increment only on actual authorized download
     product.downloads_count += 1
     product.save(update_fields=['downloads_count'])
 
     if version.download_file:
+        # If Supabase Storage is configured, generate a secure time-limited signed URL (5 minutes expiry)
+        if supabase_storage.is_configured():
+            signed_url = supabase_storage.create_signed_url(version.download_file.name, expires_in=300)
+            if signed_url:
+                return redirect(signed_url)
+
         return redirect(version.download_file.url)
     elif version.download_url:
         return redirect(version.download_url)
