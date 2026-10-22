@@ -221,7 +221,8 @@ def product_detail(request, slug):
     in_wishlist = False
     has_purchased = False
     if request.user.is_authenticated:
-        in_wishlist = request.user.profile.wishlist.filter(id=product.id).exists()
+        if hasattr(request.user, 'profile'):
+            in_wishlist = request.user.profile.wishlist.filter(id=product.id).exists()
         if request.user.is_staff or request.user.is_superuser:
             has_purchased = True
         else:
@@ -229,6 +230,15 @@ def product_detail(request, slug):
                 user=request.user,
                 status__in=['paid', 'completed'],
                 items__product=product
+            ).exists()
+
+    if not has_purchased:
+        purchased_orders = request.session.get('purchased_orders', [])
+        if purchased_orders:
+            has_purchased = Order.objects.filter(
+                status__in=['paid', 'completed', 'Success'],
+                items__product=product,
+                code__in=purchased_orders
             ).exists()
 
     context = {
@@ -239,26 +249,66 @@ def product_detail(request, slug):
     }
     return render(request, 'product.html', context)
 
-@login_required
 def submit_review(request, slug):
     product = get_object_or_404(Product, slug=slug)
     if request.method == 'POST':
+        order_code = request.POST.get('order_code', '').strip()
+        email = request.POST.get('email', '').strip()
         rating = request.POST.get('rating')
-        title = request.POST.get('title')
-        content = request.POST.get('content')
-        
+        title = request.POST.get('title', '').strip()
+        content = request.POST.get('content', '').strip()
+
         if not rating or not title or not content:
-            messages.error(request, "Please fill out all fields.")
+            messages.error(request, "Please fill out all required fields.")
             return redirect('marketplace:product_detail', slug=slug)
-            
+
+        try:
+            rating_val = int(rating)
+            if rating_val < 1 or rating_val > 5:
+                raise ValueError
+        except (ValueError, TypeError):
+            messages.error(request, "Rating must be a number between 1 and 5.")
+            return redirect('marketplace:product_detail', slug=slug)
+
+        order = None
+        reviewer_name = ""
+
+        if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
+            reviewer_name = request.user.get_full_name() or request.user.username
+        else:
+            if not order_code or not email:
+                messages.error(request, "Order Number and Billing Email are required to verify your purchase.")
+                return redirect('marketplace:product_detail', slug=slug)
+
+            order = Order.objects.filter(code__iexact=order_code, email__iexact=email).first()
+            if not order:
+                messages.error(request, "No matching order found with that Order Number and Email.")
+                return redirect('marketplace:product_detail', slug=slug)
+
+            if order.status not in ['paid', 'completed'] and order.payment_status != 'Success':
+                messages.error(request, "Review submission is only allowed for completed purchases.")
+                return redirect('marketplace:product_detail', slug=slug)
+
+            if not order.items.filter(product=product).exists():
+                messages.error(request, "This order does not include this mod. Only verified buyers can submit a review.")
+                return redirect('marketplace:product_detail', slug=slug)
+
+            if Review.objects.filter(product=product, order=order).exists():
+                messages.error(request, "A review has already been submitted for this order. Duplicate reviews are not allowed.")
+                return redirect('marketplace:product_detail', slug=slug)
+
+            reviewer_name = order.full_name or "Verified Customer"
+
         Review.objects.create(
             product=product,
-            user=request.user,
-            rating=int(rating),
+            user=request.user if request.user.is_authenticated else None,
+            order=order,
+            reviewer_name=reviewer_name,
+            rating=rating_val,
             title=title,
             content=content
         )
-        messages.success(request, "Review submitted successfully!")
+        messages.success(request, "Thank you! Your verified review has been submitted successfully.")
     return redirect('marketplace:product_detail', slug=slug)
 
 def get_client_ip(request):

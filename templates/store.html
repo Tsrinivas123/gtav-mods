@@ -4,17 +4,17 @@
 {% block title %}Mod Store | PawanMod Premium GTA Mods{% endblock %}
 
 {% block content %}
-<section class="section" style="padding-top: 40px;">
+<section class="section store-section">
   <!-- Mobile Filter Toggle Button -->
   <button class="filter-mobile-toggle-btn" id="toggleMobileFilters" aria-expanded="false" aria-label="Toggle Filter Options">
     <span><i class="fa-solid fa-sliders" style="color: var(--accent-orange); margin-right: 8px;"></i> Filter & Sort Catalogue</span>
     <i class="fa-solid fa-chevron-down"></i>
   </button>
 
-  <div class="store-layout">
+  <div class="store-container store-layout">
 
     <!-- Sidebar Filters -->
-    <aside class="filter-sidebar" aria-label="Catalogue Filters">
+    <aside class="filter-sidebar filters-sidebar" aria-label="Catalogue Filters">
       <div class="filter-title">
         <span>Filters</span>
         <span class="filter-clear" id="clearFiltersBtn" role="button" tabindex="0">Clear All</span>
@@ -104,7 +104,7 @@
     </aside>
 
     <!-- Main Results Column -->
-    <div class="store-results">
+    <div class="store-content store-results">
       <!-- Toolbar -->
       <div class="store-toolbar">
         <div class="store-results-count">
@@ -137,7 +137,7 @@
       </div>
 
       <!-- Products Grid -->
-      <div class="mods-grid" id="modsGrid">
+      <div class="mods-grid products-grid" id="modsGrid">
         {% for product in products %}
           {% include 'includes/product_card.html' with product=product %}
         {% empty %}

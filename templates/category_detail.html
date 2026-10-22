@@ -4,37 +4,37 @@
 {% block title %}PawanMod | {{ category.name }} Mods{% endblock %}
 
 {% block content %}
-<section class="section" style="background: #f3f4f6; min-height: calc(100vh - 80px); padding: 40px 5%;">
+<section class="section" style="background: #f3f4f6; min-height: calc(100vh - 60px); padding: 24px 4%;">
   
   <!-- Category Header banner -->
-  <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 40px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-soft);">
+  <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius-sm); padding: 18px 22px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-soft);">
     <div>
       <span class="section-tag" style="color: var(--accent-cyan); font-weight: 700;">Category Files</span>
-      <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 2.2rem; text-transform: uppercase; margin: 5px 0;">{{ category.name }}</h2>
-      <p style="color: var(--color-text-secondary); margin: 0;">Showing {{ total_count }} products in the {{ category.name }} catalog.</p>
+      <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.35rem; text-transform: uppercase; margin: 4px 0 2px;">{{ category.name }}</h2>
+      <p style="color: var(--color-text-secondary); margin: 0; font-size: 0.82rem;">Showing {{ total_count }} products in the {{ category.name }} catalog.</p>
     </div>
-    <a href="{% url 'marketplace:categories_list' %}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> All Categories</a>
+    <a href="{% url 'marketplace:categories_list' %}" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.75rem;"><i class="fa-solid fa-arrow-left"></i> All Categories</a>
   </div>
 
   <!-- Filters Row -->
-  <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius); padding: 20px 30px; margin-bottom: 30px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; box-shadow: var(--shadow-soft);">
+  <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius-sm); padding: 12px 18px; margin-bottom: 16px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; box-shadow: var(--shadow-soft);">
     <!-- Search inside Category -->
-    <form action="" method="GET" style="display: flex; gap: 10px; width: 100%; max-width: 400px; position: relative;">
-      <input type="text" name="search" placeholder="Search in {{ category.name }}..." value="{{ search_query }}" style="width: 100%; border-radius: 30px; padding: 10px 20px; border: 1px solid var(--card-border); background: #f3f4f6; color: var(--color-text-primary);">
+    <form action="" method="GET" style="display: flex; gap: 8px; width: 100%; max-width: 360px; position: relative;">
+      <input type="text" name="search" placeholder="Search in {{ category.name }}..." value="{{ search_query }}" style="width: 100%; border-radius: 20px; padding: 7px 16px; border: 1px solid var(--card-border); background: #f3f4f6; color: var(--color-text-primary); font-size: 0.82rem;">
       {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
       {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
       {% if sort_by %}<input type="hidden" name="sort_by" value="{{ sort_by }}">{% endif %}
-      <button type="submit" class="btn btn-primary" style="border-radius: 30px; padding: 8px 20px;"><i class="fa-solid fa-magnifying-glass"></i></button>
+      <button type="submit" class="btn btn-primary" style="border-radius: 20px; padding: 6px 16px; font-size: 0.78rem;"><i class="fa-solid fa-magnifying-glass"></i></button>
     </form>
 
     <!-- Sort Filter Form -->
-    <form action="" method="GET" id="sortForm" style="display: flex; align-items: center; gap: 15px;">
+    <form action="" method="GET" id="sortForm" style="display: flex; align-items: center; gap: 10px;">
       {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
       {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
       {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
       
-      <label for="sort_by" style="font-weight: 600; font-size: 0.9rem; color: var(--color-text-secondary);">Sort By:</label>
-      <select name="sort_by" id="sort_by" onchange="document.getElementById('sortForm').submit();" style="border-radius: 8px; padding: 8px 15px; border: 1px solid var(--card-border); background: white; color: var(--color-text-primary); cursor: pointer;">
+      <label for="sort_by" style="font-weight: 600; font-size: 0.82rem; color: var(--color-text-secondary);">Sort By:</label>
+      <select name="sort_by" id="sort_by" onchange="document.getElementById('sortForm').submit();" style="border-radius: 6px; padding: 6px 12px; border: 1px solid var(--card-border); background: white; color: var(--color-text-primary); cursor: pointer; font-size: 0.8rem;">
         <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Uploads</option>
         <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Most Popular</option>
         <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Highest Rated</option>

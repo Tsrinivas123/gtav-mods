@@ -9,7 +9,7 @@
   .cart-layout {
     display: grid;
     grid-template-columns: 2.1fr 1fr;
-    gap: 40px;
+    gap: 20px;
     max-width: 1200px;
     margin: 0 auto;
   }
@@ -17,7 +17,7 @@
   @media (max-width: 991px) {
     .cart-layout {
       grid-template-columns: 1fr;
-      gap: 30px;
+      gap: 16px;
     }
     .cart-summary-sidebar {
       position: static !important;
@@ -28,7 +28,7 @@
   .cart-list-container {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;
   }
 
   /* Modern Card Design */
@@ -36,11 +36,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 32px;
+    gap: 16px;
     background: #ffffff;
     border: 1px solid var(--card-border);
-    border-radius: 12px;
-    padding: 24px;
+    border-radius: var(--border-radius-sm);
+    padding: 14px 18px;
     box-shadow: var(--shadow-soft);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }

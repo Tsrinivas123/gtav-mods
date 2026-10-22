@@ -241,3 +241,185 @@ class MarketplaceModelTests(TestCase):
         response_detail2 = self.client.get(detail_url2)
         self.assertEqual(response_detail2.status_code, 200)
         self.assertContains(response_detail2, "Cyber Weapon Pack")
+
+    def test_breadcrumb_category_rendering_and_links(self):
+        """FIX 1: Verify breadcrumb renders actual category name and valid links, not raw template syntax."""
+        self.product.stock_status = 'available'
+        self.product.save()
+
+        detail_url = reverse('marketplace:product_detail', args=[self.product.slug])
+        response = self.client.get(detail_url)
+        self.assertEqual(response.status_code, 200)
+
+        # Must not contain literal template tags
+        self.assertNotContains(response, '{{ product.category.name }}')
+        self.assertNotContains(response, '{{')
+
+        # Must contain category name and valid category detail link
+        self.assertContains(response, self.category.name)
+        cat_url = reverse('marketplace:category_detail', args=[self.category.slug])
+        self.assertContains(response, cat_url)
+
+    def test_rating_accuracy_empty_and_populated_states(self):
+        """FIX 4: Verify rating displays 'No reviews yet' when empty and computes actual average when populated."""
+        self.product.stock_status = 'available'
+        self.product.save()
+
+        # When no reviews exist:
+        self.assertIsNone(self.product.average_rating)
+        self.assertEqual(self.product.rating_breakdown, [])
+
+        detail_url = reverse('marketplace:product_detail', args=[self.product.slug])
+        response = self.client.get(detail_url)
+        self.assertEqual(response.status_code, 200)
+
+        # Must show empty state, NOT fabricated 4.5 or hardcoded 85%
+        self.assertContains(response, "No reviews yet")
+        self.assertNotContains(response, "4.5")
+        self.assertNotContains(response, "85%")
+
+        # Add genuine review
+        from marketplace.models import Review
+        Review.objects.create(
+            product=self.product,
+            reviewer_name="Verified Buyer",
+            rating=5,
+            title="Awesome Mod",
+            content="Great quality!"
+        )
+
+        self.assertEqual(self.product.average_rating, 5.0)
+        self.assertEqual(self.product.reviews_count, 1)
+
+        response_reviewed = self.client.get(detail_url)
+        self.assertEqual(response_reviewed.status_code, 200)
+        self.assertContains(response_reviewed, "Awesome Mod")
+        self.assertContains(response_reviewed, "5.0")
+        self.assertContains(response_reviewed, "100%")
+
+    def test_guest_review_submission_verification(self):
+        """FIX 3: Verify guest review submission enforces purchase verification and prevents duplicates."""
+        from orders.models import Order, OrderItem
+        from marketplace.models import Review
+
+        self.product.stock_status = 'available'
+        self.product.save()
+
+        review_url = reverse('marketplace:submit_review', args=[self.product.slug])
+
+        # 1. Unauthenticated guest without order details fails
+        resp_fail = self.client.post(review_url, {
+            'order_code': '',
+            'email': '',
+            'rating': '5',
+            'title': 'Nice',
+            'content': 'Good mod'
+        })
+        self.assertEqual(resp_fail.status_code, 302)
+        self.assertFalse(Review.objects.filter(product=self.product).exists())
+
+        # 2. Guest with non-existent order fails
+        resp_invalid_order = self.client.post(review_url, {
+            'order_code': 'PM-FAKE99999',
+            'email': 'fake@example.com',
+            'rating': '5',
+            'title': 'Nice',
+            'content': 'Good mod'
+        })
+        self.assertEqual(resp_invalid_order.status_code, 302)
+        self.assertFalse(Review.objects.filter(product=self.product).exists())
+
+        # 3. Create completed order with this product
+        order = Order.objects.create(
+            code='PM-VALID1234',
+            full_name='John Guest',
+            email='guest@example.com',
+            billing_address='123 Test St',
+            total_amount=10.00,
+            status='completed',
+            payment_status='Success'
+        )
+        OrderItem.objects.create(order=order, product=self.product, price=10.00)
+
+        # 4. Valid guest review succeeds
+        resp_valid = self.client.post(review_url, {
+            'order_code': 'PM-VALID1234',
+            'email': 'guest@example.com',
+            'rating': '5',
+            'title': 'Excellent Work',
+            'content': 'Runs smoothly without any crashes.'
+        })
+        self.assertEqual(resp_valid.status_code, 302)
+        review = Review.objects.filter(product=self.product, order=order).first()
+        self.assertIsNotNone(review)
+        self.assertEqual(review.reviewer_name, 'John Guest')
+        self.assertEqual(review.rating, 5)
+
+        # 5. Duplicate review for same order is rejected
+        resp_dup = self.client.post(review_url, {
+            'order_code': 'PM-VALID1234',
+            'email': 'guest@example.com',
+            'rating': '4',
+            'title': 'Another review',
+            'content': 'Trying to post again.'
+        })
+        self.assertEqual(resp_dup.status_code, 302)
+        self.assertEqual(Review.objects.filter(product=self.product, order=order).count(), 1)
+
+    def test_product_tabs_content_and_empty_states(self):
+        """FIX 5: Verify all 4 tabs display their content or graceful empty states."""
+        self.product.stock_status = 'available'
+        self.product.save()
+
+        detail_url = reverse('marketplace:product_detail', args=[self.product.slug])
+        response = self.client.get(detail_url)
+        self.assertEqual(response.status_code, 200)
+
+        # Test tab buttons exist
+        self.assertContains(response, 'data-tab="tabAbout"')
+        self.assertContains(response, 'data-tab="tabRequirements"')
+        self.assertContains(response, 'data-tab="tabInstall"')
+        self.assertContains(response, 'data-tab="tabChangelog"')
+
+        # Test populated fields
+        self.assertContains(response, "Long description details")
+        self.assertContains(response, "ScriptHookV")
+        self.assertContains(response, "Copy and paste files")
+
+        # Test empty version history renders graceful empty state
+        self.assertContains(response, "No version history available.")
+
+    def test_product_detail_actions_no_paypal_direct_button(self):
+        """Verify product detail page shows only Add to Cart and Buy Now, and no direct PayPal button."""
+        self.product.stock_status = 'available'
+        self.product.save()
+
+        detail_url = reverse('marketplace:product_detail', args=[self.product.slug])
+        response = self.client.get(detail_url)
+        self.assertEqual(response.status_code, 200)
+
+        # 1. Must contain Add to Cart and Buy Now buttons
+        self.assertContains(response, "Add to Cart")
+        self.assertContains(response, "Buy Now")
+        self.assertContains(response, 'id="ajaxAddToCartBtn"')
+
+        # 2. Must NOT contain direct PayPal button or form
+        self.assertNotContains(response, "btn-paypal-express")
+        self.assertNotContains(response, "PayPal Express Checkout Direct")
+
+        # 3. Test centralized checkout flow:
+        # Step A: Buy Now triggers cart_add
+        cart_add_url = reverse('orders:cart_add', args=[self.product.id])
+        resp_buy = self.client.post(cart_add_url, {'checkout_direct': 'true'})
+        self.assertEqual(resp_buy.status_code, 302)
+        self.assertRedirects(resp_buy, reverse('orders:cart'))
+
+        # Step B: Cart detail page displays items
+        resp_cart = self.client.get(reverse('orders:cart'))
+        self.assertEqual(resp_cart.status_code, 200)
+        self.assertContains(resp_cart, self.product.name)
+
+        # Step C: Proceed to checkout
+        resp_checkout_page = self.client.get(reverse('orders:checkout'))
+        self.assertEqual(resp_checkout_page.status_code, 200)
+        self.assertContains(resp_checkout_page, "Checkout")

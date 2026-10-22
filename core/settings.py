@@ -18,7 +18,11 @@ csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '')
 if csrf_origins:
     CSRF_TRUSTED_ORIGINS = csrf_origins.split(',')
 else:
-    CSRF_TRUSTED_ORIGINS = ['http://localhost', 'http://127.0.0.1']
+    CSRF_TRUSTED_ORIGINS = [
+        'http://localhost',
+        'http://127.0.0.1',
+        'https://*.vercel.app',
+    ]
 
 # Application definition
 INSTALLED_APPS = [
@@ -109,7 +113,10 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-# Supabase Storage Configuration (Private Bucket)
+# ── Environment & Vercel Detection ──────────────────────────────────────────
+IS_VERCEL = os.getenv('VERCEL') == '1' or 'VERCEL' in os.environ
+
+# ── Supabase Storage Configuration (Private Bucket) ─────────────────────────
 SUPABASE_URL = os.getenv('SUPABASE_URL', '').rstrip('/')
 SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY', os.getenv('SUPABASE_KEY', ''))
 SUPABASE_BUCKET = os.getenv('SUPABASE_BUCKET', 'pawanmod-files')
@@ -128,11 +135,15 @@ STORAGES = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.getenv('RENDER_DISK_PATH', os.path.join(BASE_DIR, 'media')))
 
-# Ensure media storage directories exist
-os.makedirs(MEDIA_ROOT, exist_ok=True)
-os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'images'), exist_ok=True)
-os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'gallery'), exist_ok=True)
-os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'files'), exist_ok=True)
+# Ensure media storage directories exist for local development (skipped on Vercel's read-only filesystem)
+if not IS_VERCEL:
+    try:
+        os.makedirs(MEDIA_ROOT, exist_ok=True)
+        os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'images'), exist_ok=True)
+        os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'gallery'), exist_ok=True)
+        os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'files'), exist_ok=True)
+    except OSError:
+        pass
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

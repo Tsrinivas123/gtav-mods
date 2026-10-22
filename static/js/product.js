@@ -5,11 +5,15 @@
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Screenshot Gallery Thumbnail Switcher
   const mainImg = document.getElementById('mainGalleryImg');
+  const fallbackImg = document.getElementById('mainImgFallback');
   const thumbs = document.querySelectorAll('.gallery-thumb');
 
   if (mainImg && thumbs.length > 0) {
     thumbs.forEach(thumb => {
       thumb.addEventListener('click', () => {
+        const thumbImg = thumb.querySelector('img');
+        if (!thumbImg || !thumbImg.src) return;
+
         // Remove active class from all
         thumbs.forEach(t => t.classList.remove('active'));
         
@@ -17,8 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
         thumb.classList.add('active');
         
         // Swap image src
-        const newSrc = thumb.querySelector('img').src;
-        mainImg.src = newSrc;
+        mainImg.src = thumbImg.src;
+        mainImg.alt = thumbImg.alt || '';
+        mainImg.style.display = 'block';
+        if (fallbackImg) fallbackImg.style.display = 'none';
         
         // Add zoom anim class
         mainImg.style.animation = 'none';
@@ -39,13 +45,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const tabTarget = btn.getAttribute('data-tab');
         
         // Deactivate all buttons & contents
-        tabBtns.forEach(b => b.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active'));
+        tabBtns.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        tabContents.forEach(c => {
+          c.classList.remove('active');
+          c.style.display = 'none';
+        });
         
         // Activate target elements
         btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
         const targetContent = document.getElementById(tabTarget);
-        if (targetContent) targetContent.classList.add('active');
+        if (targetContent) {
+          targetContent.classList.add('active');
+          targetContent.style.display = 'block';
+        }
       });
     });
   }

@@ -24,9 +24,9 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('product', 'user', 'rating', 'title', 'created_at')
+    list_display = ('product', 'reviewer_name', 'user', 'order', 'rating', 'title', 'created_at')
     list_filter = ('rating', 'created_at')
-    search_fields = ('product__name', 'user__username', 'title', 'content')
+    search_fields = ('product__name', 'reviewer_name', 'user__username', 'order__code', 'title', 'content')
 
 
 from django.conf import settings

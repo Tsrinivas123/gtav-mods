@@ -88,7 +88,28 @@ class Product(models.Model):
         reviews = self.reviews.all()
         if reviews:
             return round(sum([r.rating for r in reviews]) / len(reviews), 1)
-        return 4.5  # Premium default rating for demo display if no reviews exist
+        return None
+
+    @property
+    def reviews_count(self):
+        return self.reviews.count()
+
+    @property
+    def rating_breakdown(self):
+        reviews = list(self.reviews.all())
+        total = len(reviews)
+        if total == 0:
+            return []
+        breakdown = []
+        for star in [5, 4, 3, 2, 1]:
+            count = sum(1 for r in reviews if r.rating == star)
+            pct = round((count / total) * 100) if total > 0 else 0
+            breakdown.append({
+                'stars': star,
+                'count': count,
+                'percentage': pct,
+            })
+        return breakdown
 
     @property
     def latest_version(self):
@@ -126,7 +147,9 @@ class VersionHistory(models.Model):
 
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    order = models.ForeignKey('orders.Order', on_delete=models.SET_NULL, null=True, blank=True, related_name='reviews')
+    reviewer_name = models.CharField(max_length=150, blank=True)
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     title = models.CharField(max_length=150)
     content = models.TextField()
@@ -136,7 +159,8 @@ class Review(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.username} - {self.product.name} ({self.rating}/5)"
+        name = self.reviewer_name or (self.user.username if self.user else "Verified Guest")
+        return f"{name} - {self.product.name} ({self.rating}/5)"
 
 
 class ContactMessage(models.Model):

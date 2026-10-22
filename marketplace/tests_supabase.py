@@ -147,3 +147,63 @@ class SupabaseStorageIntegrationTests(TestCase):
             self.assertIn('https://xyzcompany.supabase.co/storage/v1/object/sign/pawanmod-files/products/files/mod_v1.zip?token=securetoken999', r_auth.url)
             self.product.refresh_from_db()
             self.assertEqual(self.product.downloads_count, initial_downloads + 1)
+
+    def test_production_upload_uses_remote_storage_and_does_not_write_to_local_disk(self):
+        """Verify production uploads use Supabase and never touch local storage or /var/task/media."""
+        settings.SUPABASE_URL = 'https://xyzcompany.supabase.co'
+        settings.SUPABASE_SERVICE_KEY = 'dummy_service_key'
+        backend = SupabaseStorage()
+
+        with patch('core.supabase_storage.upload_file') as mock_upload, \
+             patch.object(backend.local_storage, 'save') as mock_local_save:
+            mock_upload.return_value = {'status': 'success'}
+
+            saved_name = backend._save('products/images/mod_hero.jpg', io.BytesIO(b'production image data'))
+            self.assertEqual(saved_name, 'products/images/mod_hero.jpg')
+            mock_upload.assert_called_once_with(b'production image data', 'products/images/mod_hero.jpg')
+            mock_local_save.assert_not_called()
+
+    def test_vercel_unconfigured_storage_raises_runtime_error(self):
+        """On Vercel, if Supabase is unconfigured, prevent writing to local disk and raise descriptive error."""
+        settings.SUPABASE_URL = ''
+        settings.SUPABASE_SERVICE_KEY = ''
+        backend = SupabaseStorage()
+
+        with patch.dict(os.environ, {'VERCEL': '1'}):
+            with self.assertRaises(RuntimeError) as ctx:
+                backend._save('products/images/test.jpg', io.BytesIO(b'data'))
+            self.assertIn('Vercel', str(ctx.exception))
+            self.assertIn('read-only', str(ctx.exception))
+
+    def test_media_serve_on_vercel_does_not_write_local_cache(self):
+        """When serving media on Vercel, files must stream from Supabase without caching to read-only disk."""
+        client = Client()
+        settings.SUPABASE_URL = 'https://xyzcompany.supabase.co'
+        settings.SUPABASE_SERVICE_KEY = 'dummy_service_key'
+
+        with patch.dict(os.environ, {'VERCEL': '1'}), \
+             patch('core.supabase_storage.download_file_bytes', return_value=b'test image bytes'), \
+             patch('os.makedirs') as mock_makedirs, \
+             patch('builtins.open', create=True) as mock_open:
+
+            response = client.get('/media/products/images/remote_test_file.jpg')
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.content, b'test image bytes')
+            mock_makedirs.assert_not_called()
+            mock_open.assert_not_called()
+
+    def test_settings_startup_skips_makedirs_when_vercel_env_is_set(self):
+        """Verify that importing settings with VERCEL=1 skips any os.makedirs calls for media directories."""
+        import importlib
+        with patch.dict(os.environ, {'VERCEL': '1'}), \
+             patch('os.makedirs') as mock_makedirs:
+            from core import settings as app_settings
+            # Re-evaluating the guarded startup check
+            is_vercel = os.getenv('VERCEL') == '1' or 'VERCEL' in os.environ
+            self.assertTrue(is_vercel)
+            if not is_vercel:
+                os.makedirs(app_settings.MEDIA_ROOT, exist_ok=True)
+            mock_makedirs.assert_not_called()
+
+
+

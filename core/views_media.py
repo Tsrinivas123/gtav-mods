@@ -27,13 +27,15 @@ def media_serve(request, path):
             content_type, _ = mimetypes.guess_type(normalized_path)
             content_type = content_type or 'application/octet-stream'
 
-            # Cache locally to disk for subsequent instant loads if directory is writable
-            try:
-                os.makedirs(os.path.dirname(local_full_path), exist_ok=True)
-                with open(local_full_path, 'wb') as f:
-                    f.write(file_bytes)
-            except Exception:
-                pass
+            # Cache locally to disk for subsequent instant loads in local dev only (skipped on Vercel)
+            is_vercel = getattr(settings, 'IS_VERCEL', False) or os.getenv('VERCEL') == '1' or 'VERCEL' in os.environ
+            if not is_vercel:
+                try:
+                    os.makedirs(os.path.dirname(local_full_path), exist_ok=True)
+                    with open(local_full_path, 'wb') as f:
+                        f.write(file_bytes)
+                except OSError:
+                    pass
 
             response = HttpResponse(file_bytes, content_type=content_type)
             response['Cache-Control'] = 'public, max-age=86400'  # 24 hour browser cache

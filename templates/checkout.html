@@ -5,125 +5,379 @@
 
 {% block content %}
 <style>
-  /* Premium style overrides for Checkout form and fields */
-  .checkout-layout {
-    display: grid;
-    grid-template-columns: 1.5fr 1fr;
-    gap: 40px;
-    max-width: 1200px;
+  /* Compact & Professional Checkout Layout */
+  .checkout-section {
+    background: #f8f9fa;
+    min-height: calc(100vh - 120px);
+    padding: 24px 4% 40px;
+    box-sizing: border-box;
+  }
+
+  .checkout-container {
+    max-width: 1140px;
     margin: 0 auto;
   }
 
-  @media (max-width: 1024px) {
-    .checkout-layout {
-      grid-template-columns: 1.2fr 1fr;
-      gap: 30px;
-    }
+  /* Compact Stepper Tracker */
+  .checkout-stepper-compact {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 20px;
+    color: var(--color-text-muted, #6b7280);
+  }
+
+  .checkout-stepper-compact a {
+    color: var(--color-text-secondary, #4b5563);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .checkout-stepper-compact a:hover {
+    color: var(--accent-orange, #ff6b00);
+  }
+
+  .checkout-stepper-compact .stepper-active {
+    color: var(--accent-orange, #ff6b00);
+    font-weight: 700;
+  }
+
+  .checkout-stepper-compact .stepper-sep {
+    color: #cbd5e1;
+    font-size: 0.75rem;
+  }
+
+  /* Two-Column Responsive Grid */
+  .checkout-layout {
+    display: grid;
+    grid-template-columns: 1.32fr 1fr;
+    gap: 24px;
+    align-items: start;
   }
 
   @media (max-width: 991px) {
     .checkout-layout {
-      grid-template-columns: 1fr;
-      gap: 30px;
-    }
-    .checkout-billing-panel {
-      padding: 24px !important;
-    }
-    .checkout-summary-sidebar {
-      position: static !important;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
   }
 
-  /* Form Fields Styling */
-  .form-group {
-    margin-bottom: 24px;
+  /* Shared Card Styling */
+  .checkout-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    padding: 22px 24px;
+    box-sizing: border-box;
   }
 
-  .custom-field-label {
+  @media (max-width: 640px) {
+    .checkout-card {
+      padding: 16px 14px;
+      border-radius: 8px;
+    }
+    .checkout-section {
+      padding: 14px 10px 32px;
+    }
+  }
+
+  .checkout-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .checkout-card-title {
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 1.05rem;
     font-weight: 700;
     text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.08em;
-    display: block;
-    margin-bottom: 8px;
-    color: #4b5563;
-    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    letter-spacing: 0.03em;
+    color: #111827;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  .required-star {
+  .checkout-card-title i {
+    color: var(--accent-orange, #ff6b00);
+    font-size: 0.95rem;
+  }
+
+  .guest-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #16a34a;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    padding: 3px 8px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
+  /* Form Fields & High Specificity Clean Light Inputs */
+  .checkout-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .form-row-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  @media (max-width: 600px) {
+    .form-row-2col {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+
+  .checkout-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin: 0;
+  }
+
+  .checkout-field label {
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    color: #374151 !important;
+    margin: 0 !important;
+  }
+
+  .checkout-field .req-star {
     color: #ef4444;
     font-weight: 800;
     margin-left: 2px;
   }
 
-  .custom-form-input, .custom-form-select, .custom-form-textarea {
-    width: 100%;
-    border: 1px solid #dcdcdc;
-    border-radius: 12px;
-    padding: 12px 18px;
-    font-size: 0.95rem;
-    color: #111827;
-    background-color: #ffffff;
-    box-sizing: border-box;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .custom-form-input, .custom-form-select {
-    height: 52px;
-  }
-
-  .custom-form-textarea {
-    height: 120px;
-    resize: vertical;
-  }
-
-  .custom-form-input::placeholder, .custom-form-textarea::placeholder {
-    color: #9ca3af;
-  }
-
-  .custom-form-input:focus, .custom-form-select:focus, .custom-form-textarea:focus {
-    outline: none;
-    border-color: var(--accent-orange) !important;
-    box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.15) !important;
-  }
-
-  /* Custom styled select box */
-  .custom-form-select {
-    background-color: #ffffff;
-    color: #111827;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111827' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 16px center;
-    background-size: 16px;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    padding-right: 40px;
-    cursor: pointer;
-  }
-
-  .custom-form-select option {
-    background-color: #ffffff;
-    color: #111827;
-    padding: 12px;
-  }
-
-  /* Custom Payment Dropdown Styling */
-  .custom-dropdown {
-    width: 100%;
-    position: relative;
-  }
-
-  #paymentDropdownTrigger {
-    border: 1px solid #dcdcdc !important;
-    background: #ffffff !important;
+  /* Override any global dark theme rules on inputs within checkout */
+  .checkout-layout input[type="text"],
+  .checkout-layout input[type="email"],
+  .checkout-layout input[type="tel"],
+  .checkout-layout select,
+  .checkout-layout textarea,
+  .checkout-input {
+    width: 100% !important;
+    height: 42px !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 7px !important;
+    padding: 8px 12px !important;
+    font-size: 0.88rem !important;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
     color: #111827 !important;
-    height: 52px;
-    border-radius: 12px;
+    background-color: #ffffff !important;
+    background-image: none !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    margin: 0 !important;
+  }
+
+  .checkout-layout textarea,
+  textarea.checkout-input {
+    height: auto !important;
+    min-height: 68px !important;
+    resize: vertical !important;
+    line-height: 1.45 !important;
+  }
+
+  .checkout-layout textarea.short-notes {
+    min-height: 52px !important;
+  }
+
+  .checkout-layout select,
+  select.checkout-input {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23374151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 14px !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    padding-right: 34px !important;
+    cursor: pointer !important;
+  }
+
+  .checkout-layout select option {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    padding: 8px 12px !important;
+  }
+
+  .checkout-layout input::placeholder,
+  .checkout-layout textarea::placeholder {
+    color: #9ca3af !important;
+    font-size: 0.84rem !important;
+  }
+
+  .checkout-layout input:focus,
+  .checkout-layout select:focus,
+  .checkout-layout textarea:focus {
+    outline: none !important;
+    border-color: var(--accent-orange, #ff6b00) !important;
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.15) !important;
+    background-color: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  .checkout-input.has-error {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+  }
+
+  /* Right Column: Order Summary Sidebar */
+  .checkout-summary-sidebar {
+    position: sticky;
+    top: 76px;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  @media (max-width: 991px) {
+    .checkout-summary-sidebar {
+      position: static;
+      top: auto;
+    }
+  }
+
+  /* Items Table/List */
+  .summary-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 4px;
+    margin-bottom: 12px;
+    scrollbar-width: thin;
+  }
+
+  .summary-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px dashed #f1f5f9;
+    font-size: 0.84rem;
+  }
+
+  .summary-item-row:last-child {
+    border-bottom: none;
+  }
+
+  .summary-item-name {
+    color: #1f2937;
+    font-weight: 500;
+    line-height: 1.35;
+    flex: 1;
+  }
+
+  .summary-item-qty {
+    color: #6b7280;
+    font-size: 0.76rem;
+    font-weight: 600;
+    margin-left: 4px;
+  }
+
+  .summary-item-price {
+    font-weight: 700;
+    color: #111827;
+    white-space: nowrap;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  /* Financial Totals Breakdown */
+  .summary-totals-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .summary-total-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.84rem;
+    color: #4b5563;
+  }
+
+  .summary-total-line strong {
+    color: #111827;
+    font-weight: 600;
+  }
+
+  .summary-grand-total {
+    border-top: 1px solid #cbd5e1;
+    padding-top: 8px;
+    margin-top: 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .summary-grand-total .label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #111827;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .summary-grand-total .amount {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--accent-orange, #ff6b00);
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  /* Custom Payment Dropdown */
+  .payment-dropdown-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 14px;
+  }
+
+  .payment-dropdown-trigger {
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #111827;
+    height: 42px;
+    border-radius: 7px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 18px;
+    padding: 0 12px;
+    font-size: 0.88rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -131,257 +385,349 @@
     box-sizing: border-box;
   }
 
-  #paymentDropdownTrigger:hover, #paymentDropdownTrigger:focus-visible {
-    border-color: var(--accent-orange) !important;
-    box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.15) !important;
+  .payment-dropdown-trigger:hover,
+  .payment-dropdown-trigger:focus-visible {
+    border-color: var(--accent-orange, #ff6b00);
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.15);
     outline: none;
   }
 
+  .payment-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    z-index: 100;
+    margin: 0;
+    padding: 4px 0;
+    list-style: none;
+  }
+
   .payment-dropdown-item {
-    font-size: 0.95rem;
+    font-size: 0.86rem;
     display: flex;
     align-items: center;
-    padding: 12px 18px;
+    padding: 10px 14px;
     cursor: pointer;
-    color: #111827;
+    color: #1f2937;
     background: #ffffff;
     transition: all 0.15s ease;
     font-weight: 500;
   }
 
-  .payment-dropdown-item:hover, .payment-dropdown-item:focus-visible {
-    background-color: #f3f4f6 !important;
-    color: var(--accent-orange) !important;
+  .payment-dropdown-item:hover,
+  .payment-dropdown-item:focus-visible {
+    background-color: #f3f4f6;
+    color: var(--accent-orange, #ff6b00);
     outline: none;
   }
 
   .payment-dropdown-item.active {
-    background-color: var(--accent-orange) !important;
-    color: #ffffff !important;
-  }
-
-  .payment-dropdown-item.active i {
-    color: #ffffff !important;
-  }
-
-  /* Uniform action buttons style */
-  .uniform-btn {
-    width: 100%;
-    height: 52px;
-    border-radius: 12px;
+    background-color: #fff7ed;
+    color: var(--accent-orange, #ff6b00);
     font-weight: 700;
-    font-size: 0.95rem;
+  }
+
+  /* Action Buttons */
+  .checkout-actions-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-checkout-primary {
+    width: 100%;
+    height: 44px;
+    background: var(--accent-orange, #ff6b00);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    font-size: 0.88rem;
     text-transform: uppercase;
+    letter-spacing: 0.04em;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    box-sizing: border-box;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+    box-shadow: 0 2px 6px rgba(255, 107, 0, 0.25);
   }
 
-  .btn-submit-order {
-    background: var(--accent-orange);
-    color: #ffffff;
-  }
-
-  .btn-submit-order:hover {
+  .btn-checkout-primary:hover {
     background: #e86500;
-    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.25);
+    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.35);
   }
 
-  .btn-return-cart {
-    background: #ffffff;
-    color: #374151;
-    border: 2px solid #dcdcdc;
+  .btn-checkout-primary:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.35);
+  }
+
+  .btn-checkout-secondary {
+    width: 100%;
+    height: 38px;
+    background: transparent;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 600;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     text-decoration: none;
+    transition: all 0.2s ease;
   }
 
-  .btn-return-cart:hover {
-    border-color: var(--accent-orange);
-    color: var(--accent-orange);
+  .btn-checkout-secondary:hover {
+    border-color: var(--accent-orange, #ff6b00);
+    color: var(--accent-orange, #ff6b00);
+    background: #ffffff;
+  }
+
+  /* Trust Badges & Footnotes */
+  .checkout-trust-box {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #f1f5f9;
+    text-align: center;
+  }
+
+  .trust-security-tag {
+    font-size: 0.74rem;
+    color: #16a34a;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 4px;
+  }
+
+  .trust-desc-text {
+    font-size: 0.7rem;
+    color: #6b7280;
+    line-height: 1.4;
+    margin: 0;
   }
 </style>
 
-<section class="section" style="background: #f5f5f7; min-height: calc(100vh - 80px); padding: 50px 5%;">
+<section class="checkout-section">
+  <div class="checkout-container">
 
-  <!-- Stepper Progress Tracker -->
-  <div class="checkout-stepper">
-    <a href="{% url 'orders:cart' %}" style="color: var(--color-text-secondary); text-decoration: none; transition: var(--transition-smooth);" onmouseover="this.style.color='var(--accent-orange)'" onmouseout="this.style.color='var(--color-text-secondary)'">Shopping Cart</a>
-    <span style="color: var(--color-text-muted);">&gt;</span>
-    <span style="color: var(--accent-orange); font-weight: 700;">Checkout Details</span>
-    <span style="color: var(--color-text-muted);">&gt;</span>
-    <span style="color: var(--color-text-muted);">Order Complete</span>
-  </div>
+    <!-- Compact Progress Stepper -->
+    <nav class="checkout-stepper-compact" aria-label="Checkout Progress">
+      <a href="{% url 'orders:cart' %}">Shopping Cart</a>
+      <span class="stepper-sep">&gt;</span>
+      <span class="stepper-active">Checkout Details</span>
+      <span class="stepper-sep">&gt;</span>
+      <span>Payment & Complete</span>
+    </nav>
 
-  <div class="checkout-layout">
+    <!-- Main Two-Column Layout -->
+    <div class="checkout-layout">
 
-    <!-- Left Column: Billing Details -->
-    <div class="checkout-billing-panel" style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); padding: 40px; box-shadow: var(--shadow-soft);">
-      <form action="{% url 'orders:checkout' %}" method="POST" id="checkoutForm">
-        {% csrf_token %}
-
-        <h3 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.3rem; margin-bottom: 25px; text-transform: uppercase; color: #111827; border-bottom: 1px solid var(--card-border); padding-bottom: 12px;">
-          Billing Details
-        </h3>
-
-        <!-- Form Rows Grid -->
-        <div style="display: flex; flex-direction: column; gap: 4px;">
-
-          <div class="form-row-grid" style="margin-bottom: 4px;">
-            <div class="form-group">
-              <label for="id_full_name" class="custom-field-label">Full Name <span class="required-star">*</span></label>
-              <input type="text" id="id_full_name" name="full_name" class="custom-form-input" required
-                value="{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}">
-            </div>
-            <div class="form-group">
-              <label for="id_email" class="custom-field-label">Email Address <span class="required-star">*</span></label>
-              <input type="email" id="id_email" name="email" class="custom-form-input" required
-                value="{% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}">
-            </div>
-          </div>
-
-          <div class="form-row-grid" style="margin-bottom: 4px;">
-            <div class="form-group">
-              <label for="id_phone" class="custom-field-label">Phone <span class="required-star">*</span></label>
-              <input type="text" id="id_phone" name="phone" class="custom-form-input" required>
-            </div>
-            <div class="form-group">
-              <label for="id_city" class="custom-field-label">Town / City <span class="required-star">*</span></label>
-              <input type="text" id="id_city" name="city" class="custom-form-input" required>
-            </div>
-          </div>
-
-          <div class="form-row-grid" style="margin-bottom: 4px;">
-            <div class="form-group">
-              <label for="id_country" class="custom-field-label">Country / Region <span class="required-star">*</span></label>
-              <select id="id_country" name="country" class="custom-form-select" required>
-                <option value="IN" selected>India</option>
-                <option value="US">United States</option>
-                <option value="GB">United Kingdom</option>
-                <option value="CA">Canada</option>
-                <option value="AU">Australia</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="id_creator_channel" class="custom-field-label">YouTube Creator Link</label>
-              <input type="text" id="id_creator_channel" name="creator_channel" class="custom-form-input">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="id_billing_address" class="custom-field-label">Billing Address / Street Address <span class="required-star">*</span></label>
-            <textarea id="id_billing_address" name="billing_address" class="custom-form-textarea" required>{% if request.user.is_authenticated %}{{ request.user.profile.billing_address }}{% endif %}</textarea>
-          </div>
-
-          <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0 20px 0;">
-            <input type="checkbox" name="create_account" id="createAccount" style="accent-color: var(--accent-orange); width: 18px; height: 18px; cursor: pointer;">
-            <label for="createAccount" style="font-size: 0.88rem; color: #4b5563; cursor: pointer; user-select: none; font-weight: 500;">Create an account?</label>
-          </div>
-
+      <!-- Left Column: Billing Details (Guest Checkout) -->
+      <div class="checkout-card checkout-billing-panel">
+        <div class="checkout-card-header">
+          <h1 class="checkout-card-title">
+            <i class="fa-solid fa-address-card"></i> Billing Details
+          </h1>
+          <span class="guest-badge">
+            <i class="fa-solid fa-shield-check"></i> Guest Checkout
+          </span>
         </div>
 
-        <h3 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.3rem; margin: 30px 0 20px; text-transform: uppercase; color: #111827; border-bottom: 1px solid var(--card-border); padding-bottom: 12px;">
-          Additional Information
-        </h3>
+        <form action="{% url 'orders:checkout' %}" method="POST" id="checkoutForm">
+          {% csrf_token %}
 
-        <div class="form-group">
-          <label for="id_order_notes" class="custom-field-label">Additional Notes</label>
-          <textarea id="id_order_notes" name="order_notes" class="custom-form-textarea"></textarea>
-        </div>
+          <div class="checkout-form-grid">
 
-        <input type="hidden" name="payment_method" id="paymentMethodInput" value="UPI">
-      </form>
-    </div>
+            <!-- Full Name & Email -->
+            <div class="form-row-2col">
+              <div class="checkout-field">
+                <label for="id_full_name">Full Name <span class="req-star">*</span></label>
+                <input type="text" id="id_full_name" name="full_name" class="checkout-input"
+                  placeholder="e.g. Rahul Sharma" required autocomplete="name"
+                  value="{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}">
+              </div>
 
-    <!-- Right Column: Order Summary & Payment Method -->
-    <div class="checkout-summary-sidebar" style="display: flex; flex-direction: column; gap: 30px; position: sticky; top: 90px; align-self: start;">
+              <div class="checkout-field">
+                <label for="id_email">Email Address <span class="req-star">*</span></label>
+                <input type="email" id="id_email" name="email" class="checkout-input"
+                  placeholder="e.g. rahul@example.com" required autocomplete="email"
+                  value="{% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}">
+              </div>
+            </div>
 
-      <div style="border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); background: white; padding: 35px; box-shadow: var(--shadow-soft);">
-        <h3 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 25px; color: #111827; border-bottom: 2px solid var(--card-border); padding-bottom: 12px;">
-          Your Order
-        </h3>
+            <!-- Phone & City -->
+            <div class="form-row-2col">
+              <div class="checkout-field">
+                <label for="id_phone">Phone Number <span class="req-star">*</span></label>
+                <input type="tel" id="id_phone" name="phone" class="checkout-input"
+                  placeholder="e.g. +91 98765 43210" required autocomplete="tel">
+              </div>
 
-        <!-- Headers -->
-        <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 0.85rem; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; margin-bottom: 15px; color: #111827;">
-          <span>PRODUCT</span>
-          <span>SUBTOTAL</span>
-        </div>
+              <div class="checkout-field">
+                <label for="id_city">Town / City <span class="req-star">*</span></label>
+                <input type="text" id="id_city" name="city" class="checkout-input"
+                  placeholder="e.g. Mumbai" required autocomplete="address-level2">
+              </div>
+            </div>
 
-        <!-- Order Items Loop -->
-        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid var(--card-border); padding-bottom: 15px;">
-          {% for item in cart_items %}
-          <div style="display: flex; justify-content: space-between; font-size: 0.9rem; line-height: 1.4;">
-            <span style="max-width: 75%; color: #4b5563;">{{ item.product.name }} <strong>&times; {{ item.quantity }}</strong></span>
-            <span style="font-weight: 600; color: #111827; font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">₹{{ item.total }}</span>
+            <!-- Country & Optional YouTube Channel -->
+            <div class="form-row-2col">
+              <div class="checkout-field">
+                <label for="id_country">Country / Region <span class="req-star">*</span></label>
+                <select id="id_country" name="country" class="checkout-input" required autocomplete="country">
+                  <option value="IN" selected>India (₹ INR)</option>
+                  <option value="US">United States ($ USD)</option>
+                  <option value="GB">United Kingdom (£ GBP)</option>
+                  <option value="CA">Canada ($ CAD)</option>
+                  <option value="AU">Australia ($ AUD)</option>
+                </select>
+              </div>
+
+              <div class="checkout-field">
+                <label for="id_creator_channel">YouTube Creator Link <span style="color:#9ca3af;font-weight:400;text-transform:none;">(Optional)</span></label>
+                <input type="text" id="id_creator_channel" name="creator_channel" class="checkout-input"
+                  placeholder="https://youtube.com/@channel">
+              </div>
+            </div>
+
+            <!-- Billing Address -->
+            <div class="checkout-field">
+              <label for="id_billing_address">Billing Address / Street Address <span class="req-star">*</span></label>
+              <textarea id="id_billing_address" name="billing_address" class="checkout-input" rows="3"
+                placeholder="House / Flat no., Street, Area, Landmark, Postal code" required autocomplete="street-address">{% if request.user.is_authenticated %}{{ request.user.profile.billing_address }}{% endif %}</textarea>
+            </div>
+
+            <!-- Optional Order Notes -->
+            <div class="checkout-field">
+              <label for="id_order_notes">Additional Order Notes <span style="color:#9ca3af;font-weight:400;text-transform:none;">(Optional)</span></label>
+              <textarea id="id_order_notes" name="order_notes" class="checkout-input short-notes" rows="2"
+                placeholder="Special instructions or notes regarding your order..."></textarea>
+            </div>
+
           </div>
-          {% endfor %}
-        </div>
 
-        <!-- Subtotal and Grand Totals -->
-        <div style="display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 15px; margin-bottom: 25px; font-size: 0.95rem;">
-          <div style="display: flex; justify-content: space-between; color: #4b5563;">
-            <span>Subtotal</span>
-            <span style="color: #111827; font-weight: 600;">₹{{ cart_total }}</span>
-          </div>
-          {% if discount_amount > 0 %}
-          <div style="display: flex; justify-content: space-between; color: #4b5563;">
-            <span>Discount ({{ coupon.code }})</span>
-            <span style="color: var(--color-success); font-weight: 600;">-₹{{ discount_amount }}</span>
-          </div>
-          {% endif %}
-          <div style="display: flex; justify-content: space-between; font-size: 1.1rem; color: #111827; font-weight: 700;">
-            <span>Total</span>
-            <span style="color: var(--accent-orange);">₹{{ grand_total }}</span>
-          </div>
-        </div>
+          <!-- Hidden payment_method input bound to order creation -->
+          <input type="hidden" name="payment_method" id="paymentMethodInput" value="UPI">
+        </form>
+      </div>
 
-        <!-- Payment Method Selection -->
-        <div class="form-group" style="margin-bottom: 25px;">
-          <label id="paymentMethodLabel" class="custom-field-label" style="margin-bottom: 10px;">
-            Payment Method
-          </label>
-          <div class="custom-dropdown">
+      <!-- Right Column: Compact Order Summary & Payment Selection -->
+      <aside class="checkout-summary-sidebar" aria-label="Order Summary">
+        <div class="checkout-card">
+          <div class="checkout-card-header">
+            <h2 class="checkout-card-title">
+              <i class="fa-solid fa-bag-shopping"></i> Your Order
+            </h2>
+            <span style="font-size: 0.78rem; font-weight: 600; color: #6b7280;">
+              {{ cart_items|length }} item{{ cart_items|length|pluralize }}
+            </span>
+          </div>
+
+          <!-- Items Breakdown -->
+          <div class="summary-items-list" tabindex="0" role="region" aria-label="Purchased Items List">
+            {% for item in cart_items %}
+            <div class="summary-item-row">
+              <div class="summary-item-name">
+                {{ item.product.name }}
+                <span class="summary-item-qty">&times; {{ item.quantity }}</span>
+              </div>
+              <div class="summary-item-price">₹{{ item.total }}</div>
+            </div>
+            {% empty %}
+            <div style="text-align: center; color: #9ca3af; font-size: 0.82rem; padding: 12px 0;">
+              Your cart is empty.
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Financial Subtotals & Total -->
+          <div class="summary-totals-box">
+            <div class="summary-total-line">
+              <span>Cart Subtotal</span>
+              <strong>₹{{ cart_total }}</strong>
+            </div>
+
+            {% if discount_amount > 0 %}
+            <div class="summary-total-line" style="color: #16a34a;">
+              <span>Discount ({{ coupon.code }})</span>
+              <strong>-₹{{ discount_amount }}</strong>
+            </div>
+            {% endif %}
+
+            <div class="summary-grand-total">
+              <span class="label">Total Amount</span>
+              <span class="amount">₹{{ grand_total }}</span>
+            </div>
+          </div>
+
+          <!-- Payment Method Selection -->
+          <div class="payment-dropdown-wrapper">
+            <label id="paymentMethodLabel" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #374151; display: block; margin-bottom: 5px;">
+              Select Payment Method
+            </label>
+
             <!-- Accessible Trigger -->
-            <div id="paymentDropdownTrigger" tabindex="0" role="combobox" aria-labelledby="paymentMethodLabel" aria-expanded="false" aria-haspopup="listbox">
-              <span id="selectedPaymentText"><i class="fa-solid fa-qrcode" style="color: #6739b6; margin-right: 8px;"></i> Pay with UPI QR Code</span>
-              <i class="fa-solid fa-chevron-down" style="color: #9ca3af; transition: var(--transition-smooth);"></i>
+            <div id="paymentDropdownTrigger" class="payment-dropdown-trigger" tabindex="0" role="combobox" aria-labelledby="paymentMethodLabel" aria-expanded="false" aria-haspopup="listbox">
+              <span id="selectedPaymentText">
+                <i class="fa-solid fa-qrcode" style="color: #6739b6; margin-right: 6px;"></i> Pay with UPI QR Code
+              </span>
+              <i class="fa-solid fa-chevron-down" style="color: #9ca3af; font-size: 0.75rem; transition: transform 0.2s ease;"></i>
             </div>
-            <!-- Accessible Options menu -->
-            <ul id="paymentDropdownOptions" role="listbox" style="display: none; position: absolute; top: calc(100% + 5px); left: 0; right: 0; background: #ffffff; border: 1px solid var(--card-border); border-radius: 12px; box-shadow: var(--shadow-soft); z-index: 1000; margin: 0; padding: 5px 0; list-style: none;">
+
+            <!-- Accessible Options List -->
+            <ul id="paymentDropdownOptions" class="payment-dropdown-menu" role="listbox" aria-labelledby="paymentMethodLabel">
               <li data-value="UPI" class="payment-dropdown-item active" role="option" aria-selected="true" tabindex="0">
-                <i class="fa-solid fa-qrcode" style="color: #6739b6; width: 24px; margin-right: 8px;"></i> Pay with UPI QR Code
+                <i class="fa-solid fa-qrcode" style="color: #6739b6; width: 20px; margin-right: 8px;"></i> Pay with UPI QR Code
               </li>
               <li data-value="PayPal" class="payment-dropdown-item" role="option" aria-selected="false" tabindex="0">
-                <i class="fa-brands fa-paypal" style="color: #0070ba; width: 24px; margin-right: 8px;"></i> PayPal
+                <i class="fa-brands fa-paypal" style="color: #0070ba; width: 20px; margin-right: 8px;"></i> PayPal Gateway
               </li>
               <li data-value="Cards" class="payment-dropdown-item" role="option" aria-selected="false" tabindex="0">
-                <i class="fa-solid fa-credit-card" style="color: var(--accent-orange); width: 24px; margin-right: 8px;"></i> Debit / Credit Card
+                <i class="fa-solid fa-credit-card" style="color: var(--accent-orange, #ff6b00); width: 20px; margin-right: 8px;"></i> Debit / Credit Card
               </li>
             </ul>
           </div>
+
+          <!-- Checkout Actions -->
+          <div class="checkout-actions-col">
+            <button type="button" id="submitOrderBtn" class="btn-checkout-primary">
+              <i class="fa-solid fa-lock"></i> <span>Proceed to Payment</span>
+            </button>
+
+            <a href="{% url 'orders:cart' %}" class="btn-checkout-secondary">
+              <i class="fa-solid fa-arrow-left"></i> Return to Cart
+            </a>
+          </div>
+
+          <!-- Trust Badges & Security Note -->
+          <div class="checkout-trust-box">
+            <span class="trust-security-tag">
+              <i class="fa-solid fa-shield-halved"></i> 256-Bit SSL Encrypted Checkout
+            </span>
+            <p class="trust-desc-text">
+              Instant digital delivery upon verified payment. No subscription or account setup required.
+            </p>
+          </div>
+
         </div>
+      </aside>
 
-        <!-- Actions Row -->
-        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 25px;">
-          <!-- Submit Button -->
-          <button type="button" id="submitOrderBtn" class="uniform-btn btn-submit-order">
-            <i class="fa-solid fa-lock"></i> <span>Proceed to Payment</span>
-          </button>
-
-          <a href="{% url 'orders:cart' %}" class="uniform-btn btn-return-cart">
-            &larr; Return to Cart
-          </a>
-        </div>
-
-        <!-- Disclaimer Text -->
-        <p style="font-size: 0.75rem; color: #6b7280; line-height: 1.5; text-align: center; margin-top: 20px;">
-          Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.
-        </p>
-
-      </div>
     </div>
 
   </div>
@@ -398,6 +744,8 @@
     const paymentMethodInput = document.getElementById('paymentMethodInput');
     const submitBtn = document.getElementById('submitOrderBtn');
     const checkoutForm = document.getElementById('checkoutForm');
+
+    if (!trigger || !optionsMenu || !checkoutForm || !submitBtn) return;
 
     function toggleMenu(show) {
       const isVisible = show !== undefined ? show : optionsMenu.style.display !== 'block';
@@ -437,7 +785,7 @@
         option.setAttribute('aria-selected', 'true');
 
         const val = option.getAttribute('data-value');
-        paymentMethodInput.value = val;
+        if (paymentMethodInput) paymentMethodInput.value = val;
         selectedText.innerHTML = option.innerHTML;
         toggleMenu(false);
         trigger.focus();
@@ -465,12 +813,10 @@
       requiredInputs.forEach(input => {
         if (!input.value.trim()) {
           valid = false;
-          input.style.borderColor = 'var(--color-danger)';
-          input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.15)';
+          input.classList.add('has-error');
           if (!firstInvalid) firstInvalid = input;
         } else {
-          input.style.borderColor = '';
-          input.style.boxShadow = '';
+          input.classList.remove('has-error');
         }
       });
 
@@ -478,7 +824,7 @@
         if (window.showToast) {
           window.showToast('Please fill out all required billing details.', 'error');
         } else {
-          alert('Please fill out all billing details.');
+          alert('Please fill out all required billing details.');
         }
         if (firstInvalid) firstInvalid.focus();
         return;
@@ -489,6 +835,14 @@
       submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
 
       checkoutForm.submit();
+    });
+
+    // Also support submitting via Enter key inside inputs
+    checkoutForm.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        submitBtn.click();
+      }
     });
   });
 </script>
