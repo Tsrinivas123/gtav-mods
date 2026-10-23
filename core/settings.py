@@ -154,9 +154,20 @@ if raw_db_url:
         raw_db_url = raw_db_url.replace(f"@{internal_host}", f"@{external_host}")
         if 'sslmode=' not in raw_db_url:
             raw_db_url += ('&' if '?' in raw_db_url else '?') + 'sslmode=require'
+    elif 'postgres' in raw_db_url and 'sslmode=' not in raw_db_url and (IS_VERCEL or not DEBUG):
+        raw_db_url += ('&' if '?' in raw_db_url else '?') + 'sslmode=require'
     db_config = dj_database_url.parse(raw_db_url, conn_max_age=0 if IS_VERCEL else 600)
+    if 'OPTIONS' not in db_config:
+        db_config['OPTIONS'] = {}
+    if 'connect_timeout' not in db_config['OPTIONS']:
+        db_config['OPTIONS']['connect_timeout'] = 10
 else:
     db_config = dj_database_url.config(conn_max_age=0 if IS_VERCEL else 600)
+    if db_config:
+        if 'OPTIONS' not in db_config:
+            db_config['OPTIONS'] = {}
+        if 'connect_timeout' not in db_config['OPTIONS']:
+            db_config['OPTIONS']['connect_timeout'] = 10
 
 if not db_config:
     if is_collectstatic:
@@ -273,6 +284,8 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000'))
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+
+
 
 
 

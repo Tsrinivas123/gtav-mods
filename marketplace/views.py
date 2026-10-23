@@ -72,12 +72,15 @@ def home(request):
     return render(request, 'home.html', context)
 
 def categories_list(request):
-    categories = Category.objects.filter(status='active').annotate(
-        product_count=Count(
-            'products',
-            filter=Q(products__stock_status='available', products__is_deleted=False)
-        )
-    )
+    try:
+        categories = list(Category.objects.filter(status='active').annotate(
+            product_count=Count(
+                'products',
+                filter=Q(products__stock_status='available', products__is_deleted=False)
+            )
+        ))
+    except Exception:
+        categories = []
     context = {
         'categories': categories,
     }
@@ -370,7 +373,10 @@ def contact(request):
         import random
         num1 = random.randint(1, 10)
         num2 = random.randint(1, 10)
-        request.session['support_captcha_answer'] = num1 + num2
+        try:
+            request.session['support_captcha_answer'] = num1 + num2
+        except Exception:
+            pass
         context = {
             'math_challenge': f"What is {num1} + {num2}?",
             'TURNSTILE_SITE_KEY': os.getenv('TURNSTILE_SITE_KEY', ''),

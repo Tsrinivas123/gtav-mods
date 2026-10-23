@@ -6,43 +6,51 @@ from django.core.paginator import Paginator
 from .models import BlogPost, BlogComment
 
 def post_list(request):
-    now = timezone.now()
-    # Filter only published posts that are not scheduled in the future
-    posts = BlogPost.objects.select_related('author').filter(
-        status='published',
-        publish_date__lte=now
-    )
     categories = BlogPost.CATEGORY_CHOICES
-    
-    # Search filter
     search_query = request.GET.get('search', '').strip()
-    if search_query:
-        posts = posts.filter(
-            Q(title__icontains=search_query) |
-            Q(content__icontains=search_query) |
-            Q(tags__icontains=search_query) |
-            Q(category__icontains=search_query)
+    category_query = request.GET.get('category', '').strip()
+
+    try:
+        now = timezone.now()
+        # Filter only published posts that are not scheduled in the future
+        posts = BlogPost.objects.select_related('author').filter(
+            status='published',
+            publish_date__lte=now
         )
         
-    # Category filter
-    category_query = request.GET.get('category', '').strip()
-    if category_query:
-        posts = posts.filter(category=category_query)
+        # Search filter
+        if search_query:
+            posts = posts.filter(
+                Q(title__icontains=search_query) |
+                Q(content__icontains=search_query) |
+                Q(tags__icontains=search_query) |
+                Q(category__icontains=search_query)
+            )
+            
+        # Category filter
+        if category_query:
+            posts = posts.filter(category=category_query)
+            
+        recent_posts = list(BlogPost.objects.filter(
+            status='published',
+            publish_date__lte=now
+        ).order_by('-publish_date')[:5])
         
-    recent_posts = BlogPost.objects.filter(
-        status='published',
-        publish_date__lte=now
-    ).order_by('-publish_date')[:5]
-    
-    popular_posts = BlogPost.objects.filter(
-        status='published',
-        publish_date__lte=now
-    ).order_by('-views_count')[:5]
-    
-    # Pagination - 6 posts per page
-    paginator = Paginator(posts, 6)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+        popular_posts = list(BlogPost.objects.filter(
+            status='published',
+            publish_date__lte=now
+        ).order_by('-views_count')[:5])
+        
+        # Pagination - 6 posts per page
+        paginator = Paginator(posts, 6)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        _ = list(page_obj.object_list)
+    except Exception:
+        paginator = Paginator([], 6)
+        page_obj = paginator.get_page(1)
+        recent_posts = []
+        popular_posts = []
     
     context = {
         'posts': page_obj,
