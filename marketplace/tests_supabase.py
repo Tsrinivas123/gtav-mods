@@ -205,5 +205,45 @@ class SupabaseStorageIntegrationTests(TestCase):
                 os.makedirs(app_settings.MEDIA_ROOT, exist_ok=True)
             mock_makedirs.assert_not_called()
 
+    def test_allowed_hosts_and_csrf_origins_contain_gtav_mods(self):
+        """Verify gtav-mods.vercel.app and .vercel.app are always allowed and trusted."""
+        from django.conf import settings as app_settings
+        self.assertIn('gtav-mods.vercel.app', app_settings.ALLOWED_HOSTS)
+        self.assertIn('.vercel.app', app_settings.ALLOWED_HOSTS)
+        self.assertIn('https://gtav-mods.vercel.app', app_settings.CSRF_TRUSTED_ORIGINS)
+        self.assertIn('https://*.vercel.app', app_settings.CSRF_TRUSTED_ORIGINS)
+
+    def test_api_index_wsgi_wrapper_restores_path_info(self):
+        """Verify api/index.py WSGI handler restores PATH_INFO from HTTP_X_MATCHED_PATH."""
+        from api.index import app as vercel_wsgi_app
+
+        environ = {
+            'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'gtav-mods.vercel.app',
+            'SERVER_PORT': '443',
+            'wsgi.url_scheme': 'https',
+            'wsgi.input': io.BytesIO(b''),
+            'wsgi.errors': io.StringIO(),
+            'wsgi.version': (1, 0),
+            'wsgi.multithread': False,
+            'wsgi.multiprocess': False,
+            'wsgi.run_once': False,
+            'PATH_INFO': '/api/index.py',
+            'HTTP_HOST': 'gtav-mods.vercel.app',
+            'HTTP_X_MATCHED_PATH': '/',
+        }
+
+        status_code = []
+        headers = []
+
+        def start_response(status, response_headers):
+            status_code.append(status)
+            headers.append(response_headers)
+
+        body_iter = vercel_wsgi_app(environ, start_response)
+        self.assertTrue(any('200' in s for s in status_code))
+        self.assertEqual(environ['PATH_INFO'], '/')
+
+
 
 

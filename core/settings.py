@@ -12,17 +12,81 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-secret-key-1234567
 
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+# Environment & Vercel Detection
+IS_VERCEL = os.getenv('VERCEL') == '1' or 'VERCEL' in os.environ
 
-csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '')
-if csrf_origins:
-    CSRF_TRUSTED_ORIGINS = csrf_origins.split(',')
+# ── Allowed Hosts & Domain Security ──────────────────────────────────────────
+raw_allowed_hosts = os.getenv('ALLOWED_HOSTS', '')
+if raw_allowed_hosts:
+    hosts = []
+    for h in raw_allowed_hosts.split(','):
+        h = h.strip()
+        if not h:
+            continue
+        if h.startswith('https://'):
+            h = h[8:]
+        elif h.startswith('http://'):
+            h = h[7:]
+        h = h.split('/')[0].split(':')[0].strip()
+        if h and h not in hosts:
+            hosts.append(h)
+    ALLOWED_HOSTS = hosts
+else:
+    ALLOWED_HOSTS = [
+        'gtav-mods.vercel.app',
+        '.vercel.app',
+        'localhost',
+        '127.0.0.1',
+        '[::1]',
+    ]
+    if DEBUG:
+        ALLOWED_HOSTS.append('*')
+
+# Always ensure the deployed domains are present in ALLOWED_HOSTS
+for default_host in ['gtav-mods.vercel.app', '.vercel.app', 'localhost', '127.0.0.1']:
+    if default_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(default_host)
+
+vercel_env_url = os.getenv('VERCEL_URL', '').strip()
+if vercel_env_url:
+    v_clean = vercel_env_url.replace('https://', '').replace('http://', '').split('/')[0].split(':')[0].strip()
+    if v_clean and v_clean not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(v_clean)
+
+# ── CSRF Trusted Origins ───────────────────────────────────────────────────
+raw_csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '')
+if raw_csrf_origins:
+    origins = []
+    for o in raw_csrf_origins.split(','):
+        o = o.strip()
+        if not o:
+            continue
+        if not o.startswith(('http://', 'https://')):
+            o = f'https://{o}'
+        o = o.rstrip('/')
+        if o not in origins:
+            origins.append(o)
+    CSRF_TRUSTED_ORIGINS = origins
 else:
     CSRF_TRUSTED_ORIGINS = [
         'http://localhost',
         'http://127.0.0.1',
+        'https://gtav-mods.vercel.app',
         'https://*.vercel.app',
     ]
+
+# Always ensure deployed origins are trusted for CSRF
+for default_origin in ['https://gtav-mods.vercel.app', 'https://*.vercel.app']:
+    if default_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(default_origin)
+
+vercel_env_url = os.getenv('VERCEL_URL', '').strip()
+if vercel_env_url:
+    v_origin = f"https://{vercel_env_url.replace('https://', '').replace('http://', '').rstrip('/')}"
+    if v_origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(v_origin)
+
+
 
 # Application definition
 INSTALLED_APPS = [
@@ -113,8 +177,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-# ── Environment & Vercel Detection ──────────────────────────────────────────
-IS_VERCEL = os.getenv('VERCEL') == '1' or 'VERCEL' in os.environ
 
 # ── Supabase Storage Configuration (Private Bucket) ─────────────────────────
 SUPABASE_URL = os.getenv('SUPABASE_URL', '').rstrip('/')
@@ -167,13 +229,17 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
 
-# ── Production Security Settings ────────────────────────────────────────────
+# ── Proxy & HTTPS Settings ──────────────────────────────────────────────────
+# Honor the X-Forwarded-Proto header set by Vercel and upstream reverse proxies
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 if not DEBUG:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True').lower() == 'true'
+    # Vercel terminates SSL at its global edge. Defaults to False on Vercel to avoid redirect loops
+    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False' if IS_VERCEL else 'True').lower() == 'true'
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
+
 
 
