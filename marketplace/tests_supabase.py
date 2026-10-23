@@ -244,6 +244,14 @@ class SupabaseStorageIntegrationTests(TestCase):
         self.assertTrue(any('200' in s for s in status_code))
         self.assertEqual(environ['PATH_INFO'], '/')
 
+    def test_api_index_compat_url_route(self):
+        """Verify that requests directly hitting /api/index.py route to homepage without 404."""
+        client = Client()
+        response = client.get('/api/index.py')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'PawanMod')
+
+
 
 
 

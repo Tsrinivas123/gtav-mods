@@ -3,8 +3,11 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from core.views_media import media_serve
+from marketplace import views as marketplace_views
 
 urlpatterns = [
+    # Backward-compatible fallback in case edge proxies or cached requests hit /api/index
+    re_path(r'^api/index(?:\.py)?/?$', marketplace_views.home, name='api_index_compat'),
     path('admin/', include('core.admin_urls', namespace='custom_admin')),
     path('custom-admin/', include('core.admin_urls', namespace='custom_admin_compat')),
     path('django-admin/', admin.site.urls),
