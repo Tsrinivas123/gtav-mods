@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
@@ -135,14 +136,23 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'core.wsgi.application'
-ASGI_APPLICATION = 'core.asgi.application'
+# ASGI_APPLICATION is omitted so Vercel native framework runner uses WSGI_APPLICATION
 
-# Database Setup: dynamically load DATABASE_URL (for PostgreSQL on Render) or fallback to SQLite in development
-db_config = dj_database_url.config(conn_max_age=600)
+# Database Setup: dynamically load DATABASE_URL (PostgreSQL) or fallback to SQLite
+is_collectstatic = any('collectstatic' in arg for arg in sys.argv)
+db_config = dj_database_url.config(conn_max_age=0 if IS_VERCEL else 600)
+
 if not db_config:
-    if not DEBUG:
+    if is_collectstatic:
+        db_config = dj_database_url.parse("sqlite:///:memory:")
+    elif IS_VERCEL:
+        # On Vercel, if DATABASE_URL is not yet set in environment variables, use /tmp/db.sqlite3
+        # so serverless container never attempts to write to the read-only /var/task filesystem
+        db_config = dj_database_url.parse("sqlite:////tmp/db.sqlite3")
+    elif not DEBUG:
         raise RuntimeError("DATABASE_URL environment variable is required in production (DEBUG=False). Ephemeral SQLite fallback is disallowed.")
-    db_config = dj_database_url.parse(f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}")
+    else:
+        db_config = dj_database_url.parse(f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}")
 
 DATABASES = {
     'default': db_config
@@ -192,20 +202,24 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
+WHITENOISE_USE_FINDERS = True
 
 # Media files (Product uploads, screenshots)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.getenv('RENDER_DISK_PATH', os.path.join(BASE_DIR, 'media')))
+if IS_VERCEL:
+    # On Vercel, local storage is ephemeral /tmp only (permanent assets are stored on Supabase)
+    MEDIA_ROOT = '/tmp/media'
+else:
+    MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.getenv('RENDER_DISK_PATH', os.path.join(BASE_DIR, 'media')))
 
-# Ensure media storage directories exist for local development (skipped on Vercel's read-only filesystem)
-if not IS_VERCEL:
-    try:
-        os.makedirs(MEDIA_ROOT, exist_ok=True)
-        os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'images'), exist_ok=True)
-        os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'gallery'), exist_ok=True)
-        os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'files'), exist_ok=True)
-    except OSError:
-        pass
+# Ensure media storage directories exist (in /tmp on Vercel or locally)
+try:
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
+    os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'images'), exist_ok=True)
+    os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'gallery'), exist_ok=True)
+    os.makedirs(os.path.join(MEDIA_ROOT, 'products', 'files'), exist_ok=True)
+except OSError:
+    pass
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

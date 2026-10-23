@@ -251,6 +251,66 @@ class SupabaseStorageIntegrationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'PawanMod')
 
+    def test_home_page_route(self):
+        """Verify that standard request to '/' renders the homepage with status 200."""
+        client = Client()
+        response = client.get('/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'PawanMod')
+
+    def test_store_page_route(self):
+        """Verify that store page route is accessible."""
+        client = Client()
+        response = client.get('/store/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_login_page_route(self):
+        """Verify that admin login page is accessible."""
+        client = Client()
+        response = client.get('/admin/login/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_health_check_endpoint(self):
+        """Verify that /health/ returns 200 and valid JSON status."""
+        client = Client()
+        response = client.get('/health/')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data.get('status'), 'ok')
+        self.assertEqual(data.get('app'), 'PawanMod')
+
+    def test_staticfiles_directory_and_settings(self):
+        """Verify that staticfiles directory exists and contains collected assets."""
+        self.assertTrue(os.path.isdir(settings.STATIC_ROOT), "STATIC_ROOT directory must exist")
+        self.assertTrue(settings.WHITENOISE_USE_FINDERS, "WHITENOISE_USE_FINDERS must be enabled")
+        css_dir = os.path.join(settings.STATIC_ROOT, 'css')
+        self.assertTrue(os.path.isdir(css_dir), "static css directory must be collected in STATIC_ROOT")
+
+    def test_wsgi_unwraps_edge_rewrite_paths(self):
+        """Verify core.wsgi unwraps edge-rewritten paths back to original requested routes."""
+        from core.wsgi import application as wsgi_app
+        environ = {
+            'REQUEST_METHOD': 'GET',
+            'PATH_INFO': '/api/index.py',
+            'SERVER_NAME': 'gtav-mods.vercel.app',
+            'SERVER_PORT': '443',
+            'wsgi.url_scheme': 'https',
+            'wsgi.input': io.BytesIO(),
+            'wsgi.errors': io.StringIO(),
+            'wsgi.multithread': False,
+            'wsgi.multiprocess': False,
+            'wsgi.run_once': False,
+            'HTTP_HOST': 'gtav-mods.vercel.app',
+            'HTTP_X_MATCHED_PATH': '/store/',
+        }
+        status_code = []
+        def start_response(status, response_headers, exc_info=None):
+            status_code.append(status)
+
+        wsgi_app(environ, start_response)
+        self.assertEqual(environ['PATH_INFO'], '/store/')
+
+
 
 
 
