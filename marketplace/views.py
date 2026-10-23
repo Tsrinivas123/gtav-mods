@@ -21,36 +21,36 @@ import datetime
 
 def home(request):
     try:
-        featured_categories = Category.objects.filter(status='active').annotate(
+        featured_categories = list(Category.objects.filter(status='active').annotate(
             product_count=Count(
                 'products',
                 filter=Q(products__stock_status='available', products__is_deleted=False)
             )
-        )[:8]
+        )[:8])
         
-        trending_mods = Product.objects.select_related('category').filter(
+        trending_mods = list(Product.objects.select_related('category').filter(
             category__status='active', is_trending=True, stock_status='available'
-        ).order_by('-created_at')[:8]
+        ).order_by('-created_at')[:8])
         
-        best_selling_mods = Product.objects.select_related('category').filter(
+        best_selling_mods = list(Product.objects.select_related('category').filter(
             category__status='active', stock_status='available'
-        ).order_by('-downloads_count')[:8]
+        ).order_by('-downloads_count')[:8])
         
-        top_rated_mods = Product.objects.select_related('category').filter(
+        top_rated_mods = list(Product.objects.select_related('category').filter(
             category__status='active', stock_status='available'
         ).annotate(
             avg_rating=Avg('reviews__rating')
-        ).order_by('-avg_rating')[:8]
+        ).order_by('-avg_rating')[:8])
         
-        featured_mods = Product.objects.select_related('category').filter(
+        featured_mods = list(Product.objects.select_related('category').filter(
             category__status='active', is_featured=True, stock_status='available'
-        ).order_by('-created_at')[:8]
+        ).order_by('-created_at')[:8])
         
-        latest_products = Product.objects.select_related('category').filter(
+        latest_products = list(Product.objects.select_related('category').filter(
             category__status='active', stock_status='available'
-        ).order_by('-created_at')[:8]
+        ).order_by('-created_at')[:8])
         
-        latest_articles = BlogPost.objects.filter(status='published', publish_date__lte=timezone.now()).order_by('-publish_date')[:3]
+        latest_articles = list(BlogPost.objects.filter(status='published', publish_date__lte=timezone.now()).order_by('-publish_date')[:3])
     except Exception:
         featured_categories = []
         trending_mods = []
@@ -143,7 +143,7 @@ def store(request):
     view_mode = request.GET.get('view_mode', 'grid')
     try:
         products_query = Product.objects.select_related('category').filter(stock_status='available', category__status='active')
-        categories = Category.objects.filter(status='active')
+        categories = list(Category.objects.filter(status='active'))
 
         # Apply search text filter
         search_query = request.GET.get('search', '')
@@ -187,6 +187,7 @@ def store(request):
         paginator = Paginator(products_query, 9)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
+        _ = list(page_obj.object_list)
     except Exception:
         search_query = request.GET.get('search', '')
         selected_categories = []
