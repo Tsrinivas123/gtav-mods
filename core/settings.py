@@ -108,7 +108,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Whitenoise for static files
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'core.middleware.SafeSessionMiddleware',  # Safe session middleware for resilient serverless operation
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
