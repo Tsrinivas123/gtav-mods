@@ -14,39 +14,45 @@ import razorpay
 import io
 
 def cart_detail(request):
-    # Session cart contents are already processed in context_processors
-    coupon_code = request.session.get('coupon_code', None)
-    discount_amount = Decimal('0.00')
-    discount_percentage = 0
-    coupon = None
-    
-    # Recalculate cart totals inside view for discount applications
-    cart = request.session.get('cart', {})
-    cart_total = Decimal('0.00')
-    if cart:
-        product_ids = cart.keys()
-        products = Product.objects.filter(id__in=product_ids)
-        for product in products:
-            quantity = cart[str(product.id)]
-            cart_total += product.price * quantity
+    try:
+        # Session cart contents are already processed in context_processors
+        coupon_code = request.session.get('coupon_code', None)
+        discount_amount = Decimal('0.00')
+        discount_percentage = 0
+        coupon = None
+        
+        # Recalculate cart totals inside view for discount applications
+        cart = request.session.get('cart', {})
+        cart_total = Decimal('0.00')
+        if cart:
+            product_ids = cart.keys()
+            products = Product.objects.filter(id__in=product_ids)
+            for product in products:
+                quantity = cart[str(product.id)]
+                cart_total += product.price * quantity
 
-    from marketplace.models import SiteSetting
-    coupons_enabled = SiteSetting.get_setting('enable_coupons', 'False').lower() == 'true'
+        from marketplace.models import SiteSetting
+        coupons_enabled = SiteSetting.get_setting('enable_coupons', 'False').lower() == 'true'
 
-    if coupons_enabled and coupon_code:
-        try:
-            coupon = Coupon.objects.get(code=coupon_code, active=True, expiration_date__gte=timezone.now().date())
-            if coupon.discount_type == 'percentage':
-                discount_percentage = int(coupon.discount_value)
-                discount_amount = (cart_total * coupon.discount_value) / Decimal('100.00')
-            else:
-                discount_amount = coupon.discount_value
-        except Coupon.DoesNotExist:
-            # Clear expired or invalid coupon from session
-            request.session.pop('coupon_code', None)
+        if coupons_enabled and coupon_code:
+            try:
+                coupon = Coupon.objects.get(code=coupon_code, active=True, expiration_date__gte=timezone.now().date())
+                if coupon.discount_type == 'percentage':
+                    discount_percentage = int(coupon.discount_value)
+                    discount_amount = (cart_total * coupon.discount_value) / Decimal('100.00')
+                else:
+                    discount_amount = coupon.discount_value
+            except Exception:
+                # Clear expired or invalid coupon from session
+                request.session.pop('coupon_code', None)
 
-    final_total = max(Decimal('0.00'), cart_total - discount_amount)
-    grand_total = final_total
+        final_total = max(Decimal('0.00'), cart_total - discount_amount)
+        grand_total = final_total
+    except Exception:
+        discount_amount = Decimal('0.00')
+        discount_percentage = 0
+        coupon = None
+        grand_total = Decimal('0.00')
 
     context = {
         'discount_amount': discount_amount,

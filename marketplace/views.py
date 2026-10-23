@@ -20,37 +20,45 @@ import datetime
 
 
 def home(request):
-    featured_categories = Category.objects.filter(status='active').annotate(
-        product_count=Count(
-            'products',
-            filter=Q(products__stock_status='available', products__is_deleted=False)
-        )
-    )[:8]
-    
-    trending_mods = Product.objects.select_related('category').filter(
-        category__status='active', is_trending=True, stock_status='available'
-    ).order_by('-created_at')[:8]
-    
-    best_selling_mods = Product.objects.select_related('category').filter(
-        category__status='active', stock_status='available'
-    ).order_by('-downloads_count')[:8]
-    
-    top_rated_mods = Product.objects.select_related('category').filter(
-        category__status='active', stock_status='available'
-    ).annotate(
-        avg_rating=Avg('reviews__rating')
-    ).order_by('-avg_rating')[:8]
-    
-    featured_mods = Product.objects.select_related('category').filter(
-        category__status='active', is_featured=True, stock_status='available'
-    ).order_by('-created_at')[:8]
-    
-    latest_products = Product.objects.select_related('category').filter(
-        category__status='active', stock_status='available'
-    ).order_by('-created_at')[:8]
-    
-    from django.utils import timezone
-    latest_articles = BlogPost.objects.filter(status='published', publish_date__lte=timezone.now()).order_by('-publish_date')[:3]
+    try:
+        featured_categories = Category.objects.filter(status='active').annotate(
+            product_count=Count(
+                'products',
+                filter=Q(products__stock_status='available', products__is_deleted=False)
+            )
+        )[:8]
+        
+        trending_mods = Product.objects.select_related('category').filter(
+            category__status='active', is_trending=True, stock_status='available'
+        ).order_by('-created_at')[:8]
+        
+        best_selling_mods = Product.objects.select_related('category').filter(
+            category__status='active', stock_status='available'
+        ).order_by('-downloads_count')[:8]
+        
+        top_rated_mods = Product.objects.select_related('category').filter(
+            category__status='active', stock_status='available'
+        ).annotate(
+            avg_rating=Avg('reviews__rating')
+        ).order_by('-avg_rating')[:8]
+        
+        featured_mods = Product.objects.select_related('category').filter(
+            category__status='active', is_featured=True, stock_status='available'
+        ).order_by('-created_at')[:8]
+        
+        latest_products = Product.objects.select_related('category').filter(
+            category__status='active', stock_status='available'
+        ).order_by('-created_at')[:8]
+        
+        latest_articles = BlogPost.objects.filter(status='published', publish_date__lte=timezone.now()).order_by('-publish_date')[:3]
+    except Exception:
+        featured_categories = []
+        trending_mods = []
+        best_selling_mods = []
+        top_rated_mods = []
+        featured_mods = []
+        latest_products = []
+        latest_articles = []
     
     context = {
         'featured_categories': featured_categories,
@@ -132,54 +140,64 @@ def category_detail(request, slug):
     return render(request, 'category_detail.html', context)
 
 def store(request):
-    products_query = Product.objects.select_related('category').filter(stock_status='available', category__status='active')
-    categories = Category.objects.filter(status='active')
-
-    # Apply search text filter
-    search_query = request.GET.get('search', '')
-    if search_query:
-        products_query = products_query.filter(
-            Q(name__icontains=search_query) | 
-            Q(short_description__icontains=search_query) |
-            Q(description__icontains=search_query) |
-            Q(category__name__icontains=search_query)
-        )
-
-    # Apply category filter
-    selected_categories = request.GET.getlist('category')
-    if selected_categories:
-        products_query = products_query.filter(category__slug__in=selected_categories)
-
-    # Apply price range filter
-    min_price = request.GET.get('min_price')
-    max_price = request.GET.get('max_price')
-    if min_price:
-        products_query = products_query.filter(price__gte=min_price)
-    if max_price:
-        products_query = products_query.filter(price__lte=max_price)
-
-    # Apply sorting filter
-    sort_by = request.GET.get('sort_by', 'newest')
-    if sort_by == 'newest':
-        products_query = products_query.order_by('-created_at')
-    elif sort_by == 'popular':
-        products_query = products_query.order_by('-downloads_count')
-    elif sort_by == 'rating':
-        products_query = products_query.annotate(avg_rating=Avg('reviews__rating')).order_by('-avg_rating')
-    elif sort_by == 'price_low':
-        products_query = products_query.order_by('price')
-    elif sort_by == 'price_high':
-        products_query = products_query.order_by('-price')
-
-    # View Mode Toggle (Grid/List)
     view_mode = request.GET.get('view_mode', 'grid')
+    try:
+        products_query = Product.objects.select_related('category').filter(stock_status='available', category__status='active')
+        categories = Category.objects.filter(status='active')
 
-    # Pagination calculation
-    total_count = products_query.count()
-    from django.core.paginator import Paginator
-    paginator = Paginator(products_query, 9)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+        # Apply search text filter
+        search_query = request.GET.get('search', '')
+        if search_query:
+            products_query = products_query.filter(
+                Q(name__icontains=search_query) | 
+                Q(short_description__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(category__name__icontains=search_query)
+            )
+
+        # Apply category filter
+        selected_categories = request.GET.getlist('category')
+        if selected_categories:
+            products_query = products_query.filter(category__slug__in=selected_categories)
+
+        # Apply price range filter
+        min_price = request.GET.get('min_price')
+        max_price = request.GET.get('max_price')
+        if min_price:
+            products_query = products_query.filter(price__gte=min_price)
+        if max_price:
+            products_query = products_query.filter(price__lte=max_price)
+
+        # Apply sorting filter
+        sort_by = request.GET.get('sort_by', 'newest')
+        if sort_by == 'newest':
+            products_query = products_query.order_by('-created_at')
+        elif sort_by == 'popular':
+            products_query = products_query.order_by('-downloads_count')
+        elif sort_by == 'rating':
+            products_query = products_query.annotate(avg_rating=Avg('reviews__rating')).order_by('-avg_rating')
+        elif sort_by == 'price_low':
+            products_query = products_query.order_by('price')
+        elif sort_by == 'price_high':
+            products_query = products_query.order_by('-price')
+
+        # Pagination calculation
+        total_count = products_query.count()
+        from django.core.paginator import Paginator
+        paginator = Paginator(products_query, 9)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+    except Exception:
+        search_query = request.GET.get('search', '')
+        selected_categories = []
+        min_price = ''
+        max_price = ''
+        sort_by = 'newest'
+        total_count = 0
+        categories = []
+        from django.core.paginator import Paginator
+        paginator = Paginator([], 9)
+        page_obj = paginator.get_page(1)
     
     context = {
         'products': page_obj,

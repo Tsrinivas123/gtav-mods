@@ -239,7 +239,7 @@ class SiteSetting(models.Model):
     def get_setting(cls, key, default=''):
         try:
             return cls.objects.get(key=key).value
-        except cls.DoesNotExist:
+        except Exception:
             return default
 
     @classmethod
