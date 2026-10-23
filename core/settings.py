@@ -140,7 +140,23 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database Setup: dynamically load DATABASE_URL (PostgreSQL) or fallback to SQLite
 is_collectstatic = any('collectstatic' in arg for arg in sys.argv)
-db_config = dj_database_url.config(conn_max_age=0 if IS_VERCEL else 600)
+raw_db_url = os.getenv('DATABASE_URL', '').strip()
+
+if raw_db_url:
+    import re
+    # If Render internal hostname is passed (e.g. @dpg-xxxxxx-a/), it fails outside Render's private network.
+    # Automatically rewrite to Render's public external hostname with SSL mode so Vercel can connect.
+    match = re.search(r'@(dpg-[a-z0-9]+-[a-z0-9]+)([:/])', raw_db_url)
+    if match:
+        internal_host = match.group(1)
+        render_region = os.getenv('RENDER_REGION', 'oregon').strip()
+        external_host = f"{internal_host}.{render_region}-postgres.render.com"
+        raw_db_url = raw_db_url.replace(f"@{internal_host}", f"@{external_host}")
+        if 'sslmode=' not in raw_db_url:
+            raw_db_url += ('&' if '?' in raw_db_url else '?') + 'sslmode=require'
+    db_config = dj_database_url.parse(raw_db_url, conn_max_age=0 if IS_VERCEL else 600)
+else:
+    db_config = dj_database_url.config(conn_max_age=0 if IS_VERCEL else 600)
 
 if not db_config:
     if is_collectstatic:
@@ -254,6 +270,9 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 
 

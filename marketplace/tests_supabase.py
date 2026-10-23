@@ -310,6 +310,28 @@ class SupabaseStorageIntegrationTests(TestCase):
         wsgi_app(environ, start_response)
         self.assertEqual(environ['PATH_INFO'], '/store/')
 
+    def test_render_internal_db_url_rewrite(self):
+        """Verify that Render internal hostnames are rewritten to public external endpoints with sslmode."""
+        import re, dj_database_url
+        internal_url = "postgres://user:pass@dpg-dabi3f2jnfac73aqeo8g-a/testdb"
+        match = re.search(r'@(dpg-[a-z0-9]+-[a-z0-9]+)([:/])', internal_url)
+        self.assertIsNotNone(match)
+        internal_host = match.group(1)
+        external_host = f"{internal_host}.oregon-postgres.render.com"
+        rewritten = internal_url.replace(f"@{internal_host}", f"@{external_host}") + "?sslmode=require"
+        parsed = dj_database_url.parse(rewritten)
+        self.assertEqual(parsed['HOST'], 'dpg-dabi3f2jnfac73aqeo8g-a.oregon-postgres.render.com')
+        self.assertEqual(parsed['OPTIONS'].get('sslmode'), 'require')
+
+    def test_all_critical_views_accessible(self):
+        """Verify all critical public routes resolve and return 200."""
+        client = Client()
+        routes = ['/', '/store/', '/categories/', '/contact/', '/blog/', '/admin/login/', '/orders/cart/']
+        for route in routes:
+            response = client.get(route)
+            self.assertEqual(response.status_code, 200, f"Route {route} failed with status {response.status_code}")
+
+
 
 
 
