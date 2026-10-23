@@ -143,20 +143,22 @@ is_collectstatic = any('collectstatic' in arg for arg in sys.argv)
 raw_db_url = os.getenv('DATABASE_URL', '').strip()
 
 if raw_db_url:
-    import re
-    # If Render internal hostname is passed (e.g. @dpg-xxxxxx-a/), it fails outside Render's private network.
-    # Automatically rewrite to Render's public external hostname with SSL mode so Vercel can connect.
-    match = re.search(r'@(dpg-[a-z0-9]+-[a-z0-9]+)([:/])', raw_db_url)
-    if match:
-        internal_host = match.group(1)
-        render_region = os.getenv('RENDER_REGION', 'oregon').strip()
-        external_host = f"{internal_host}.{render_region}-postgres.render.com"
-        raw_db_url = raw_db_url.replace(f"@{internal_host}", f"@{external_host}")
-        if 'sslmode=' not in raw_db_url:
-            raw_db_url += ('&' if '?' in raw_db_url else '?') + 'sslmode=require'
-    elif 'postgres' in raw_db_url and 'sslmode=' not in raw_db_url and (IS_VERCEL or not DEBUG):
+    # Ensure SSL mode is enabled for cloud PostgreSQL in production
+    if 'postgres' in raw_db_url and 'sslmode=' not in raw_db_url and (IS_VERCEL or not DEBUG):
         raw_db_url += ('&' if '?' in raw_db_url else '?') + 'sslmode=require'
     db_config = dj_database_url.parse(raw_db_url, conn_max_age=0 if IS_VERCEL else 600)
+    
+    # Check if an internal Render private hostname was provided
+    db_host = db_config.get('HOST', '')
+    if db_host and db_host.startswith('dpg-') and '.' not in db_host:
+        import logging
+        logging.getLogger('django').warning(
+            "Render internal database hostname '%s' detected in DATABASE_URL. "
+            "Internal hostnames are private to Render's VPC and cannot resolve on Vercel. "
+            "Please configure the 'External Database URL' from your Render PostgreSQL dashboard.",
+            db_host
+        )
+
     if 'OPTIONS' not in db_config:
         db_config['OPTIONS'] = {}
     if 'connect_timeout' not in db_config['OPTIONS']:
