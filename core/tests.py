@@ -78,7 +78,7 @@ class CompleteUserAndAdminFlowTests(TestCase):
         self.assertEqual(res_payment.status_code, 200)
         self.assertContains(res_payment, 'UPI QR Code Payment')
 
-        # 9. Verify / Complete Payment
+        # 9. Verify / Complete Payment (UPI manual payment requires admin confirmation)
         complete_url = reverse('orders:payment_complete')
         res_complete = self.client.post(complete_url, {
             'order_code': order.code,
@@ -86,6 +86,17 @@ class CompleteUserAndAdminFlowTests(TestCase):
             'gateway': 'UPI'
         }, content_type='application/json')
         self.assertEqual(res_complete.status_code, 200)
+        self.assertEqual(res_complete.json().get('status'), 'pending')
+        order.refresh_from_db()
+        self.assertEqual(order.payment_status, 'Pending')
+
+        # 10. Store Administrator verifies and marks order as paid
+        self.client.force_login(self.admin)
+        res_admin = self.client.post(reverse('custom_admin:order_detail', args=[order.code]), {
+            'status': 'completed',
+            'payment_status': 'Success'
+        })
+        self.assertEqual(res_admin.status_code, 302)
         order.refresh_from_db()
         self.assertEqual(order.payment_status, 'Success')
 

@@ -8,12 +8,17 @@ from core import supabase_storage
 
 def media_serve(request, path):
     """
-    Serves media files with Supabase Storage support and local fallback.
-    - If local file exists in MEDIA_ROOT, serves it directly.
-    - If Supabase Storage is configured, retrieves object from private bucket using Service Key
-      and returns with proper MIME type and caching headers.
+    Serves public media files (images, banners, thumbnails) with Supabase Storage support and local fallback.
+    Private mod archives (e.g. .zip, .rar, .7z files under products/files/) are strictly blocked
+    from direct media access and must be downloaded via the authenticated download endpoint.
     """
     normalized_path = path.replace('\\', '/').lstrip('/')
+
+    # Block direct access to mod archives and protected product files
+    archive_exts = ('.zip', '.rar', '.7z', '.tar', '.gz', '.bz2')
+    if normalized_path.startswith('products/files/') or normalized_path.lower().endswith(archive_exts):
+        raise Http404("Direct access to private archives is forbidden.")
+
     local_full_path = os.path.join(settings.MEDIA_ROOT, normalized_path)
 
     # 1. Check local filesystem first

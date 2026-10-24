@@ -245,20 +245,19 @@ def product_detail(request, slug):
     if request.user.is_authenticated:
         if hasattr(request.user, 'profile'):
             in_wishlist = request.user.profile.wishlist.filter(id=product.id).exists()
-        if request.user.is_staff or request.user.is_superuser:
-            has_purchased = True
-        else:
-            has_purchased = Order.objects.filter(
-                user=request.user,
-                status__in=['paid', 'completed'],
-                items__product=product
-            ).exists()
+        has_purchased = Order.objects.filter(
+            user=request.user,
+            status__in=['paid', 'completed'],
+            payment_status='Success',
+            items__product=product
+        ).exists()
 
     if not has_purchased:
         purchased_orders = request.session.get('purchased_orders', [])
         if purchased_orders:
             has_purchased = Order.objects.filter(
-                status__in=['paid', 'completed', 'Success'],
+                status__in=['paid', 'completed'],
+                payment_status='Success',
                 items__product=product,
                 code__in=purchased_orders
             ).exists()

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseForbidden, FileResponse, Http404
 from django.utils import timezone
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
@@ -9,6 +9,7 @@ from django.urls import reverse
 from .models import Coupon, Order, OrderItem
 from marketplace.models import Product, VersionHistory
 from decimal import Decimal
+import os
 import json
 import razorpay
 import io
@@ -300,24 +301,72 @@ def payment_complete(request):
         razorpay_key_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', '')
 
         if not razorpay_key_id or not razorpay_key_secret:
-            # No keys configured – allow test/demo mode
+            # FAIL CLOSED: Never fake payment success when credentials are missing
+            order.payment_status = 'Failed'
+            order.payment_gateway = gateway
+            order.payment_gateway_response = 'Razorpay credentials missing on server (RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET).'
+            order.save()
+            return JsonResponse({
+                'status': 'failed',
+                'message': 'Payment verification unavailable: Razorpay API keys are not configured on the server.',
+            }, status=503)
+
+        razorpay_order_id = data.get('razorpay_order_id', '')
+        razorpay_signature = data.get('razorpay_signature', '')
+        if not razorpay_signature or not payment_id:
+            order.payment_status = 'Failed'
+            order.payment_gateway = gateway
+            order.payment_gateway_response = 'Missing signature or payment ID.'
+            order.save()
+            return JsonResponse({
+                'status': 'failed',
+                'message': 'Incomplete Razorpay payment verification data.',
+            }, status=400)
+
+        try:
+            client = razorpay.Client(auth=(razorpay_key_id, razorpay_key_secret))
+            client.utility.verify_payment_signature({
+                'razorpay_order_id':   razorpay_order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature':  razorpay_signature,
+            })
             is_verified = True
-        else:
-            try:
-                client = razorpay.Client(auth=(razorpay_key_id, razorpay_key_secret))
-                client.utility.verify_payment_signature({
-                    'razorpay_order_id':   data.get('razorpay_order_id', ''),
-                    'razorpay_payment_id': payment_id,
-                    'razorpay_signature':  data.get('razorpay_signature', ''),
-                })
-                is_verified = True
-            except Exception as exc:
-                is_verified = False
-                raw_response = str(exc)
+        except Exception as exc:
+            is_verified = False
+            raw_response = str(exc)
 
-    elif gateway in ['PayPal', 'UPI', 'Cards', 'Debit / Credit Card']:
-        is_verified = True
+    elif gateway == 'UPI':
+        # Manual UPI QR transfer: recorded as pending admin manual confirmation.
+        # Fail closed: DO NOT mark completed or grant immediate downloads.
+        order.payment_status = 'Pending'
+        order.status = 'pending'
+        order.payment_id = payment_id
+        order.payment_gateway = 'UPI'
+        order.payment_gateway_response = str(raw_response)
+        order.save()
+        return JsonResponse({
+            'status': 'pending',
+            'message': 'UPI payment recorded. Your order is pending verification by store administration before downloads unlock.',
+            'redirect_url': reverse('orders:order_complete', args=[order.code]),
+        })
 
+    elif gateway in ['PayPal', 'Cards', 'Debit / Credit Card']:
+        # FAIL CLOSED: Server-side capture verification is not implemented
+        order.payment_status = 'Failed'
+        order.payment_gateway = gateway
+        order.payment_gateway_response = f"Gateway '{gateway}' server-side verification is not configured."
+        order.save()
+        return JsonResponse({
+            'status': 'failed',
+            'message': f"Payment gateway '{gateway}' server-side verification is not configured.",
+        }, status=400)
+    else:
+        order.payment_status = 'Failed'
+        order.save()
+        return JsonResponse({
+            'status': 'failed',
+            'message': f"Unsupported payment gateway '{gateway}'.",
+        }, status=400)
 
     if is_verified:
         # Generate sequential invoice number: PM-YYYY-000001
@@ -361,46 +410,79 @@ def payment_complete(request):
 
     return JsonResponse({
         'status': 'failed',
-        'message': 'Payment verification failed. Please try again or contact support.',
+        'message': 'Payment verification failed. Invalid gateway signature.',
     }, status=400)
 
 
 def download_file(request, version_id):
-    """Secure download: increments downloads_count only after confirming purchase entitlement."""
+    """
+    Secure download endpoint:
+    - Enforces verified purchase entitlement on every download request.
+    - Paid products require a completed, verified order ('status' in ['paid', 'completed']
+      and 'payment_status' == 'Success') containing this specific product.
+    - Generates a short-lived (5 min) signed Supabase URL or streams the file directly.
+    - Rejects unverified requests with HTTP 403 Forbidden.
+    - Prevents downloading other products by changing version_id or URL parameters.
+    """
     from core import supabase_storage
+
     version = get_object_or_404(VersionHistory, pk=version_id)
     product = version.product
 
     is_allowed = False
 
-    if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
-        is_allowed = True
-    elif product.price == 0:
+    if product.price == 0:
         is_allowed = True
     else:
-        purchased_orders = request.session.get('purchased_orders', [])
-        is_allowed = Order.objects.filter(
-            status__in=['paid', 'completed', 'Success'],
-            items__product=product,
-            code__in=purchased_orders
-        ).exists()
+        # Check authenticated user's verified completed orders for this product
+        if request.user.is_authenticated:
+            is_allowed = Order.objects.filter(
+                user=request.user,
+                status__in=['paid', 'completed'],
+                payment_status='Success',
+                items__product=product
+            ).exists()
+
+        # Check guest/session verified completed orders for this product
+        if not is_allowed:
+            purchased_orders = request.session.get('purchased_orders', [])
+            if purchased_orders:
+                is_allowed = Order.objects.filter(
+                    code__in=purchased_orders,
+                    status__in=['paid', 'completed'],
+                    payment_status='Success',
+                    items__product=product
+                ).exists()
 
     if not is_allowed:
-        messages.error(request, "You must purchase this mod before downloading.")
-        return redirect('marketplace:product_detail', slug=product.slug)
+        return HttpResponseForbidden(
+            "Access denied: You must complete a verified purchase for this product before downloading."
+        )
 
-    # Increment only on actual authorized download
-    product.downloads_count += 1
-    product.save(update_fields=['downloads_count'])
+    # Increment download counter only after entitlement is confirmed
+    Product.objects.filter(id=product.id).update(downloads_count=product.downloads_count + 1)
 
     if version.download_file:
+        file_name = version.download_file.name
+
         # If Supabase Storage is configured, generate a secure time-limited signed URL (5 minutes expiry)
         if supabase_storage.is_configured():
-            signed_url = supabase_storage.create_signed_url(version.download_file.name, expires_in=300)
+            signed_url = supabase_storage.create_signed_url(file_name, expires_in=300)
             if signed_url:
                 return redirect(signed_url)
 
-        return redirect(version.download_file.url)
+        # Fallback for local files / local testing: securely stream as attachment
+        local_path = os.path.join(settings.MEDIA_ROOT, file_name)
+        if os.path.exists(local_path) and os.path.isfile(local_path):
+            return FileResponse(
+                open(local_path, 'rb'),
+                as_attachment=True,
+                filename=os.path.basename(file_name)
+            )
+
+        messages.error(request, "The mod file is currently unavailable. Please contact support.")
+        return redirect('marketplace:product_detail', slug=product.slug)
+
     elif version.download_url:
         return redirect(version.download_url)
     else:
@@ -410,7 +492,8 @@ def download_file(request, version_id):
 
 def order_complete(request, order_code):
     order = get_object_or_404(Order, code=order_code)
-    return render(request, 'order_complete.html', {'order': order})
+    is_paid = order.status in ['paid', 'completed'] and order.payment_status == 'Success'
+    return render(request, 'order_complete.html', {'order': order, 'is_paid': is_paid})
 
 
 def invoice_pdf(request, order_code):

@@ -113,10 +113,9 @@ class SupabaseStorageIntegrationTests(TestCase):
         self.version.download_file = 'products/files/mod_v1.zip'
         self.version.save()
 
-        # 1. Unauthorized user tries to download paid mod
+        # 1. Unauthorized user tries to download paid mod (strictly denied with 403 Forbidden)
         r_unauth = anon_client.get(f'/orders/download/{self.version.id}/')
-        self.assertEqual(r_unauth.status_code, 302)
-        self.assertIn(self.product.slug, r_unauth.url)
+        self.assertEqual(r_unauth.status_code, 403)
 
         # 2. Entitled customer download with Supabase signed URL
         settings.SUPABASE_URL = 'https://xyzcompany.supabase.co'

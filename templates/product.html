@@ -661,6 +661,22 @@
         </div>
 
         <div style="margin-bottom: 25px;">
+          {% if has_purchased or product.price == 0 %}
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 16px; text-align: center; margin-bottom: 12px;">
+            <div style="color: #10b981; font-weight: 700; font-size: 0.9rem; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <i class="fa-solid fa-circle-check"></i> {% if product.price == 0 %}Free Access{% else %}Purchased & Verified{% endif %}
+            </div>
+            {% with latest_version=product.latest_version %}
+              {% if latest_version and latest_version.download_file or latest_version.download_url %}
+              <a href="{% url 'orders:download_file' latest_version.id %}" class="btn-detail-buy-now" style="display: block; text-align: center; text-decoration: none; padding: 12px 20px;">
+                <i class="fa-solid fa-download"></i> Download Latest (v{{ latest_version.version }})
+              </a>
+              {% else %}
+              <p style="color: var(--color-text-muted); font-size: 0.85rem; margin: 0;">Download file will be available soon.</p>
+              {% endif %}
+            {% endwith %}
+          </div>
+          {% else %}
           <!-- Quantity input wrapper hidden as G5Mods standard purchase is single license -->
           <input type="hidden" name="quantity" value="1" id="productQtyInput">
 
@@ -679,6 +695,7 @@
               </button>
             </form>
           </div>
+          {% endif %}
         </div>
 
         <!-- Wishlist & Specifications -->

@@ -335,6 +335,11 @@
         if (data.status === 'success') {
           showStatus('<i class="fa-solid fa-circle-check"></i> Payment successful! Redirecting to confirmation...', false);
           setTimeout(() => { window.location.href = data.redirect_url; }, 1200);
+        } else if (data.status === 'pending') {
+          showStatus('<i class="fa-solid fa-clock"></i> ' + (data.message || 'Payment recorded. Pending administrator verification.'), false);
+          if (data.redirect_url) {
+            setTimeout(() => { window.location.href = data.redirect_url; }, 2000);
+          }
         } else {
           showStatus('<i class="fa-solid fa-triangle-exclamation"></i> ' + (data.message || 'Payment verification failed. Please try again.'), true);
         }
@@ -355,20 +360,11 @@
     document.getElementById('upiQrCodeImg').src = qrImgUrl;
 
     startTimer(300);
-
-    autoVerifyTimeout = setTimeout(() => {
-      document.getElementById('paymentStatusSpinner').innerHTML = '<i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> Payment received! Verifying...';
-      document.getElementById('paymentStatusSpinner').style.color = '#16a34a';
-      setTimeout(() => {
-        verifyUpiPayment();
-      }, 1500);
-    }, 8000);
   }
 
   function closeUpiQrModal() {
     document.getElementById('upiQrModal').style.display = 'none';
     if (countdownInterval) clearInterval(countdownInterval);
-    if (autoVerifyTimeout) clearTimeout(autoVerifyTimeout);
   }
 
   // Handle Escape key to close modal
@@ -408,25 +404,19 @@
 
   function verifyUpiPayment() {
     closeUpiQrModal();
-    showStatus('<i class="fa-solid fa-circle-notch fa-spin"></i> Processing UPI Transaction...', false);
+    showStatus('<i class="fa-solid fa-circle-notch fa-spin"></i> Submitting UPI Payment details...', false);
     sendVerification({
       order_code: ORDER_CODE,
-      payment_id: 'upi_pay_' + Date.now().toString().slice(-6),
+      payment_id: 'upi_' + ORDER_CODE + '_' + Date.now().toString().slice(-4),
       gateway: 'UPI',
-      response: 'UPI QR simulation capture successful'
+      response: 'Manual UPI transfer submitted by customer'
     });
   }
 
   /* --- Cards Payment Logic --- */
   function initiateRazorpay() {
     if (!RAZORPAY_CONFIGURED || !RZP_KEY_ID) {
-      showStatus('<i class="fa-solid fa-circle-notch fa-spin"></i> Processing test card transaction…', false);
-      sendVerification({
-        order_code: ORDER_CODE,
-        payment_id: 'rzp_test_' + Date.now().toString().slice(-6),
-        gateway: 'Razorpay',
-        response: 'Test mode card payment'
-      });
+      showStatus('<i class="fa-solid fa-triangle-exclamation"></i> Live Razorpay payment gateway is not configured on this server. Please contact support.', true);
       return;
     }
 
