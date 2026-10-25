@@ -202,6 +202,8 @@ def checkout(request):
         email = request.POST.get('email')
         billing_address = request.POST.get('billing_address')
         payment_method = request.POST.get('payment_method', 'Razorpay')
+        if payment_method in ['Cards', 'Card', 'debit_credit', 'razorpay']:
+            payment_method = 'Razorpay'
 
         if not full_name or not email or not billing_address:
             messages.error(request, "Please fill out all billing details.")
@@ -261,8 +263,14 @@ def payment_gate(request, order_code):
                 'receipt': order.code,
             })
             razorpay_order_id = rzp_order.get('id', '')
+            if razorpay_order_id:
+                order.payment_gateway = 'Razorpay'
+                order.payment_gateway_response = json.dumps({'razorpay_order_id': razorpay_order_id})
+                order.save(update_fields=['payment_gateway', 'payment_gateway_response'])
         except Exception:
             razorpay_order_id = ''
+
+    is_test_mode = bool(razorpay_key_id and razorpay_key_id.startswith('rzp_test_'))
 
     context = {
         'order': order,
@@ -272,6 +280,7 @@ def payment_gate(request, order_code):
         'RAZORPAY_KEY_ID': razorpay_key_id,
         'PAYPAL_CLIENT_ID': paypal_client_id,
         'razorpay_configured': bool(razorpay_key_id and razorpay_key_secret),
+        'is_test_mode': is_test_mode,
         'paypal_configured': bool(paypal_client_id),
     }
     return render(request, 'checkout_payment.html', context)
@@ -290,9 +299,17 @@ def payment_complete(request):
     order_code    = data.get('order_code', '')
     payment_id    = data.get('payment_id', '')
     gateway       = data.get('gateway', 'Razorpay')
+    action        = data.get('action', '')
     raw_response  = data.get('response', '')
 
     order = get_object_or_404(Order, code=order_code)
+
+    if action == 'cancel' or data.get('status') == 'cancelled':
+        order.payment_status = 'Cancelled'
+        order.status = 'cancelled'
+        order.payment_gateway_response = str(raw_response or 'Payment cancelled or dismissed by customer.')
+        order.save(update_fields=['payment_status', 'status', 'payment_gateway_response'])
+        return JsonResponse({'status': 'cancelled', 'message': 'Payment was cancelled.'})
 
     is_verified = False
 
@@ -305,7 +322,7 @@ def payment_complete(request):
             order.payment_status = 'Failed'
             order.payment_gateway = gateway
             order.payment_gateway_response = 'Razorpay credentials missing on server (RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET).'
-            order.save()
+            order.save(update_fields=['payment_status', 'payment_gateway', 'payment_gateway_response'])
             return JsonResponse({
                 'status': 'failed',
                 'message': 'Payment verification unavailable: Razorpay API keys are not configured on the server.',
@@ -317,11 +334,28 @@ def payment_complete(request):
             order.payment_status = 'Failed'
             order.payment_gateway = gateway
             order.payment_gateway_response = 'Missing signature or payment ID.'
-            order.save()
+            order.save(update_fields=['payment_status', 'payment_gateway', 'payment_gateway_response'])
             return JsonResponse({
                 'status': 'failed',
                 'message': 'Incomplete Razorpay payment verification data.',
             }, status=400)
+
+        # Cross-verify razorpay_order_id if recorded on the order
+        if order.payment_gateway_response:
+            try:
+                saved_meta = json.loads(order.payment_gateway_response)
+                expected_rzp_id = saved_meta.get('razorpay_order_id')
+                if expected_rzp_id and expected_rzp_id != razorpay_order_id:
+                    order.payment_status = 'Failed'
+                    order.payment_gateway = gateway
+                    order.payment_gateway_response = f"Mismatched Razorpay Order ID. Expected {expected_rzp_id}, got {razorpay_order_id}."
+                    order.save(update_fields=['payment_status', 'payment_gateway', 'payment_gateway_response'])
+                    return JsonResponse({
+                        'status': 'failed',
+                        'message': 'Security validation error: Razorpay order ID mismatch.',
+                    }, status=400)
+            except (json.JSONDecodeError, AttributeError):
+                pass
 
         try:
             client = razorpay.Client(auth=(razorpay_key_id, razorpay_key_secret))
@@ -343,7 +377,7 @@ def payment_complete(request):
         order.payment_id = payment_id
         order.payment_gateway = 'UPI'
         order.payment_gateway_response = str(raw_response)
-        order.save()
+        order.save(update_fields=['payment_status', 'status', 'payment_id', 'payment_gateway', 'payment_gateway_response'])
         return JsonResponse({
             'status': 'pending',
             'message': 'UPI payment recorded. Your order is pending verification by store administration before downloads unlock.',
@@ -355,14 +389,14 @@ def payment_complete(request):
         order.payment_status = 'Failed'
         order.payment_gateway = gateway
         order.payment_gateway_response = f"Gateway '{gateway}' server-side verification is not configured."
-        order.save()
+        order.save(update_fields=['payment_status', 'payment_gateway', 'payment_gateway_response'])
         return JsonResponse({
             'status': 'failed',
             'message': f"Payment gateway '{gateway}' server-side verification is not configured.",
         }, status=400)
     else:
         order.payment_status = 'Failed'
-        order.save()
+        order.save(update_fields=['payment_status'])
         return JsonResponse({
             'status': 'failed',
             'message': f"Unsupported payment gateway '{gateway}'.",

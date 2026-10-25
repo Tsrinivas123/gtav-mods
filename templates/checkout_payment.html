@@ -107,14 +107,21 @@
           </a>
         </div>
 
-        <!-- Condition 3: Cards -->
+        <!-- Condition 3: Razorpay / Cards -->
         {% else %}
         <div id="payment-gate-cards">
-          <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.4rem; text-transform: uppercase; margin-bottom: 15px; color: var(--color-text-primary); display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-credit-card" style="color: var(--accent-orange);"></i> Debit / Credit Card Payment
-          </h2>
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+            <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.4rem; text-transform: uppercase; margin: 0; color: var(--color-text-primary); display: flex; align-items: center; gap: 10px;">
+              <i class="fa-solid fa-credit-card" style="color: var(--accent-orange);"></i> Razorpay Secure Payment
+            </h2>
+            {% if is_test_mode %}
+            <span style="font-size: 0.72rem; font-weight: 700; color: #b45309; background: #fef3c7; border: 1px solid #fde68a; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 5px; text-transform: uppercase;">
+              <i class="fa-solid fa-flask"></i> Test Mode Active
+            </span>
+            {% endif %}
+          </div>
           <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin-bottom: 25px; line-height: 1.6;">
-            Pay securely using your Debit or Credit Card via our secure gateway interface.
+            Pay securely with Credit / Debit Cards, UPI (GPay, PhonePe, Paytm), or NetBanking via Razorpay.
           </p>
 
           <div style="background: #f9fafb; border: 1px solid var(--card-border); padding: 20px; border-radius: var(--border-radius); margin-bottom: 25px;">
@@ -124,8 +131,8 @@
                 <strong style="color: var(--color-text-primary);">{{ order.code }}</strong>
               </div>
               <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--card-border); padding-bottom: 8px;">
-                <span style="color: var(--color-text-secondary);">Payment Method:</span>
-                <strong style="color: var(--color-text-primary);">Credit / Debit Card</strong>
+                <span style="color: var(--color-text-secondary);">Payment Gateway:</span>
+                <strong style="color: var(--color-text-primary);">Razorpay (UPI / Cards / NetBanking)</strong>
               </div>
               <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 700; padding-top: 4px;">
                 <span style="color: var(--color-text-primary);">Total Amount:</span>
@@ -134,10 +141,17 @@
             </div>
           </div>
 
+          {% if is_test_mode %}
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 16px; border-radius: var(--border-radius-sm); margin-bottom: 20px; font-size: 0.85rem; color: #166534; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-circle-info"></i>
+            <span><strong>Razorpay Test Mode:</strong> You can test checkout with test UPI or test card credentials without real charges.</span>
+          </div>
+          {% endif %}
+
           <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
             <button id="payWithCardBtn" onclick="initiateRazorpay()" class="btn btn-primary"
               style="width: 100%; padding: 14px 20px; font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
-              <i class="fa-solid fa-shield-halved"></i> Pay with Debit / Credit Card
+              <i class="fa-solid fa-lock"></i> Pay ₹{{ order.total_amount }} with Razorpay
             </button>
 
             <a href="{% url 'orders:cart' %}" class="btn btn-secondary"
@@ -413,10 +427,15 @@
     });
   }
 
-  /* --- Cards Payment Logic --- */
+  /* --- Razorpay Payment Logic --- */
   function initiateRazorpay() {
     if (!RAZORPAY_CONFIGURED || !RZP_KEY_ID) {
-      showStatus('<i class="fa-solid fa-triangle-exclamation"></i> Live Razorpay payment gateway is not configured on this server. Please contact support.', true);
+      showStatus('<i class="fa-solid fa-triangle-exclamation"></i> Razorpay payment gateway is not configured on this server. Please contact support.', true);
+      return;
+    }
+
+    if (!RZP_ORDER_ID) {
+      showStatus('<i class="fa-solid fa-triangle-exclamation"></i> Unable to initiate Razorpay order. Please refresh the page or contact support.', true);
       return;
     }
 
@@ -430,7 +449,7 @@
       prefill: { name: CUSTOMER_NAME, email: CUSTOMER_EMAIL },
       theme: { color: '#ff6b00' },
       handler: function (response) {
-        showStatus('<i class="fa-solid fa-circle-notch fa-spin"></i> Payment received! Confirming with server…', false);
+        showStatus('<i class="fa-solid fa-circle-notch fa-spin"></i> Payment received! Verifying cryptographic signature with server…', false);
         sendVerification({
           order_code: ORDER_CODE,
           payment_id: response.razorpay_payment_id,
@@ -441,11 +460,33 @@
       },
       modal: {
         ondismiss: function () {
-          showStatus('<i class="fa-solid fa-circle-info"></i> Payment window closed. You can try again.', true);
+          showStatus('<i class="fa-solid fa-circle-info"></i> Payment window closed without completing transaction.', true);
+          fetch(COMPLETE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              order_code: ORDER_CODE,
+              action: 'cancel',
+              response: 'Razorpay checkout dismissed by user'
+            })
+          }).catch(() => {});
         }
       }
     };
     const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function (response) {
+      showStatus('<i class="fa-solid fa-circle-xmark"></i> Payment failed: ' + (response.error.description || 'Transaction declined'), true);
+      fetch(COMPLETE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_code: ORDER_CODE,
+          payment_id: response.error.metadata ? response.error.metadata.payment_id : '',
+          action: 'cancel',
+          response: response.error.description || 'Payment failed'
+        })
+      }).catch(() => {});
+    });
     rzp.open();
   }
 

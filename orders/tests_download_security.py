@@ -292,3 +292,207 @@ class DownloadSecurityTests(TestCase):
         dl_url = reverse("orders:download_file", args=[self.version_terzo.id])
         dl_response = self.client.get(dl_url)
         self.assertEqual(dl_response.status_code, 403)
+
+    # 11. Razorpay backend order initialization with exact database price
+    @patch("razorpay.Client")
+    def test_razorpay_backend_order_initialization(self, mock_client_cls):
+        mock_client = mock_client_cls.return_value
+        mock_client.order.create.return_value = {"id": "order_test_rzp_999"}
+
+        order = Order.objects.create(
+            user=self.user,
+            full_name="Razorpay Buyer",
+            email="rzpbuyer@test.com",
+            billing_address="Test Address",
+            total_amount=Decimal("500.00"),
+            payment_status="Pending",
+            status="pending",
+            payment_method="Razorpay"
+        )
+        OrderItem.objects.create(order=order, product=self.product_terzo, price=Decimal("500.00"))
+
+        with patch.object(settings, "RAZORPAY_KEY_ID", "rzp_test_123456"), \
+             patch.object(settings, "RAZORPAY_KEY_SECRET", "test_secret_999"):
+            response = self.client.get(reverse("orders:payment_gate", args=[order.code]))
+            self.assertEqual(response.status_code, 200)
+
+            # Check that client.order.create was called with exact amount in paise (50000)
+            mock_client.order.create.assert_called_once_with({
+                "amount": 50000,
+                "currency": "INR",
+                "receipt": order.code
+            })
+
+            # Check context parameters
+            self.assertTrue(response.context["is_test_mode"])
+            self.assertEqual(response.context["razorpay_order_id"], "order_test_rzp_999")
+
+            order.refresh_from_db()
+            self.assertIn("order_test_rzp_999", order.payment_gateway_response)
+
+    # 12. Razorpay verified signature unlocks mod download
+    @patch("core.supabase_storage.is_configured", return_value=True)
+    @patch("core.supabase_storage.create_signed_url", return_value="https://supabase.co/signed/terzo_v100.zip")
+    @patch("razorpay.Client")
+    def test_razorpay_successful_signature_verification_unlocks_download(self, mock_client_cls, mock_signed, mock_is_conf):
+        mock_client = mock_client_cls.return_value
+        # verify_payment_signature does not raise when valid
+        mock_client.utility.verify_payment_signature.return_value = True
+
+        order = Order.objects.create(
+            user=self.user,
+            full_name="Razorpay Buyer",
+            email="rzpbuyer@test.com",
+            billing_address="Test Address",
+            total_amount=Decimal("500.00"),
+            payment_status="Pending",
+            status="pending",
+            payment_method="Razorpay",
+            payment_gateway_response='{"razorpay_order_id": "order_test_rzp_111"}'
+        )
+        OrderItem.objects.create(order=order, product=self.product_terzo, price=Decimal("500.00"))
+
+        self.client.login(username="testbuyer", password="password123")
+
+        with patch.object(settings, "RAZORPAY_KEY_ID", "rzp_test_123456"), \
+             patch.object(settings, "RAZORPAY_KEY_SECRET", "test_secret_999"):
+            payload = {
+                "order_code": order.code,
+                "payment_id": "pay_test_987654",
+                "razorpay_order_id": "order_test_rzp_111",
+                "razorpay_signature": "valid_hmac_sha256_sig",
+                "gateway": "Razorpay"
+            }
+            res = self.client.post(
+                reverse("orders:payment_complete"),
+                data=payload,
+                content_type="application/json"
+            )
+            self.assertEqual(res.status_code, 200)
+            self.assertEqual(res.json()["status"], "success")
+
+            order.refresh_from_db()
+            self.assertEqual(order.payment_status, "Success")
+            self.assertEqual(order.status, "completed")
+            self.assertEqual(order.payment_id, "pay_test_987654")
+
+            # Download is now unlocked!
+            dl_url = reverse("orders:download_file", args=[self.version_terzo.id])
+            dl_res = self.client.get(dl_url)
+            self.assertEqual(dl_res.status_code, 302)
+            self.assertEqual(dl_res.url, "https://supabase.co/signed/terzo_v100.zip")
+
+    # 13. Razorpay tampered/invalid signature fails and keeps download locked
+    @patch("razorpay.Client")
+    def test_razorpay_invalid_signature_denies_download(self, mock_client_cls):
+        import razorpay.errors
+        mock_client = mock_client_cls.return_value
+        mock_client.utility.verify_payment_signature.side_effect = razorpay.errors.SignatureVerificationError("Signature mismatch")
+
+        order = Order.objects.create(
+            user=self.user,
+            full_name="Razorpay Buyer",
+            email="rzpbuyer@test.com",
+            billing_address="Test Address",
+            total_amount=Decimal("500.00"),
+            payment_status="Pending",
+            status="pending",
+            payment_method="Razorpay",
+            payment_gateway_response='{"razorpay_order_id": "order_test_rzp_111"}'
+        )
+        OrderItem.objects.create(order=order, product=self.product_terzo, price=Decimal("500.00"))
+
+        self.client.login(username="testbuyer", password="password123")
+
+        with patch.object(settings, "RAZORPAY_KEY_ID", "rzp_test_123456"), \
+             patch.object(settings, "RAZORPAY_KEY_SECRET", "test_secret_999"):
+            payload = {
+                "order_code": order.code,
+                "payment_id": "pay_test_987654",
+                "razorpay_order_id": "order_test_rzp_111",
+                "razorpay_signature": "tampered_fake_signature",
+                "gateway": "Razorpay"
+            }
+            res = self.client.post(
+                reverse("orders:payment_complete"),
+                data=payload,
+                content_type="application/json"
+            )
+            self.assertEqual(res.status_code, 400)
+            self.assertEqual(res.json()["status"], "failed")
+
+            order.refresh_from_db()
+            self.assertEqual(order.payment_status, "Failed")
+            self.assertNotEqual(order.status, "completed")
+
+            # Download attempt must be rejected (403)
+            dl_url = reverse("orders:download_file", args=[self.version_terzo.id])
+            dl_res = self.client.get(dl_url)
+            self.assertEqual(dl_res.status_code, 403)
+
+    # 14. Razorpay order ID mismatch rejected
+    @patch("razorpay.Client")
+    def test_razorpay_order_id_mismatch_rejected(self, mock_client_cls):
+        order = Order.objects.create(
+            user=self.user,
+            full_name="Razorpay Buyer",
+            email="rzpbuyer@test.com",
+            billing_address="Test Address",
+            total_amount=Decimal("500.00"),
+            payment_status="Pending",
+            status="pending",
+            payment_method="Razorpay",
+            payment_gateway_response='{"razorpay_order_id": "order_real_123"}'
+        )
+        OrderItem.objects.create(order=order, product=self.product_terzo, price=Decimal("500.00"))
+
+        with patch.object(settings, "RAZORPAY_KEY_ID", "rzp_test_123456"), \
+             patch.object(settings, "RAZORPAY_KEY_SECRET", "test_secret_999"):
+            payload = {
+                "order_code": order.code,
+                "payment_id": "pay_test_987654",
+                "razorpay_order_id": "order_stolen_from_other_account",
+                "razorpay_signature": "signature_123",
+                "gateway": "Razorpay"
+            }
+            res = self.client.post(
+                reverse("orders:payment_complete"),
+                data=payload,
+                content_type="application/json"
+            )
+            self.assertEqual(res.status_code, 400)
+            self.assertEqual(res.json()["status"], "failed")
+            self.assertIn("mismatch", res.json()["message"])
+
+    # 15. Razorpay payment cancellation marks order Cancelled and denies download
+    def test_razorpay_cancellation_denies_download(self):
+        order = Order.objects.create(
+            user=self.user,
+            full_name="Razorpay Buyer",
+            email="rzpbuyer@test.com",
+            billing_address="Test Address",
+            total_amount=Decimal("500.00"),
+            payment_status="Pending",
+            status="pending",
+            payment_method="Razorpay"
+        )
+        OrderItem.objects.create(order=order, product=self.product_terzo, price=Decimal("500.00"))
+
+        self.client.login(username="testbuyer", password="password123")
+
+        res = self.client.post(
+            reverse("orders:payment_complete"),
+            data={"order_code": order.code, "action": "cancel", "response": "User dismissed popup"},
+            content_type="application/json"
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()["status"], "cancelled")
+
+        order.refresh_from_db()
+        self.assertEqual(order.payment_status, "Cancelled")
+        self.assertEqual(order.status, "cancelled")
+
+        dl_url = reverse("orders:download_file", args=[self.version_terzo.id])
+        dl_res = self.client.get(dl_url)
+        self.assertEqual(dl_res.status_code, 403)
+

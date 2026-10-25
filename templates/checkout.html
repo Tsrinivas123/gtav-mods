@@ -623,7 +623,7 @@
           </div>
 
           <!-- Hidden payment_method input bound to order creation -->
-          <input type="hidden" name="payment_method" id="paymentMethodInput" value="UPI">
+          <input type="hidden" name="payment_method" id="paymentMethodInput" value="Razorpay">
         </form>
       </div>
 
@@ -685,21 +685,21 @@
             <!-- Accessible Trigger -->
             <div id="paymentDropdownTrigger" class="payment-dropdown-trigger" tabindex="0" role="combobox" aria-labelledby="paymentMethodLabel" aria-expanded="false" aria-haspopup="listbox">
               <span id="selectedPaymentText">
-                <i class="fa-solid fa-qrcode" style="color: #6739b6; margin-right: 6px;"></i> Pay with UPI QR Code
+                <i class="fa-solid fa-credit-card" style="color: var(--accent-orange, #ff6b00); margin-right: 6px;"></i> Razorpay (Cards, UPI, NetBanking)
               </span>
               <i class="fa-solid fa-chevron-down" style="color: #9ca3af; font-size: 0.75rem; transition: transform 0.2s ease;"></i>
             </div>
 
             <!-- Accessible Options List -->
             <ul id="paymentDropdownOptions" class="payment-dropdown-menu" role="listbox" aria-labelledby="paymentMethodLabel">
-              <li data-value="UPI" class="payment-dropdown-item active" role="option" aria-selected="true" tabindex="0">
-                <i class="fa-solid fa-qrcode" style="color: #6739b6; width: 20px; margin-right: 8px;"></i> Pay with UPI QR Code
+              <li data-value="Razorpay" class="payment-dropdown-item active" role="option" aria-selected="true" tabindex="0">
+                <i class="fa-solid fa-credit-card" style="color: var(--accent-orange, #ff6b00); width: 20px; margin-right: 8px;"></i> Razorpay (Cards, UPI, NetBanking)
+              </li>
+              <li data-value="UPI" class="payment-dropdown-item" role="option" aria-selected="false" tabindex="0">
+                <i class="fa-solid fa-qrcode" style="color: #6739b6; width: 20px; margin-right: 8px;"></i> Manual UPI QR Transfer
               </li>
               <li data-value="PayPal" class="payment-dropdown-item" role="option" aria-selected="false" tabindex="0">
                 <i class="fa-brands fa-paypal" style="color: #0070ba; width: 20px; margin-right: 8px;"></i> PayPal Gateway
-              </li>
-              <li data-value="Cards" class="payment-dropdown-item" role="option" aria-selected="false" tabindex="0">
-                <i class="fa-solid fa-credit-card" style="color: var(--accent-orange, #ff6b00); width: 20px; margin-right: 8px;"></i> Debit / Credit Card
               </li>
             </ul>
           </div>
