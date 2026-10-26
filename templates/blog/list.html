@@ -17,8 +17,36 @@
       height: 200px !important;
       min-height: auto !important;
     }
+    .blog-card .blog-img img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
     .blog-card .blog-info {
-      padding: 20px !important;
+      padding: 18px 16px !important;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .blog-card .blog-img {
+      height: 170px !important;
+    }
+    .blog-card .blog-info {
+      padding: 14px 12px !important;
+    }
+    .blog-card .blog-title {
+      font-size: 1.15rem !important;
+      line-height: 1.35 !important;
+      margin-top: 4px !important;
+      word-break: break-word !important;
+    }
+    .blog-card .blog-excerpt {
+      font-size: 0.82rem !important;
+      line-height: 1.5 !important;
+      margin-top: 6px !important;
+    }
+    .blog-card .blog-readmore {
+      font-size: 0.82rem !important;
     }
   }
 </style>

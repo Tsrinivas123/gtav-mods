@@ -277,6 +277,23 @@
     </div>
   </div>
 </section>
+
+<style>
+  @media (max-width: 768px) {
+    .dashboard-content-panels {
+      padding: 20px 14px !important;
+    }
+    .dashboard-layout {
+      gap: 20px !important;
+    }
+    .dashboard-layout .form-grid {
+      grid-template-columns: 1fr !important;
+    }
+    .dashboard-layout .form-group.full-width {
+      grid-column: span 1 !important;
+    }
+  }
+</style>
 {% endblock %}
 
 {% block extra_js %}

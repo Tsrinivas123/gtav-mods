@@ -66,18 +66,53 @@ window.showToast = function(message, type = 'info', duration = 4000) {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Mobile Navigation Hamburger Menu
+  // 1. Mobile Navigation Hamburger Menu & Backdrop
   const hamburger = document.getElementById('hamburger');
   const navMenu = document.getElementById('navMenu');
+  const navBackdrop = document.getElementById('navBackdrop');
+
+  function closeMobileNav() {
+    if (navMenu && navMenu.classList.contains('active')) {
+      navMenu.classList.remove('active');
+      if (navBackdrop) navBackdrop.classList.remove('active');
+      document.body.classList.remove('nav-open');
+      if (hamburger) {
+        hamburger.setAttribute('aria-expanded', 'false');
+        const icon = hamburger.querySelector('i');
+        if (icon) icon.className = 'fa-solid fa-bars';
+      }
+    }
+  }
+
+  function openMobileNav() {
+    if (navMenu) {
+      navMenu.classList.add('active');
+      if (navBackdrop) navBackdrop.classList.add('active');
+      document.body.classList.add('nav-open');
+      if (hamburger) {
+        hamburger.setAttribute('aria-expanded', 'true');
+        const icon = hamburger.querySelector('i');
+        if (icon) icon.className = 'fa-solid fa-xmark';
+      }
+    }
+  }
 
   if (hamburger && navMenu) {
     hamburger.addEventListener('click', () => {
-      const isExpanded = navMenu.classList.toggle('active');
-      hamburger.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
-      const icon = hamburger.querySelector('i');
-      if (icon) {
-        icon.className = isExpanded ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+      const isExpanded = navMenu.classList.contains('active');
+      if (isExpanded) {
+        closeMobileNav();
+      } else {
+        openMobileNav();
       }
+    });
+
+    if (navBackdrop) {
+      navBackdrop.addEventListener('click', closeMobileNav);
+    }
+
+    navMenu.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', closeMobileNav);
     });
   }
 
@@ -122,14 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Global Escape key listener for open menus and modals
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      if (navMenu && navMenu.classList.contains('active')) {
-        navMenu.classList.remove('active');
-        if (hamburger) {
-          hamburger.setAttribute('aria-expanded', 'false');
-          const icon = hamburger.querySelector('i');
-          if (icon) icon.className = 'fa-solid fa-bars';
-        }
-      }
+      closeMobileNav();
       if (profileDropdown && profileDropdown.classList.contains('active')) {
         profileDropdown.classList.remove('active');
         if (profileTrigger) profileTrigger.setAttribute('aria-expanded', 'false');
