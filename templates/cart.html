@@ -329,15 +329,6 @@
     box-shadow: 0 4px 12px rgba(255, 107, 0, 0.25);
   }
 
-  .btn-cart-paypal {
-    background: #ffc439;
-    color: #003087;
-    box-shadow: 0 4px 10px rgba(255, 196, 57, 0.25);
-  }
-
-  .btn-cart-paypal:hover {
-    background: #f2b223;
-  }
 
   /* Coupon input styling */
   .coupon-form-input {
@@ -463,18 +454,11 @@
           </div>
         </div>
 
-        <!-- Checkout Buttons -->
-        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 25px;">
+        <!-- Checkout Button -->
+        <div style="margin-top: 25px;">
           <a href="{% url 'orders:checkout' %}" class="uniform-cart-btn btn-cart-checkout">
             Proceed to Checkout
           </a>
-
-          <form action="{% url 'orders:checkout' %}" method="GET" id="paypalCartForm" style="width: 100%;">
-            <input type="hidden" name="method" value="PayPal">
-            <button type="submit" class="uniform-cart-btn btn-cart-paypal">
-              <i class="fa-brands fa-paypal" style="font-size: 1.1rem;"></i> Pay with PayPal
-            </button>
-          </form>
         </div>
       </div>
 
