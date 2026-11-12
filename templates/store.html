@@ -16,55 +16,61 @@
     <!-- Sidebar Filters -->
     <aside class="filter-sidebar filters-sidebar" aria-label="Catalogue Filters">
       <div class="filter-title">
-        <span>Filters</span>
-        <span class="filter-clear" id="clearFiltersBtn" role="button" tabindex="0">Clear All</span>
+        <span><i class="fa-solid fa-sliders" style="color: var(--accent-orange); margin-right: 6px;"></i> Filters</span>
+        <button type="button" class="filter-clear" id="clearFiltersBtn" role="button" tabindex="0">Clear All</button>
       </div>
 
       <form id="filterForm" method="GET" action="{% url 'marketplace:store' %}">
         <!-- Hidden input for view mode to persist on submits -->
         <input type="hidden" name="view_mode" value="{{ view_mode }}">
+        <!-- Hidden input for sort_by to persist on submits -->
+        <input type="hidden" name="sort_by" id="sortByHiddenInput" value="{{ sort_by|default:'newest' }}">
 
         <!-- Search Section -->
         <div class="filter-section">
-          <label for="storeSearchInput" class="filter-section-title" style="display: block;">Search keyword</label>
+          <label for="storeSearchInput" class="filter-section-title" style="display: block;">Search Keyword</label>
           <div class="filter-search-box">
-            <input type="text" id="storeSearchInput" name="search" value="{{ search_query }}" placeholder="Filter mods..." class="form-input" aria-label="Search keyword filter">
             <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="storeSearchInput" name="search" value="{{ search_query }}" placeholder="Filter mods..." class="form-input filter-search-input" aria-label="Search keyword filter">
           </div>
         </div>
 
         <!-- Categories Section -->
         <div class="filter-section">
-          <h4 class="filter-section-title">Category</h4>
+          <span class="filter-section-title">Category</span>
           <div class="category-checkboxes">
             {% for cat in categories %}
-            <label class="checkbox-label">
-              <input type="checkbox" name="category" value="{{ cat.slug }}" class="autosubmit-filter" {% if cat.slug in selected_categories %}checked{% endif %}>
-              <span>
-                {% if cat.slug == 'vehicles' %}🚗
-                {% elif cat.slug == 'weapons' %}🔫
-                {% elif cat.slug == 'scripts-huds' %}📦
-                {% elif cat.slug == 'maps-safehouses' %}🗺️
-                {% elif cat.slug == 'character-skins' %}👥
-                {% elif cat.slug == 'graphics-presets' %}🎨
-                {% elif cat.slug == 'interiors' %}🏢
-                {% elif cat.icon %}<i class="fa-solid {{ cat.icon }}" style="font-size:0.9rem;margin-right:2px;"></i>
-                {% else %}⚙️{% endif %}
-                {{ cat.name }}
+            <label class="category-checkbox-item">
+              <input type="checkbox" name="category" value="{{ cat.slug }}" class="autosubmit-filter custom-sidebar-checkbox" {% if cat.slug in selected_categories %}checked{% endif %}>
+              <span class="category-item-text">
+                <span class="category-item-icon">
+                  {% if cat.slug == 'vehicles' %}🚗
+                  {% elif cat.slug == 'weapons' %}🔫
+                  {% elif cat.slug == 'scripts-huds' %}📦
+                  {% elif cat.slug == 'maps-safehouses' %}🗺️
+                  {% elif cat.slug == 'character-skins' %}👥
+                  {% elif cat.slug == 'graphics-presets' %}🎨
+                  {% elif cat.slug == 'interiors' %}🏢
+                  {% elif cat.slug == 'peds' %}🚶
+                  {% elif cat.slug == 'props' %}🧱
+                  {% elif cat.icon %}<i class="fa-solid {{ cat.icon }}"></i>
+                  {% else %}⚙️{% endif %}
+                </span>
+                <span class="category-item-name">{{ cat.name }}</span>
               </span>
             </label>
             {% empty %}
-            <label class="checkbox-label">
-              <input type="checkbox" name="category" value="vehicles" class="autosubmit-filter">
-              <span>🚗 Vehicles</span>
+            <label class="category-checkbox-item">
+              <input type="checkbox" name="category" value="vehicles" class="autosubmit-filter custom-sidebar-checkbox">
+              <span class="category-item-text"><span class="category-item-icon">🚗</span> <span class="category-item-name">Vehicles</span></span>
             </label>
-            <label class="checkbox-label">
-              <input type="checkbox" name="category" value="maps" class="autosubmit-filter">
-              <span>🗺️ Maps & Interiors</span>
+            <label class="category-checkbox-item">
+              <input type="checkbox" name="category" value="maps" class="autosubmit-filter custom-sidebar-checkbox">
+              <span class="category-item-text"><span class="category-item-icon">🗺️</span> <span class="category-item-name">Maps & Interiors</span></span>
             </label>
-            <label class="checkbox-label">
-              <input type="checkbox" name="category" value="scripts" class="autosubmit-filter">
-              <span>📦 Scripts & Plugins</span>
+            <label class="category-checkbox-item">
+              <input type="checkbox" name="category" value="scripts" class="autosubmit-filter custom-sidebar-checkbox">
+              <span class="category-item-text"><span class="category-item-icon">📦</span> <span class="category-item-name">Scripts & Plugins</span></span>
             </label>
             {% endfor %}
           </div>
@@ -72,16 +78,22 @@
 
         <!-- Price Range Section -->
         <div class="filter-section">
-          <h4 class="filter-section-title">Price Range (Max)</h4>
+          <div class="price-header-row">
+            <span class="filter-section-title">Price Range</span>
+            <span class="price-range-badge" id="priceRangeBadge">Max: ₹{{ max_price|default:"3000" }}</span>
+          </div>
           <div class="price-slider-wrap">
-            <input type="range" id="priceRangeSlider" min="0" max="100" value="{{ max_price }}" class="form-input"
-              style="width: 100%; accent-color: var(--accent-orange);" aria-label="Max price range slider">
-            <div class="price-inputs">
-              <input type="number" id="minPriceInput" name="min_price" value="{{ min_price }}" class="form-input"
-                placeholder="Min" aria-label="Minimum price filter">
-              <span>to</span>
-              <input type="number" id="maxPriceInput" name="max_price" value="{{ max_price }}" class="form-input"
-                placeholder="Max" aria-label="Maximum price filter">
+            <input type="range" id="priceRangeSlider" min="0" max="3000" step="50" value="{{ max_price|default:'3000' }}" class="price-range-slider" aria-label="Max price range slider">
+            <div class="price-inputs-row">
+              <div class="price-input-box">
+                <span class="currency-tag">₹</span>
+                <input type="number" id="minPriceInput" name="min_price" value="{{ min_price }}" placeholder="0" aria-label="Minimum price filter">
+              </div>
+              <span class="price-inputs-to">to</span>
+              <div class="price-input-box">
+                <span class="currency-tag">₹</span>
+                <input type="number" id="maxPriceInput" name="max_price" value="{{ max_price }}" placeholder="3000" aria-label="Maximum price filter">
+              </div>
             </div>
           </div>
         </div>
@@ -89,15 +101,18 @@
         <!-- Stock Status Section -->
         <div class="filter-section">
           <label for="stockStatusSelect" class="filter-section-title" style="display: block;">Availability</label>
-          <select id="stockStatusSelect" name="stock_status" class="form-input autosubmit-filter" style="width: 100%; color: #F8FAFC; background-color: #0F172A; border: 1px solid rgba(255, 107, 0, 0.3);" aria-label="Availability status filter">
-            <option value="" style="background-color: #0F172A; color: #F8FAFC;">All Statuses</option>
-            <option value="available" {% if stock_status == 'available' %}selected{% endif %} style="background-color: #0F172A; color: #F8FAFC;">Available</option>
-            <option value="coming_soon" {% if stock_status == 'coming_soon' %}selected{% endif %} style="background-color: #0F172A; color: #F8FAFC;">Coming Soon</option>
-            <option value="deprecated" {% if stock_status == 'deprecated' %}selected{% endif %} style="background-color: #0F172A; color: #F8FAFC;">Deprecated</option>
-          </select>
+          <div class="custom-select-wrap">
+            <select id="stockStatusSelect" name="stock_status" class="filter-select-input autosubmit-filter" aria-label="Availability status filter">
+              <option value="">All Statuses</option>
+              <option value="available" {% if stock_status == 'available' %}selected{% endif %}>In Stock / Available</option>
+              <option value="coming_soon" {% if stock_status == 'coming_soon' %}selected{% endif %}>Coming Soon</option>
+              <option value="deprecated" {% if stock_status == 'deprecated' %}selected{% endif %}>Deprecated</option>
+            </select>
+            <i class="fa-solid fa-chevron-down select-chevron-icon"></i>
+          </div>
         </div>
 
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+        <button type="submit" class="btn btn-primary btn-apply-filters">
           <i class="fa-solid fa-filter"></i> Apply Filters
         </button>
       </form>
@@ -113,16 +128,17 @@
 
         <div class="store-sorting-actions">
           <div class="sort-select-wrap">
-            <label for="sortBySelect" style="font-size: 0.85rem; color: var(--color-text-secondary);">Sort by:</label>
-            <select id="sortBySelect" class="sort-select" aria-label="Sort products by"
-              onchange="document.getElementById('filterForm').querySelector('select[name=stock_status]').form.elements['sort_by'].value=this.value; document.getElementById('filterForm').submit();">
-              <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Releases</option>
-              <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Most Popular</option>
-              <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Highest Rated</option>
-              <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
-              <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
-            </select>
-            <input type="hidden" name="sort_by" form="filterForm" value="{{ sort_by }}">
+            <label for="sortBySelect" class="sort-label">Sort by:</label>
+            <div class="sort-select-container">
+              <select id="sortBySelect" class="sort-select" aria-label="Sort products by" onchange="var h=document.getElementById('sortByHiddenInput'); if(h){h.value=this.value;} var f=document.getElementById('filterForm'); if(f){f.submit();}">
+                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Releases</option>
+                <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Most Popular</option>
+                <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Highest Rated</option>
+                <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+              </select>
+              <i class="fa-solid fa-chevron-down sort-chevron-icon"></i>
+            </div>
           </div>
 
           <div class="view-toggle">
@@ -183,5 +199,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/store.js' %}"></script>
+<script src="{% static 'js/store.js' %}?v=2.2"></script>
 {% endblock %}

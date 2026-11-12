@@ -351,13 +351,24 @@
 
 <section class="section" style="background: #f5f5f7; min-height: calc(100vh - 80px); padding: 50px 5%;">
 
-  <!-- Stepper Progress -->
-  <div class="checkout-stepper">
-    <span style="color: var(--accent-orange); font-weight: 700;">Shopping Cart</span>
-    <span style="color: var(--color-text-muted);">&gt;</span>
-    <span style="color: var(--color-text-muted);">Checkout Details</span>
-    <span style="color: var(--color-text-muted);">&gt;</span>
-    <span style="color: var(--color-text-muted);">Order Complete</span>
+  <!-- Systematic Stepper Progress -->
+  <div class="checkout-stepper-wrap">
+    <div class="checkout-stepper">
+      <div class="step-node active">
+        <span class="step-circle">1</span>
+        <span>Shopping Cart</span>
+      </div>
+      <span class="step-divider"><i class="fa-solid fa-chevron-right"></i></span>
+      <div class="step-node">
+        <span class="step-circle">2</span>
+        <span>Checkout Details</span>
+      </div>
+      <span class="step-divider"><i class="fa-solid fa-chevron-right"></i></span>
+      <div class="step-node">
+        <span class="step-circle">3</span>
+        <span>Payment &amp; Complete</span>
+      </div>
+    </div>
   </div>
 
   {% if cart_items %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Refund Policy | PawanMod Premium GTA V Mods{% endblock %}
+
+{% block content %}
+<section class="section" style="background: #f8fafc; min-height: calc(100vh - 120px); padding: 40px 4%;">
+  <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 28px;">
+    <div class="section-title-wrap">
+      <span class="section-tag" style="color: var(--accent-magenta); font-weight: 700;">Customer Assurance</span>
+      <h1 class="section-title" style="margin: 0 auto; text-transform: uppercase;">Refund Policy</h1>
+      <p style="color: var(--color-text-secondary); max-width: 650px; margin: 10px auto 0; font-size: 0.95rem; line-height: 1.5;">
+        Clear guidelines on refund eligibility and customer support for digital asset purchases.
+      </p>
+    </div>
+  </div>
+
+  <div style="max-width: 860px; margin: 0 auto; background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); padding: 32px 36px; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; gap: 24px; color: var(--color-text-primary); line-height: 1.6;">
+    <div>
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">1. Digital Products Nature</h2>
+      <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin: 0;">
+        Because PawanMod offers non-tangible, irrevocable digital goods (downloadable vehicle files, map packages, and script archives), orders become non-returnable once files are downloaded or accessed in your dashboard. However, we stand firmly behind the quality of our creators' work and offer full support in resolving technical hurdles.
+      </p>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 0;">
+
+    <div>
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">2. Refund Eligibility Criteria</h2>
+      <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin: 0;">
+        We review and grant refund requests under any of the following circumstances within 7 days of purchase:
+      </p>
+      <ul style="font-size: 0.9rem; color: var(--color-text-secondary); margin: 8px 0 0 20px;">
+        <li><strong>Corrupted or Non-Functional Asset:</strong> The file is proven defective or corrupted, and our technical staff or creator cannot provide a working fix within 48 hours.</li>
+        <li><strong>Duplicate Purchase:</strong> You accidentally purchased the identical product more than once in the same transaction or within a 24-hour window.</li>
+        <li><strong>Material Discrepancy:</strong> The product received differs significantly from its description and demonstration media on the store page.</li>
+      </ul>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 0;">
+
+    <div>
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">3. Non-Eligible Cases</h2>
+      <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin: 0;">
+        Refunds cannot be issued if:
+      </p>
+      <ul style="font-size: 0.9rem; color: var(--color-text-secondary); margin: 8px 0 0 20px;">
+        <li>Your hardware or PC does not meet the minimum GTA V system requirements stated on the store page.</li>
+        <li>You simply changed your mind or no longer play GTA V / FiveM after downloading the product.</li>
+        <li>Your account was banned or restricted by third-party server administrators due to rule violations.</li>
+      </ul>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 0;">
+
+    <div>
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">4. How to Request a Refund</h2>
+      <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin: 0;">
+        To request a refund, submit a ticket through our <a href="{% url 'marketplace:contact' %}" style="color: var(--accent-orange); font-weight: 600;">Contact Support</a> page or email <strong>support@pawanmod.com</strong> with your Order Code and detailed explanation. Approved refunds are credited back to your original payment method within 5 to 7 business days.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}

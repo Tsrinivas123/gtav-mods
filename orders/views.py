@@ -76,23 +76,59 @@ def cart_add(request, product_id):
         cart[cart_id] = quantity
 
     request.session['cart'] = cart
-    messages.success(request, f"{product.name} added to cart.")
     
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        if request.POST.get('checkout_direct') == 'true':
+    is_direct_checkout = request.POST.get('checkout_direct') == 'true'
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
+    # Do not queue message for Buy Now or AJAX to prevent ghost/duplicate toasts
+    if not is_direct_checkout and not is_ajax:
+        messages.success(request, f"{product.name} added to cart.")
+    
+    # Calculate cart total and formatted items for mini-cart
+    cart_items = []
+    cart_total = Decimal('0.00')
+    if cart:
+        product_ids = [int(pid) for pid in cart.keys() if pid.isdigit()]
+        for p in Product.objects.filter(id__in=product_ids):
+            qty = cart[str(p.id)]
+            cart_total += p.price * qty
+            cart_items.append({
+                'id': p.id,
+                'name': p.name,
+                'price': float(p.price),
+                'price_formatted': f"₹{p.price}",
+                'quantity': qty,
+                'image': p.main_image.url if p.main_image else '',
+            })
+
+    if is_ajax:
+        if is_direct_checkout:
             return JsonResponse({
                 'status': 'success',
                 'cart_count': sum(cart.values()),
-                'redirect_url': reverse('orders:cart')
+                'cart_total': float(cart_total),
+                'cart_total_formatted': f"₹{cart_total}",
+                'redirect_url': reverse('orders:checkout')
             })
         return JsonResponse({
             'status': 'success', 
             'cart_count': sum(cart.values()), 
+            'cart_total': float(cart_total),
+            'cart_total_formatted': f"₹{cart_total}",
+            'items': cart_items,
+            'added_item': {
+                'id': product.id,
+                'name': product.name,
+                'price': float(product.price),
+                'price_formatted': f"₹{product.price}",
+                'quantity': quantity,
+                'image': product.main_image.url if product.main_image else '',
+            },
             'message': f"{product.name} added to cart."
         })
         
-    if request.POST.get('checkout_direct') == 'true':
-        return redirect('orders:cart')
+    if is_direct_checkout:
+        return redirect('orders:checkout')
         
     return redirect(request.META.get('HTTP_REFERER', 'orders:cart'))
 
@@ -103,16 +139,36 @@ def cart_remove(request, product_id):
     if cart_id in cart:
         del cart[cart_id]
         request.session['cart'] = cart
-        messages.success(request, "Item removed from cart.")
+        if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+            messages.success(request, "Item removed from cart.")
+
+    cart_items = []
+    cart_total = Decimal('0.00')
+    if cart:
+        product_ids = [int(pid) for pid in cart.keys() if pid.isdigit()]
+        for p in Product.objects.filter(id__in=product_ids):
+            qty = cart[str(p.id)]
+            cart_total += p.price * qty
+            cart_items.append({
+                'id': p.id,
+                'name': p.name,
+                'price': float(p.price),
+                'price_formatted': f"₹{p.price}",
+                'quantity': qty,
+                'image': p.main_image.url if p.main_image else '',
+            })
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({
-            'status': 'success', 
+            'status': 'success',
             'cart_count': sum(cart.values()),
+            'cart_total': float(cart_total),
+            'cart_total_formatted': f"₹{cart_total}",
+            'items': cart_items,
             'message': "Item removed from cart."
         })
-        
     return redirect('orders:cart')
+
 
 def cart_update(request, product_id):
     if request.method == 'POST':

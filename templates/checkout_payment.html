@@ -6,15 +6,24 @@
 {% block content %}
 <section class="section" style="min-height: calc(100vh - 80px); padding: 24px 4% 40px; background: #f8f9fa;">
 
-  <!-- Stepper Progress Tracker -->
-  <div class="checkout-stepper" style="margin-bottom: 20px;">
-    <span style="color: var(--color-text-secondary);">Shopping Cart</span>
-    <span style="color: var(--color-text-muted);">&gt;</span>
-    <span style="color: var(--color-text-secondary);">Checkout Details</span>
-    <span style="color: var(--color-text-muted);">&gt;</span>
-    <span style="color: var(--accent-orange); font-weight: 700;">Payment Page</span>
-    <span style="color: var(--color-text-muted);">&gt;</span>
-    <span style="color: var(--color-text-muted);">Order Complete</span>
+  <!-- Systematic Stepper Progress Tracker -->
+  <div class="checkout-stepper-wrap">
+    <div class="checkout-stepper">
+      <a href="{% url 'orders:cart' %}" class="step-node completed">
+        <span class="step-circle"><i class="fa-solid fa-check"></i></span>
+        <span>Shopping Cart</span>
+      </a>
+      <span class="step-divider"><i class="fa-solid fa-chevron-right"></i></span>
+      <a href="{% url 'orders:checkout' %}" class="step-node completed">
+        <span class="step-circle"><i class="fa-solid fa-check"></i></span>
+        <span>Checkout Details</span>
+      </a>
+      <span class="step-divider"><i class="fa-solid fa-chevron-right"></i></span>
+      <div class="step-node active">
+        <span class="step-circle">3</span>
+        <span>Payment &amp; Complete</span>
+      </div>
+    </div>
   </div>
 
   <div class="payment-layout" style="display: grid; grid-template-columns: 1.35fr 1fr; gap: 24px; max-width: 1140px; margin: 0 auto;">

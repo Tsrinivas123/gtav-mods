@@ -160,16 +160,42 @@ def admin_products(request):
 @admin_required
 def admin_product_add(request):
     from core.admin_forms import ProductAdminForm
+    from core import storage_service
     if request.method == 'POST':
-        form = ProductAdminForm(request.POST)
+        form = ProductAdminForm(request.POST, request.FILES)
         if form.is_valid():
             product = form.save(commit=False)
-            # Phase 2.3 will handle image upload; use placeholder for now
             if not product.main_image:
                 product.main_image = 'products/placeholder.jpg'
             product.save()
-            messages.success(request, f'✔ Product "{product.name}" created successfully! You can now manage its media and files below.')
-            return redirect('custom_admin:product_edit', product_id=product.id)
+
+            # Main image upload
+            main_img = request.FILES.get('main_image')
+            if main_img:
+                try:
+                    storage_service.save_main_image(product, main_img)
+                except Exception as e:
+                    messages.warning(request, f"Main image note: {e}")
+
+            # Mod download archive upload
+            mod_file = request.FILES.get('mod_file') or request.FILES.get('download_file')
+            if mod_file:
+                try:
+                    storage_service.save_download_file(product, mod_file)
+                except Exception as e:
+                    messages.warning(request, f"Mod file note: {e}")
+
+            # Gallery screenshots upload
+            gallery_files = request.FILES.getlist('gallery_images')
+            if gallery_files:
+                for gf in gallery_files:
+                    try:
+                        storage_service.save_gallery_image(product, gf)
+                    except Exception as e:
+                        pass
+
+            messages.success(request, f'✔ Product "{product.name}" created successfully!')
+            return redirect('custom_admin:products')
         else:
             messages.error(request, 'Please fix the errors below.')
     else:
@@ -189,12 +215,39 @@ def admin_product_add(request):
 @admin_required
 def admin_product_edit(request, product_id):
     from core.admin_forms import ProductAdminForm
+    from core import storage_service
     product = get_object_or_404(Product, pk=product_id)
 
     if request.method == 'POST':
-        form = ProductAdminForm(request.POST, instance=product)
+        form = ProductAdminForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
             form.save()
+
+            # Main image (if uploaded via form)
+            main_img = request.FILES.get('main_image')
+            if main_img:
+                try:
+                    storage_service.save_main_image(product, main_img)
+                except Exception as e:
+                    messages.warning(request, f"Main image note: {e}")
+
+            # Mod file (if uploaded via form)
+            mod_file = request.FILES.get('mod_file') or request.FILES.get('download_file')
+            if mod_file:
+                try:
+                    storage_service.save_download_file(product, mod_file)
+                except Exception as e:
+                    messages.warning(request, f"Mod file note: {e}")
+
+            # Gallery screenshots (if uploaded via form)
+            gallery_files = request.FILES.getlist('gallery_images')
+            if gallery_files:
+                for gf in gallery_files:
+                    try:
+                        storage_service.save_gallery_image(product, gf)
+                    except Exception as e:
+                        pass
+
             messages.success(request, f'✔ Product "{product.name}" updated successfully!')
             return redirect('custom_admin:products')
         else:

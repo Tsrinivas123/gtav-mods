@@ -52,15 +52,58 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 2. Price Range Slider Synchronization
+  // 2. Price Range Slider Synchronization & Dynamic Gradient Fill
   const minPriceInput = document.getElementById('minPriceInput');
   const maxPriceInput = document.getElementById('maxPriceInput');
   const priceSlider = document.getElementById('priceRangeSlider');
+  const priceBadge = document.getElementById('priceRangeBadge');
+
+  const updateSliderFill = (slider, val) => {
+    if (!slider) return;
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 3000;
+    const current = parseFloat(val) || max;
+    const percentage = Math.max(0, Math.min(100, ((current - min) / (max - min)) * 100));
+    slider.style.background = `linear-gradient(to right, #ff6b00 0%, #ff6b00 ${percentage}%, #e2e8f0 ${percentage}%, #e2e8f0 100%)`;
+  };
 
   if (priceSlider && minPriceInput && maxPriceInput) {
+    const updateBadge = (val) => {
+      if (priceBadge) priceBadge.textContent = 'Max: ₹' + (val || '3000');
+    };
+
+    // Initialize fill on load
+    updateSliderFill(priceSlider, priceSlider.value);
+
     priceSlider.addEventListener('input', (e) => {
       const val = e.target.value;
       maxPriceInput.value = val;
+      updateBadge(val);
+      updateSliderFill(priceSlider, val);
+    });
+
+    // Auto submit on release of slider
+    priceSlider.addEventListener('change', () => {
+      if (filterForm) filterForm.submit();
+    });
+
+    maxPriceInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (val !== '') {
+        priceSlider.value = val;
+        updateSliderFill(priceSlider, val);
+      }
+      updateBadge(val);
+    });
+
+    // Pressing Enter in price inputs submits form
+    [minPriceInput, maxPriceInput].forEach(inp => {
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (filterForm) filterForm.submit();
+        }
+      });
     });
   }
 
@@ -70,18 +113,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (clearBtn && filterForm) {
     clearBtn.addEventListener('click', () => {
-      const searchBox = filterForm.querySelector('input[type="text"]');
+      const searchBox = filterForm.querySelector('input[name="search"]');
       if (searchBox) searchBox.value = '';
 
       const checkboxes = filterForm.querySelectorAll('input[type="checkbox"]');
       checkboxes.forEach(cb => cb.checked = false);
 
-      if (minPriceInput) minPriceInput.value = '0';
-      if (maxPriceInput) maxPriceInput.value = '100';
-      if (priceSlider) priceSlider.value = '100';
+      if (minPriceInput) minPriceInput.value = '';
+      if (maxPriceInput) maxPriceInput.value = '';
+      if (priceSlider) {
+        priceSlider.value = priceSlider.max || '3000';
+        updateSliderFill(priceSlider, priceSlider.value);
+      }
+      if (priceBadge) priceBadge.textContent = 'Max: ₹' + (priceSlider?.max || '3000');
 
       const selectFields = filterForm.querySelectorAll('select');
       selectFields.forEach(select => select.selectedIndex = 0);
+
+      const sortByHidden = document.getElementById('sortByHiddenInput');
+      if (sortByHidden) sortByHidden.value = 'newest';
 
       filterForm.submit();
     });
@@ -91,7 +141,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const autosubmitCheckboxes = document.querySelectorAll('.autosubmit-filter');
   autosubmitCheckboxes.forEach(cb => {
     cb.addEventListener('change', () => {
-      filterForm.submit();
+      if (filterForm) filterForm.submit();
     });
   });
+
+  // 5. Sort By Dropdown Change Handler
+  const sortBySelect = document.getElementById('sortBySelect');
+  const sortByHidden = document.getElementById('sortByHiddenInput');
+  if (sortBySelect && filterForm) {
+    sortBySelect.addEventListener('change', () => {
+      if (sortByHidden) {
+        sortByHidden.value = sortBySelect.value;
+      }
+      filterForm.submit();
+    });
+  }
 });

@@ -5,88 +5,119 @@
 
 {% block content %}
 <style>
-  /* Compact & Professional Checkout Layout */
+  /* ── PawanMod Systematic Checkout Layout ──────────────────────── */
   .checkout-section {
-    background: #f8f9fa;
+    background: #f8fafc;
     min-height: calc(100vh - 120px);
-    padding: 24px 4% 40px;
+    padding: 28px 4% 50px;
     box-sizing: border-box;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   .checkout-container {
-    max-width: 1140px;
+    max-width: 1200px;
     margin: 0 auto;
   }
 
-  /* Compact Stepper Tracker */
-  .checkout-stepper-compact {
+  /* ── Systematic Progress Stepper ─────────────────────────────── */
+  .checkout-stepper-wrap {
+    margin-bottom: 24px;
     display: flex;
     justify-content: center;
+  }
+
+  .checkout-stepper {
+    display: inline-flex;
     align-items: center;
-    flex-wrap: wrap;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 8px 20px;
+    border-radius: 999px;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    gap: 14px;
+  }
+
+  .step-node {
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
-    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size: 0.82rem;
+    font-size: 0.84rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-bottom: 20px;
-    color: var(--color-text-muted, #6b7280);
-  }
-
-  .checkout-stepper-compact a {
-    color: var(--color-text-secondary, #4b5563);
     text-decoration: none;
-    transition: color 0.2s ease;
+    color: #64748b;
+    transition: all 0.2s ease;
   }
 
-  .checkout-stepper-compact a:hover {
-    color: var(--accent-orange, #ff6b00);
+  .step-node.completed {
+    color: #10b981;
   }
 
-  .checkout-stepper-compact .stepper-active {
-    color: var(--accent-orange, #ff6b00);
+  .step-node.completed .step-circle {
+    background: #10b981;
+    color: #ffffff;
+  }
+
+  .step-node.active {
+    color: #ff6b00;
     font-weight: 700;
   }
 
-  .checkout-stepper-compact .stepper-sep {
-    color: #cbd5e1;
-    font-size: 0.75rem;
+  .step-node.active .step-circle {
+    background: #ff6b00;
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.18);
   }
 
-  /* Two-Column Responsive Grid */
+  .step-circle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .step-divider {
+    color: #cbd5e1;
+    font-size: 0.7rem;
+  }
+
+  /* ── Two-Column Grid Layout (Perfect Balance) ─────────────────── */
   .checkout-layout {
     display: grid;
-    grid-template-columns: 1.32fr 1fr;
+    grid-template-columns: 1.25fr 1fr;
     gap: 24px;
     align-items: start;
   }
 
-  @media (max-width: 991px) {
+  @media (max-width: 992px) {
     .checkout-layout {
-      display: flex;
-      flex-direction: column;
+      grid-template-columns: 1fr;
       gap: 20px;
     }
   }
 
-  /* Shared Card Styling */
+  /* ── Clean Card Architecture ─────────────────────────────────── */
   .checkout-card {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    padding: 22px 24px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px 28px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
     box-sizing: border-box;
   }
 
   @media (max-width: 640px) {
-    .checkout-card {
-      padding: 16px 14px;
-      border-radius: 8px;
-    }
     .checkout-section {
       padding: 14px 10px 32px;
+    }
+    .checkout-card {
+      padding: 18px 14px;
+      border-radius: 12px;
     }
   }
 
@@ -94,48 +125,72 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-bottom: 12px;
-    margin-bottom: 18px;
+    gap: 12px;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
     border-bottom: 1px solid #f1f5f9;
   }
 
-  .checkout-card-title {
-    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    font-size: 1.05rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: #111827;
-    margin: 0;
+  .checkout-card-header-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    min-width: 0;
   }
 
-  .checkout-card-title i {
-    color: var(--accent-orange, #ff6b00);
-    font-size: 0.95rem;
+  .card-icon-pill {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255, 107, 0, 0.1);
+    color: #ff6b00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
   }
 
-  .guest-badge {
-    font-size: 0.72rem;
+  .checkout-card-title {
+    font-size: 1.12rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.25 !important;
+    white-space: nowrap !important;
+  }
+
+  .checkout-card-subtitle {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-badge {
+    font-size: 0.75rem;
     font-weight: 600;
-    color: #16a34a;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    padding: 3px 8px;
-    border-radius: 20px;
+    color: #0369a1;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    padding: 4px 10px;
+    border-radius: 999px;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     white-space: nowrap;
+    flex-shrink: 0;
   }
 
-  /* Form Fields & High Specificity Clean Light Inputs */
+  /* ── Form Inputs & Layout ────────────────────────────────────── */
   .checkout-form-grid {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 15px;
   }
 
   .form-row-2col {
@@ -154,27 +209,33 @@
   .checkout-field {
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    margin: 0;
+    gap: 6px;
   }
 
   .checkout-field label {
-    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
-    font-size: 0.72rem !important;
-    font-weight: 700 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.05em !important;
-    color: #374151 !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    letter-spacing: 0.01em !important;
     margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .checkout-field .req-star {
     color: #ef4444;
-    font-weight: 800;
+    font-weight: 700;
     margin-left: 2px;
   }
 
-  /* Override any global dark theme rules on inputs within checkout */
+  .field-help-hint {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 400;
+  }
+
+  /* High Specificity Light Input Styling */
   .checkout-layout input[type="text"],
   .checkout-layout input[type="email"],
   .checkout-layout input[type="tel"],
@@ -183,37 +244,47 @@
   .checkout-input {
     width: 100% !important;
     height: 42px !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 7px !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 9px !important;
     padding: 8px 12px !important;
     font-size: 0.88rem !important;
-    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
-    color: #111827 !important;
-    background-color: #ffffff !important;
-    background-image: none !important;
+    font-family: inherit !important;
+    color: #0f172a !important;
+    background-color: #f8fafc !important;
     box-sizing: border-box !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    transition: all 0.2s ease !important;
     margin: 0 !important;
+  }
+
+  .checkout-layout input:hover,
+  .checkout-layout select:hover,
+  .checkout-layout textarea:hover {
+    border-color: #cbd5e1 !important;
+  }
+
+  .checkout-layout input:focus,
+  .checkout-layout select:focus,
+  .checkout-layout textarea:focus {
+    outline: none !important;
+    border-color: #ff6b00 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.12) !important;
   }
 
   .checkout-layout textarea,
   textarea.checkout-input {
     height: auto !important;
-    min-height: 68px !important;
+    min-height: 46px !important;
     resize: vertical !important;
-    line-height: 1.45 !important;
-  }
-
-  .checkout-layout textarea.short-notes {
-    min-height: 52px !important;
+    line-height: 1.4 !important;
   }
 
   .checkout-layout select,
   select.checkout-input {
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23374151' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
     background-repeat: no-repeat !important;
     background-position: right 12px center !important;
-    background-size: 14px !important;
+    background-size: 13px !important;
     -webkit-appearance: none !important;
     -moz-appearance: none !important;
     appearance: none !important;
@@ -221,124 +292,133 @@
     cursor: pointer !important;
   }
 
-  .checkout-layout select option {
-    background-color: #ffffff !important;
-    color: #111827 !important;
-    padding: 8px 12px !important;
-  }
-
   .checkout-layout input::placeholder,
   .checkout-layout textarea::placeholder {
-    color: #9ca3af !important;
-    font-size: 0.84rem !important;
-  }
-
-  .checkout-layout input:focus,
-  .checkout-layout select:focus,
-  .checkout-layout textarea:focus {
-    outline: none !important;
-    border-color: var(--accent-orange, #ff6b00) !important;
-    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.15) !important;
-    background-color: #ffffff !important;
-    color: #111827 !important;
+    color: #94a3b8 !important;
+    font-size: 0.83rem !important;
   }
 
   .checkout-input.has-error {
     border-color: #ef4444 !important;
+    background-color: #fff5f5 !important;
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
   }
 
-  /* Right Column: Order Summary Sidebar */
+  /* ── Right Column: Order Summary ─────────────────────────────── */
   .checkout-summary-sidebar {
     position: sticky;
-    top: 76px;
-    align-self: start;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    top: 84px;
   }
 
-  @media (max-width: 991px) {
-    .checkout-summary-sidebar {
-      position: static;
-      top: auto;
-    }
-  }
-
-  /* Items Table/List */
   .summary-items-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    max-height: 220px;
+    gap: 10px;
+    margin-bottom: 16px;
+    max-height: 240px;
     overflow-y: auto;
     padding-right: 4px;
-    margin-bottom: 12px;
     scrollbar-width: thin;
   }
 
-  .summary-item-row {
+  .summary-item-card {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
-    padding: 8px 0;
-    border-bottom: 1px dashed #f1f5f9;
-    font-size: 0.84rem;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    transition: border-color 0.2s ease;
   }
 
-  .summary-item-row:last-child {
-    border-bottom: none;
+  .summary-item-card:hover {
+    border-color: #cbd5e1;
+  }
+
+  .summary-item-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #e2e8f0;
+    flex-shrink: 0;
+    border: 1px solid #e2e8f0;
+  }
+
+  .summary-item-info {
+    flex: 1;
+    min-width: 0;
   }
 
   .summary-item-name {
-    color: #1f2937;
-    font-weight: 500;
-    line-height: 1.35;
-    flex: 1;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .summary-item-qty {
-    color: #6b7280;
-    font-size: 0.76rem;
-    font-weight: 600;
-    margin-left: 4px;
+  .summary-item-meta {
+    font-size: 0.74rem;
+    color: #64748b;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
 
   .summary-item-price {
-    font-weight: 700;
-    color: #111827;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #0f172a;
     white-space: nowrap;
-    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    text-align: right;
   }
 
-  /* Financial Totals Breakdown */
+  /* ── Financial Totals Breakdown ──────────────────────────────── */
   .summary-totals-box {
-    background: #f8fafc;
+    background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 12px 14px;
+    border-radius: 10px;
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
   }
 
   .summary-total-line {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-size: 0.84rem;
-    color: #4b5563;
+    color: #64748b;
   }
 
   .summary-total-line strong {
-    color: #111827;
-    font-weight: 600;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .free-delivery-badge {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
   }
 
   .summary-grand-total {
-    border-top: 1px solid #cbd5e1;
-    padding-top: 8px;
+    border-top: 1.5px dashed #e2e8f0;
+    padding-top: 10px;
     margin-top: 2px;
     display: flex;
     justify-content: space-between;
@@ -347,93 +427,116 @@
 
   .summary-grand-total .label {
     font-size: 0.95rem;
-    font-weight: 700;
-    color: #111827;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.01em;
   }
 
   .summary-grand-total .amount {
     font-size: 1.35rem;
     font-weight: 800;
-    color: var(--accent-orange, #ff6b00);
-    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #ff6b00;
   }
 
-  /* Custom Payment Dropdown */
-  .payment-dropdown-wrapper {
-    position: relative;
-    width: 100%;
-    margin-bottom: 14px;
+  /* ── Payment Method Selector ─────────────────────────────────── */
+  .payment-selector-wrap {
+    margin-bottom: 16px;
   }
 
-  .payment-dropdown-trigger {
-    border: 1px solid #d1d5db;
-    background: #ffffff;
-    color: #111827;
-    height: 42px;
-    border-radius: 7px;
+  .payment-selector-title {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 8px;
+    display: block;
+    letter-spacing: 0.01em;
+  }
+
+  .payment-options-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .payment-option-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 12px;
-    font-size: 0.88rem;
-    font-weight: 600;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 9px;
     cursor: pointer;
     transition: all 0.2s ease;
     user-select: none;
-    box-sizing: border-box;
   }
 
-  .payment-dropdown-trigger:hover,
-  .payment-dropdown-trigger:focus-visible {
-    border-color: var(--accent-orange, #ff6b00);
-    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.15);
-    outline: none;
-  }
-
-  .payment-dropdown-menu {
-    display: none;
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
+  .payment-option-card:hover {
+    border-color: #cbd5e1;
     background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-    z-index: 100;
-    margin: 0;
-    padding: 4px 0;
-    list-style: none;
   }
 
-  .payment-dropdown-item {
-    font-size: 0.86rem;
+  .payment-option-card.active {
+    border-color: #ff6b00;
+    background: #fff8f3;
+  }
+
+  .payment-option-left {
     display: flex;
     align-items: center;
-    padding: 10px 14px;
-    cursor: pointer;
-    color: #1f2937;
+    gap: 9px;
+  }
+
+  .payment-radio-circle {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .payment-option-card.active .payment-radio-circle {
+    border-color: #ff6b00;
+    background: #ff6b00;
+  }
+
+  .payment-radio-circle::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
     background: #ffffff;
-    transition: all 0.15s ease;
-    font-weight: 500;
+    display: none;
   }
 
-  .payment-dropdown-item:hover,
-  .payment-dropdown-item:focus-visible {
-    background-color: #f3f4f6;
-    color: var(--accent-orange, #ff6b00);
-    outline: none;
+  .payment-option-card.active .payment-radio-circle::after {
+    display: block;
   }
 
-  .payment-dropdown-item.active {
-    background-color: #fff7ed;
-    color: var(--accent-orange, #ff6b00);
+  .payment-option-name {
+    font-size: 0.84rem;
     font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
   }
 
-  /* Action Buttons */
+  .payment-option-sub {
+    font-size: 0.71rem;
+    color: #64748b;
+  }
+
+  .payment-option-icons {
+    display: flex;
+    gap: 6px;
+    color: #64748b;
+    font-size: 0.85rem;
+  }
+
+  /* ── Action Buttons ──────────────────────────────────────────── */
   .checkout-actions-col {
     display: flex;
     flex-direction: column;
@@ -442,47 +545,43 @@
 
   .btn-checkout-primary {
     width: 100%;
-    height: 44px;
-    background: var(--accent-orange, #ff6b00);
+    height: 46px;
+    background: linear-gradient(135deg, #ff6b00 0%, #fa5500 100%);
     color: #ffffff;
     border: none;
-    border-radius: 8px;
-    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    border-radius: 9px;
+    font-family: inherit;
     font-weight: 700;
-    font-size: 0.88rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    font-size: 0.92rem;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     cursor: pointer;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
-    box-shadow: 0 2px 6px rgba(255, 107, 0, 0.25);
+    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.28);
+    transition: all 0.2s ease;
   }
 
   .btn-checkout-primary:hover {
-    background: #e86500;
-    box-shadow: 0 4px 12px rgba(255, 107, 0, 0.35);
+    background: linear-gradient(135deg, #e86100 0%, #e04c00 100%);
+    box-shadow: 0 6px 16px rgba(255, 107, 0, 0.38);
+    transform: translateY(-1px);
   }
 
-  .btn-checkout-primary:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.35);
+  .btn-checkout-primary:active {
+    transform: translateY(0);
   }
 
   .btn-checkout-secondary {
     width: 100%;
     height: 38px;
     background: transparent;
-    color: #4b5563;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    font-family: inherit;
     font-weight: 600;
-    font-size: 0.82rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    font-size: 0.8rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -492,61 +591,81 @@
   }
 
   .btn-checkout-secondary:hover {
-    border-color: var(--accent-orange, #ff6b00);
-    color: var(--accent-orange, #ff6b00);
-    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    background: #f8fafc;
   }
 
-  /* Trust Badges & Footnotes */
-  .checkout-trust-box {
+  /* ── Trust & Security Footnote ───────────────────────────────── */
+  .checkout-trust-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
     margin-top: 14px;
     padding-top: 12px;
     border-top: 1px solid #f1f5f9;
     text-align: center;
   }
 
-  .trust-security-tag {
-    font-size: 0.74rem;
-    color: #16a34a;
-    font-weight: 700;
-    display: inline-flex;
+  .trust-mini-pill {
+    font-size: 0.69rem;
+    font-weight: 600;
+    color: #475569;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 5px;
-    margin-bottom: 4px;
+    gap: 3px;
   }
 
-  .trust-desc-text {
-    font-size: 0.7rem;
-    color: #6b7280;
-    line-height: 1.4;
-    margin: 0;
+  .trust-mini-pill i {
+    font-size: 0.85rem;
+    color: #10b981;
   }
 </style>
 
 <section class="checkout-section">
   <div class="checkout-container">
 
-    <!-- Compact Progress Stepper -->
-    <nav class="checkout-stepper-compact" aria-label="Checkout Progress">
-      <a href="{% url 'orders:cart' %}">Shopping Cart</a>
-      <span class="stepper-sep">&gt;</span>
-      <span class="stepper-active">Checkout Details</span>
-      <span class="stepper-sep">&gt;</span>
-      <span>Payment & Complete</span>
-    </nav>
+    <!-- ── Systematic Stepper ────────────────────────────────────── -->
+    <div class="checkout-stepper-wrap">
+      <div class="checkout-stepper">
+        <a href="{% url 'orders:cart' %}" class="step-node completed">
+          <span class="step-circle"><i class="fa-solid fa-check"></i></span>
+          <span>Shopping Cart</span>
+        </a>
+        <span class="step-divider"><i class="fa-solid fa-chevron-right"></i></span>
+        <div class="step-node active">
+          <span class="step-circle">2</span>
+          <span>Checkout Details</span>
+        </div>
+        <span class="step-divider"><i class="fa-solid fa-chevron-right"></i></span>
+        <div class="step-node">
+          <span class="step-circle">3</span>
+          <span>Payment &amp; Complete</span>
+        </div>
+      </div>
+    </div>
 
-    <!-- Main Two-Column Layout -->
+    <!-- ── Main Two-Column Layout ────────────────────────────────── -->
     <div class="checkout-layout">
 
-      <!-- Left Column: Billing Details (Guest Checkout) -->
-      <div class="checkout-card checkout-billing-panel">
+      <!-- Left Column: Billing Details Form -->
+      <div class="checkout-card">
         <div class="checkout-card-header">
-          <h1 class="checkout-card-title">
-            <i class="fa-solid fa-address-card"></i> Billing Details
-          </h1>
-          <span class="guest-badge">
-            <i class="fa-solid fa-shield-check"></i> Guest Checkout
-          </span>
+          <div class="checkout-card-header-left">
+            <div class="card-icon-pill">
+              <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div>
+              <div class="checkout-card-title">Billing Information</div>
+              <div class="checkout-card-subtitle">Instant mod download link will be sent to your email</div>
+            </div>
+          </div>
+          {% if request.user.is_authenticated %}
+            <span class="header-badge" style="color: #059669; background: #ecfdf5; border-color: #a7f3d0;">
+              <i class="fa-solid fa-circle-check"></i> {{ request.user.username }}
+            </span>
+          {% endif %}
         </div>
 
         <form action="{% url 'orders:checkout' %}" method="POST" id="checkoutForm">
@@ -557,67 +676,104 @@
             <!-- Full Name & Email -->
             <div class="form-row-2col">
               <div class="checkout-field">
-                <label for="id_full_name">Full Name <span class="req-star">*</span></label>
+                <label for="id_full_name">
+                  <span>Full Name <span class="req-star">*</span></span>
+                </label>
                 <input type="text" id="id_full_name" name="full_name" class="checkout-input"
-                  placeholder="e.g. Rahul Sharma" required autocomplete="name"
+                  placeholder="Full name" required autocomplete="name"
                   value="{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}">
               </div>
 
               <div class="checkout-field">
-                <label for="id_email">Email Address <span class="req-star">*</span></label>
+                <label for="id_email">
+                  <span>Email Address <span class="req-star">*</span></span>
+                  <span class="field-help-hint">For download link</span>
+                </label>
                 <input type="email" id="id_email" name="email" class="checkout-input"
-                  placeholder="e.g. rahul@example.com" required autocomplete="email"
+                  placeholder="Email address" required autocomplete="email"
                   value="{% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}">
               </div>
             </div>
 
-            <!-- Phone & City -->
+            <!-- Country & Phone -->
             <div class="form-row-2col">
               <div class="checkout-field">
-                <label for="id_phone">Phone Number <span class="req-star">*</span></label>
-                <input type="tel" id="id_phone" name="phone" class="checkout-input"
-                  placeholder="e.g. +91 98765 43210" required autocomplete="tel">
-              </div>
-
-              <div class="checkout-field">
-                <label for="id_city">Town / City <span class="req-star">*</span></label>
-                <input type="text" id="id_city" name="city" class="checkout-input"
-                  placeholder="e.g. Mumbai" required autocomplete="address-level2">
-              </div>
-            </div>
-
-            <!-- Country & Optional YouTube Channel -->
-            <div class="form-row-2col">
-              <div class="checkout-field">
-                <label for="id_country">Country / Region <span class="req-star">*</span></label>
+                <label for="id_country">
+                  <span>Country / Region <span class="req-star">*</span></span>
+                </label>
                 <select id="id_country" name="country" class="checkout-input" required autocomplete="country">
                   <option value="IN" selected>India (₹ INR)</option>
                   <option value="US">United States ($ USD)</option>
                   <option value="GB">United Kingdom (£ GBP)</option>
                   <option value="CA">Canada ($ CAD)</option>
                   <option value="AU">Australia ($ AUD)</option>
+                  <option value="AE">UAE (AED)</option>
+                  <option value="OTHER">Other Countries</option>
                 </select>
               </div>
 
               <div class="checkout-field">
-                <label for="id_creator_channel">YouTube Creator Link <span style="color:#9ca3af;font-weight:400;text-transform:none;">(Optional)</span></label>
+                <label for="id_phone">
+                  <span>Phone Number <span class="req-star">*</span></span>
+                </label>
+                <input type="tel" id="id_phone" name="phone" class="checkout-input"
+                  placeholder="+91 98765 43210" required autocomplete="tel">
+              </div>
+            </div>
+
+            <!-- State & District / City -->
+            <div class="form-row-2col">
+              <div class="checkout-field">
+                <label for="id_state_select">
+                  <span>State / Province <span class="req-star">*</span></span>
+                </label>
+                <select id="id_state_select" class="checkout-input" required>
+                  <!-- Populated dynamically based on Country -->
+                </select>
+                <input type="hidden" id="id_state" name="state" value="">
+              </div>
+
+              <div class="checkout-field">
+                <label for="id_city_select">
+                  <span>District / City <span class="req-star">*</span></span>
+                </label>
+                <select id="id_city_select" class="checkout-input" required>
+                  <!-- Populated dynamically based on State -->
+                </select>
+                <input type="text" id="id_custom_city" class="checkout-input" style="display: none; margin-top: 6px !important;" placeholder="Type your district / city name...">
+                <input type="hidden" id="id_city" name="city" value="">
+              </div>
+            </div>
+
+            <!-- Billing Address & Optional YouTube Channel -->
+            <div class="form-row-2col">
+              <div class="checkout-field">
+                <label for="id_billing_address">
+                  <span>Billing Address / Landmark <span class="req-star">*</span></span>
+                </label>
+                <input type="text" id="id_billing_address" name="billing_address" class="checkout-input"
+                  placeholder="House / Flat no., Street, Area, Landmark, Postal code" required autocomplete="street-address"
+                  value="{% if request.user.is_authenticated %}{{ request.user.profile.billing_address|default:'' }}{% endif %}">
+              </div>
+
+              <div class="checkout-field">
+                <label for="id_creator_channel">
+                  <span>YouTube Channel</span>
+                  <span class="field-help-hint">Optional</span>
+                </label>
                 <input type="text" id="id_creator_channel" name="creator_channel" class="checkout-input"
                   placeholder="https://youtube.com/@channel">
               </div>
             </div>
 
-            <!-- Billing Address -->
-            <div class="checkout-field">
-              <label for="id_billing_address">Billing Address / Street Address <span class="req-star">*</span></label>
-              <textarea id="id_billing_address" name="billing_address" class="checkout-input" rows="3"
-                placeholder="House / Flat no., Street, Area, Landmark, Postal code" required autocomplete="street-address">{% if request.user.is_authenticated %}{{ request.user.profile.billing_address }}{% endif %}</textarea>
-            </div>
-
             <!-- Optional Order Notes -->
             <div class="checkout-field">
-              <label for="id_order_notes">Additional Order Notes <span style="color:#9ca3af;font-weight:400;text-transform:none;">(Optional)</span></label>
-              <textarea id="id_order_notes" name="order_notes" class="checkout-input short-notes" rows="2"
-                placeholder="Special instructions or notes regarding your order..."></textarea>
+              <label for="id_order_notes">
+                <span>Additional Order Notes</span>
+                <span class="field-help-hint">Optional</span>
+              </label>
+              <input type="text" id="id_order_notes" name="order_notes" class="checkout-input"
+                placeholder="Any special requests or instructions for your order...">
             </div>
 
           </div>
@@ -627,45 +783,66 @@
         </form>
       </div>
 
-      <!-- Right Column: Compact Order Summary & Payment Selection -->
+      <!-- Right Column: Systematic Order Summary -->
       <aside class="checkout-summary-sidebar" aria-label="Order Summary">
         <div class="checkout-card">
           <div class="checkout-card-header">
-            <h2 class="checkout-card-title">
-              <i class="fa-solid fa-bag-shopping"></i> Your Order
-            </h2>
-            <span style="font-size: 0.78rem; font-weight: 600; color: #6b7280;">
-              {{ cart_items|length }} item{{ cart_items|length|pluralize }}
-            </span>
+            <div class="checkout-card-header-left">
+              <div class="card-icon-pill">
+                <i class="fa-solid fa-bag-shopping"></i>
+              </div>
+              <div>
+                <div class="checkout-card-title">Order Summary</div>
+                <div class="checkout-card-subtitle">{{ cart_items|length }} item{{ cart_items|length|pluralize }} in cart</div>
+              </div>
+            </div>
           </div>
 
-          <!-- Items Breakdown -->
+          <!-- Items Breakdown with Thumbnails -->
           <div class="summary-items-list" tabindex="0" role="region" aria-label="Purchased Items List">
             {% for item in cart_items %}
-            <div class="summary-item-row">
-              <div class="summary-item-name">
-                {{ item.product.name }}
-                <span class="summary-item-qty">&times; {{ item.quantity }}</span>
+            <div class="summary-item-card">
+              {% if item.product.main_image %}
+                <img src="{{ item.product.main_image.url }}" alt="{{ item.product.name }}" class="summary-item-thumb">
+              {% else %}
+                <div class="summary-item-thumb" style="display:flex;align-items:center;justify-content:center;color:#94a3b8;">
+                  <i class="fa-solid fa-gamepad"></i>
+                </div>
+              {% endif %}
+              <div class="summary-item-info">
+                <div class="summary-item-name" title="{{ item.product.name }}">{{ item.product.name }}</div>
+                <div class="summary-item-meta">
+                  <span>{{ item.product.category.name|default:"Mod" }}</span>
+                  <span>•</span>
+                  <span>Qty: {{ item.quantity }}</span>
+                </div>
               </div>
               <div class="summary-item-price">₹{{ item.total }}</div>
             </div>
             {% empty %}
-            <div style="text-align: center; color: #9ca3af; font-size: 0.82rem; padding: 12px 0;">
+            <div style="text-align: center; color: #94a3b8; font-size: 0.84rem; padding: 16px 0;">
               Your cart is empty.
             </div>
             {% endfor %}
           </div>
 
-          <!-- Financial Subtotals & Total -->
+          <!-- Financial Breakdown -->
           <div class="summary-totals-box">
             <div class="summary-total-line">
               <span>Cart Subtotal</span>
               <strong>₹{{ cart_total }}</strong>
             </div>
 
+            <div class="summary-total-line">
+              <span>Delivery Type</span>
+              <span class="free-delivery-badge">
+                <i class="fa-solid fa-bolt"></i> Instant Digital Delivery
+              </span>
+            </div>
+
             {% if discount_amount > 0 %}
-            <div class="summary-total-line" style="color: #16a34a;">
-              <span>Discount ({{ coupon.code }})</span>
+            <div class="summary-total-line" style="color: #059669;">
+              <span>Coupon Discount ({{ coupon.code }})</span>
               <strong>-₹{{ discount_amount }}</strong>
             </div>
             {% endif %}
@@ -676,35 +853,57 @@
             </div>
           </div>
 
-          <!-- Payment Method Selection -->
-          <div class="payment-dropdown-wrapper">
-            <label id="paymentMethodLabel" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #374151; display: block; margin-bottom: 5px;">
-              Select Payment Method
-            </label>
+          <!-- Interactive Payment Method Selector Cards -->
+          <div class="payment-selector-wrap">
+            <label class="payment-selector-title">Select Payment Method</label>
+            <div class="payment-options-grid">
+              
+              <!-- Option 1: Razorpay -->
+              <div class="payment-option-card active" data-method="Razorpay">
+                <div class="payment-option-left">
+                  <div class="payment-radio-circle"></div>
+                  <div>
+                    <div class="payment-option-name">Razorpay Secure</div>
+                    <div class="payment-option-sub">UPI, Google Pay, PhonePe, Cards, NetBanking</div>
+                  </div>
+                </div>
+                <div class="payment-option-icons">
+                  <i class="fa-solid fa-credit-card" style="color:#ff6b00;"></i>
+                </div>
+              </div>
 
-            <!-- Accessible Trigger -->
-            <div id="paymentDropdownTrigger" class="payment-dropdown-trigger" tabindex="0" role="combobox" aria-labelledby="paymentMethodLabel" aria-expanded="false" aria-haspopup="listbox">
-              <span id="selectedPaymentText">
-                <i class="fa-solid fa-credit-card" style="color: var(--accent-orange, #ff6b00); margin-right: 6px;"></i> Razorpay (Cards, UPI, NetBanking)
-              </span>
-              <i class="fa-solid fa-chevron-down" style="color: #9ca3af; font-size: 0.75rem; transition: transform 0.2s ease;"></i>
+              <!-- Option 2: Manual UPI QR -->
+              <div class="payment-option-card" data-method="UPI">
+                <div class="payment-option-left">
+                  <div class="payment-radio-circle"></div>
+                  <div>
+                    <div class="payment-option-name">Manual UPI QR</div>
+                    <div class="payment-option-sub">Instant QR scan via any UPI app</div>
+                  </div>
+                </div>
+                <div class="payment-option-icons">
+                  <i class="fa-solid fa-qrcode" style="color:#6366f1;"></i>
+                </div>
+              </div>
+
+              <!-- Option 3: PayPal -->
+              <div class="payment-option-card" data-method="PayPal">
+                <div class="payment-option-left">
+                  <div class="payment-radio-circle"></div>
+                  <div>
+                    <div class="payment-option-name">PayPal Gateway</div>
+                    <div class="payment-option-sub">International cards &amp; USD payments</div>
+                  </div>
+                </div>
+                <div class="payment-option-icons">
+                  <i class="fa-brands fa-paypal" style="color:#0284c7;"></i>
+                </div>
+              </div>
+
             </div>
-
-            <!-- Accessible Options List -->
-            <ul id="paymentDropdownOptions" class="payment-dropdown-menu" role="listbox" aria-labelledby="paymentMethodLabel">
-              <li data-value="Razorpay" class="payment-dropdown-item active" role="option" aria-selected="true" tabindex="0">
-                <i class="fa-solid fa-credit-card" style="color: var(--accent-orange, #ff6b00); width: 20px; margin-right: 8px;"></i> Razorpay (Cards, UPI, NetBanking)
-              </li>
-              <li data-value="UPI" class="payment-dropdown-item" role="option" aria-selected="false" tabindex="0">
-                <i class="fa-solid fa-qrcode" style="color: #6739b6; width: 20px; margin-right: 8px;"></i> Manual UPI QR Transfer
-              </li>
-              <li data-value="PayPal" class="payment-dropdown-item" role="option" aria-selected="false" tabindex="0">
-                <i class="fa-brands fa-paypal" style="color: #0070ba; width: 20px; margin-right: 8px;"></i> PayPal Gateway
-              </li>
-            </ul>
           </div>
 
-          <!-- Checkout Actions -->
+          <!-- Checkout Action Buttons -->
           <div class="checkout-actions-col">
             <button type="button" id="submitOrderBtn" class="btn-checkout-primary">
               <i class="fa-solid fa-lock"></i> <span>Proceed to Payment</span>
@@ -715,14 +914,20 @@
             </a>
           </div>
 
-          <!-- Trust Badges & Security Note -->
-          <div class="checkout-trust-box">
-            <span class="trust-security-tag">
-              <i class="fa-solid fa-shield-halved"></i> 256-Bit SSL Encrypted Checkout
-            </span>
-            <p class="trust-desc-text">
-              Instant digital delivery upon verified payment. No subscription or account setup required.
-            </p>
+          <!-- Trust Badges -->
+          <div class="checkout-trust-grid">
+            <div class="trust-mini-pill">
+              <i class="fa-solid fa-bolt"></i>
+              <span>Instant Download</span>
+            </div>
+            <div class="trust-mini-pill">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>256-Bit SSL</span>
+            </div>
+            <div class="trust-mini-pill">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>100% Virus-Free</span>
+            </div>
           </div>
 
         </div>
@@ -737,68 +942,307 @@
 {% block extra_js %}
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const trigger = document.getElementById('paymentDropdownTrigger');
-    const optionsMenu = document.getElementById('paymentDropdownOptions');
-    const options = document.querySelectorAll('.payment-dropdown-item');
-    const selectedText = document.getElementById('selectedPaymentText');
+    const paymentCards = document.querySelectorAll('.payment-option-card');
     const paymentMethodInput = document.getElementById('paymentMethodInput');
     const submitBtn = document.getElementById('submitOrderBtn');
     const checkoutForm = document.getElementById('checkoutForm');
 
-    if (!trigger || !optionsMenu || !checkoutForm || !submitBtn) return;
+    // ── Country, State & District / City Logic ──
+    const countrySelect = document.getElementById('id_country');
+    const phoneInput = document.getElementById('id_phone');
+    const stateSelect = document.getElementById('id_state_select');
+    const stateHiddenInput = document.getElementById('id_state');
+    const citySelect = document.getElementById('id_city_select');
+    const customCityInput = document.getElementById('id_custom_city');
+    const cityHiddenInput = document.getElementById('id_city');
 
-    function toggleMenu(show) {
-      const isVisible = show !== undefined ? show : optionsMenu.style.display !== 'block';
-      optionsMenu.style.display = isVisible ? 'block' : 'none';
-      trigger.setAttribute('aria-expanded', isVisible ? 'true' : 'false');
-      const icon = trigger.querySelector('.fa-chevron-down');
-      if (icon) icon.style.transform = isVisible ? 'rotate(180deg)' : 'rotate(0deg)';
+    const INDIA_DISTRICTS_BY_STATE = {
+      "Madhya Pradesh": [
+        "Betul", "Bhopal", "Indore", "Gwalior", "Jabalpur", "Ujjain", "Sagar", "Rewa", "Satna",
+        "Chhindwara", "Hoshangabad (Narmadapuram)", "Sehore", "Raisen", "Vidisha", "Dewas",
+        "Ratlam", "Mandsaur", "Neemuch", "Khandwa", "Khargone", "Dhar", "Jhabua", "Barwani",
+        "Burhanpur", "Shajapur", "Agar Malwa", "Guna", "Shivpuri", "Ashoknagar", "Datia",
+        "Bhind", "Morena", "Sheopur", "Balaghat", "Seoni", "Mandla", "Dindori", "Narsinghpur",
+        "Katni", "Damoh", "Panna", "Chhatarpur", "Tikamgarh", "Niwari", "Sidhi", "Singrauli",
+        "Shahdol", "Umaria", "Anuppur", "Harda"
+      ],
+      "Maharashtra": [
+        "Mumbai", "Pune", "Nagpur", "Thane", "Nashik", "Chhatrapati Sambhajinagar (Aurangabad)",
+        "Solapur", "Kolhapur", "Amravati", "Nanded", "Jalgaon", "Akola", "Latur", "Dhule",
+        "Ahmednagar", "Chandrapur", "Parbhani", "Jalna", "Beed", "Raigad", "Satara", "Sangli",
+        "Ratnagiri", "Sindhudurg", "Bhandara", "Gondia", "Gadchiroli", "Wardha", "Yavatmal",
+        "Washim", "Buldhana", "Nandurbar", "Dharashiv (Osmanabad)", "Palghar"
+      ],
+      "Uttar Pradesh": [
+        "Lucknow", "Kanpur", "Varanasi", "Agra", "Prayagraj (Allahabad)", "Meerut", "Ghaziabad",
+        "Noida (Gautam Buddha Nagar)", "Bareilly", "Aligarh", "Moradabad", "Saharanpur", "Gorakhpur",
+        "Firozabad", "Jhansi", "Muzaffarnagar", "Mathura", "Ayodhya", "Budaun", "Rampur",
+        "Shahjahanpur", "Basti", "Deoria", "Azamgarh", "Jaunpur", "Mirzapur", "Ballia", "Sitapur",
+        "Hardoi", "Lakhimpur Kheri", "Unnao", "Barabanki", "Sultanpur", "Amethi", "Rae Bareli"
+      ],
+      "Delhi (NCT)": [
+        "New Delhi", "Central Delhi", "East Delhi", "North Delhi", "North East Delhi",
+        "North West Delhi", "Shahdara", "South Delhi", "South East Delhi", "South West Delhi", "West Delhi"
+      ],
+      "Gujarat": [
+        "Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Junagadh",
+        "Gandhinagar", "Anand", "Navsari", "Morbi", "Nadiad", "Surendranagar", "Bharuch",
+        "Mehsana", "Bhuj", "Porbandar", "Valsad", "Vapi", "Godhra", "Patan", "Dahod"
+      ],
+      "Rajasthan": [
+        "Jaipur", "Jodhpur", "Kota", "Bikaner", "Ajmer", "Udaipur", "Bhilwara", "Alwar",
+        "Bharatpur", "Sikar", "Pali", "Sri Ganganagar", "Jhunjhunu", "Chittorgarh", "Barmer",
+        "Jaisalmer", "Nagaur", "Dausa", "Churu", "Sawai Madhopur"
+      ],
+      "Karnataka": [
+        "Bengaluru (Bangalore)", "Mysuru (Mysore)", "Hubballi-Dharwad", "Mangaluru", "Belagavi",
+        "Kalaburagi", "Davanagere", "Ballari", "Vijayapura", "Shivamogga", "Tumakuru", "Udupi"
+      ],
+      "Tamil Nadu": [
+        "Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Tirunelveli",
+        "Tiruppur", "Erode", "Vellore", "Thoothukudi", "Dindigul", "Thanjavur", "Kanchipuram"
+      ],
+      "West Bengal": [
+        "Kolkata", "Howrah", "North 24 Parganas", "South 24 Parganas", "Hooghly", "Siliguri",
+        "Asansol", "Durgapur", "Darjeeling", "Malda", "Murshidabad", "Nadia"
+      ],
+      "Bihar": [
+        "Patna", "Gaya", "Bhagalpur", "Muzaffarpur", "Purnia", "Darbhanga", "Bihar Sharif",
+        "Arrah", "Begusarai", "Katihar", "Munger", "Chhapra", "Hajipur", "Motihari"
+      ],
+      "Punjab": [
+        "Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Mohali (SAS Nagar)",
+        "Hoshiarpur", "Pathankot", "Moga", "Firozpur"
+      ],
+      "Haryana": [
+        "Gurugram (Gurgaon)", "Faridabad", "Panipat", "Ambala", "Yamunanagar", "Rohtak",
+        "Hisar", "Karnal", "Sonipat", "Panchkula", "Sirsa", "Bhiwani"
+      ],
+      "Telangana": [
+        "Hyderabad", "Warangal", "Nizamabad", "Khammam", "Karimnagar", "Ramagundam",
+        "Mahbubnagar", "Nalgonda", "Siddipet"
+      ],
+      "Andhra Pradesh": [
+        "Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Kurnool", "Kakinada",
+        "Rajahmundry", "Tirupati", "Kadapa", "Anantapur"
+      ],
+      "Kerala": [
+        "Thiruvananthapuram", "Kochi (Ernakulam)", "Kozhikode", "Thrissur", "Kollam",
+        "Palakkad", "Alappuzha", "Kannur", "Kottayam", "Malappuram"
+      ],
+      "Chhattisgarh": [
+        "Raipur", "Bhilai", "Bilaspur", "Korba", "Durg", "Rajnandgaon", "Raigarh", "Jagdalpur"
+      ],
+      "Jharkhand": [
+        "Ranchi", "Jamshedpur", "Dhanbad", "Bokaro", "Deoghar", "Hazaribagh"
+      ],
+      "Uttarakhand": [
+        "Dehradun", "Haridwar", "Roorkee", "Haldwani", "Rishikesh", "Nainital"
+      ],
+      "Himachal Pradesh": [
+        "Shimla", "Dharamshala", "Solan", "Mandi", "Kullu", "Manali", "Hamirpur"
+      ],
+      "Jammu & Kashmir": [
+        "Srinagar", "Jammu", "Anantnag", "Baramulla", "Kathua", "Udhampur"
+      ],
+      "Odisha": [
+        "Bhubaneswar", "Cuttack", "Rourkela", "Berhampur", "Sambalpur", "Puri"
+      ],
+      "Assam": [
+        "Guwahati", "Silchar", "Dibrugarh", "Jorhat", "Nagaon", "Tezpur"
+      ],
+      "Goa": [
+        "North Goa (Panaji)", "South Goa (Margao)"
+      ],
+      "Other Indian States / UT": [
+        "Chandigarh", "Puducherry", "Tripura", "Meghalaya", "Manipur", "Nagaland",
+        "Mizoram", "Arunachal Pradesh", "Sikkim", "Ladakh"
+      ]
+    };
+
+    const OTHER_COUNTRY_DATA = {
+      US: {
+        "California": ["Los Angeles", "San Francisco", "San Diego", "San Jose", "Sacramento", "Fresno"],
+        "Texas": ["Houston", "Dallas", "Austin", "San Antonio", "Fort Worth", "El Paso"],
+        "New York": ["New York City", "Buffalo", "Rochester", "Yonkers", "Syracuse", "Albany"],
+        "Florida": ["Miami", "Orlando", "Tampa", "Jacksonville", "Tallahassee"],
+        "Illinois": ["Chicago", "Aurora", "Naperville", "Joliet", "Rockford"],
+        "Washington": ["Seattle", "Spokane", "Tacoma", "Vancouver", "Bellevue"],
+        "Other US State": ["Las Vegas", "Phoenix", "Philadelphia", "Columbus", "Charlotte", "Indianapolis", "Denver", "Boston", "Atlanta"]
+      },
+      GB: {
+        "England": ["London", "Birmingham", "Manchester", "Liverpool", "Bristol", "Leeds", "Sheffield", "Newcastle"],
+        "Scotland": ["Edinburgh", "Glasgow", "Aberdeen", "Dundee"],
+        "Wales": ["Cardiff", "Swansea", "Newport"],
+        "Northern Ireland": ["Belfast", "Derry"]
+      },
+      CA: {
+        "Ontario": ["Toronto", "Ottawa", "Mississauga", "Hamilton", "London"],
+        "Quebec": ["Montreal", "Quebec City", "Laval", "Gatineau"],
+        "British Columbia": ["Vancouver", "Victoria", "Surrey", "Burnaby"],
+        "Alberta": ["Calgary", "Edmonton", "Red Deer"]
+      },
+      AU: {
+        "New South Wales": ["Sydney", "Newcastle", "Central Coast", "Wollongong"],
+        "Victoria": ["Melbourne", "Geelong", "Ballarat", "Bendigo"],
+        "Queensland": ["Brisbane", "Gold Coast", "Sunshine Coast", "Townsville"],
+        "Western Australia": ["Perth", "Mandurah", "Bunbury"]
+      },
+      AE: {
+        "Emirates": ["Dubai", "Abu Dhabi", "Sharjah", "Ajman", "Ras Al Khaimah", "Fujairah", "Umm Al Quwain", "Al Ain"]
+      },
+      OTHER: {
+        "International": ["Tokyo", "Berlin", "Paris", "Singapore", "Sydney", "Toronto", "Dubai", "Amsterdam"]
+      }
+    };
+
+    const COUNTRY_DIAL_MAP = [
+      { prefix: '+91', country: 'IN', placeholder: '+91 98765 43210' },
+      { prefix: '+1',  country: 'US', placeholder: '+1 (555) 000-0000' },
+      { prefix: '+44', country: 'GB', placeholder: '+44 7911 123456' },
+      { prefix: '+61', country: 'AU', placeholder: '+61 400 000 000' },
+      { prefix: '+971',country: 'AE', placeholder: '+971 50 000 0000' }
+    ];
+
+    function populateDistricts(countryCode, stateName) {
+      if (!citySelect) return;
+      let districts = [];
+      if (countryCode === 'IN') {
+        districts = INDIA_DISTRICTS_BY_STATE[stateName] || [];
+      } else {
+        const countryStates = OTHER_COUNTRY_DATA[countryCode] || OTHER_COUNTRY_DATA['OTHER'];
+        districts = countryStates[stateName] || [];
+      }
+
+      citySelect.innerHTML = '<option value="" disabled selected>Select district / city...</option>';
+      districts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        citySelect.appendChild(opt);
+      });
+
+      const otherOpt = document.createElement('option');
+      otherOpt.value = '__OTHER__';
+      otherOpt.textContent = '✏️ Other District / City (Type manually)...';
+      citySelect.appendChild(otherOpt);
+
+      if (customCityInput) {
+        customCityInput.style.display = 'none';
+        customCityInput.value = '';
+      }
+      if (cityHiddenInput) cityHiddenInput.value = '';
     }
 
-    trigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleMenu();
-    });
-
-    trigger.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        toggleMenu(true);
-        options[0]?.focus();
-      } else if (e.key === 'Escape') {
-        toggleMenu(false);
+    function populateStates(countryCode) {
+      if (!stateSelect) return;
+      let states = [];
+      if (countryCode === 'IN') {
+        states = Object.keys(INDIA_DISTRICTS_BY_STATE);
+      } else {
+        const countryStates = OTHER_COUNTRY_DATA[countryCode] || OTHER_COUNTRY_DATA['OTHER'];
+        states = Object.keys(countryStates);
       }
-    });
 
-    document.addEventListener('click', () => {
-      toggleMenu(false);
-    });
+      stateSelect.innerHTML = '<option value="" disabled>Select state / province...</option>';
+      states.forEach((st, idx) => {
+        const opt = document.createElement('option');
+        opt.value = st;
+        opt.textContent = st;
+        // Default select Madhya Pradesh for India
+        if (countryCode === 'IN' && st === 'Madhya Pradesh') {
+          opt.selected = true;
+        } else if (idx === 0 && countryCode !== 'IN') {
+          opt.selected = true;
+        }
+        stateSelect.appendChild(opt);
+      });
 
-    options.forEach(option => {
-      const selectOption = (e) => {
-        if (e) e.stopPropagation();
-        options.forEach(opt => {
-          opt.classList.remove('active');
-          opt.setAttribute('aria-selected', 'false');
-        });
-        option.classList.add('active');
-        option.setAttribute('aria-selected', 'true');
+      const selectedState = stateSelect.value || states[0];
+      if (stateHiddenInput) stateHiddenInput.value = selectedState;
+      populateDistricts(countryCode, selectedState);
+    }
 
-        const val = option.getAttribute('data-value');
-        if (paymentMethodInput) paymentMethodInput.value = val;
-        selectedText.innerHTML = option.innerHTML;
-        toggleMenu(false);
-        trigger.focus();
-      };
+    // Auto-detect country from phone prefix input
+    if (phoneInput && countrySelect) {
+      phoneInput.addEventListener('input', () => {
+        const val = phoneInput.value.trim();
+        for (const item of COUNTRY_DIAL_MAP) {
+          if (val.startsWith(item.prefix)) {
+            if (countrySelect.value !== item.country) {
+              countrySelect.value = item.country;
+              populateStates(item.country);
+            }
+            break;
+          }
+        }
+      });
+    }
 
-      option.addEventListener('click', selectOption);
-      option.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          selectOption(e);
-        } else if (e.key === 'Escape') {
-          toggleMenu(false);
-          trigger.focus();
+    // When country changes in dropdown
+    if (countrySelect) {
+      countrySelect.addEventListener('change', () => {
+        const cCode = countrySelect.value;
+        populateStates(cCode);
+        const match = COUNTRY_DIAL_MAP.find(m => m.country === cCode);
+        if (match && phoneInput) {
+          phoneInput.placeholder = match.placeholder;
+          if (!phoneInput.value.trim() || phoneInput.value.startsWith('+')) {
+            phoneInput.value = match.prefix + ' ';
+          }
+        }
+      });
+    }
+
+    // When state changes
+    if (stateSelect) {
+      stateSelect.addEventListener('change', () => {
+        stateSelect.classList.remove('has-error');
+        if (stateHiddenInput) stateHiddenInput.value = stateSelect.value;
+        populateDistricts(countrySelect.value, stateSelect.value);
+      });
+    }
+
+    // When district / city is chosen
+    if (citySelect) {
+      citySelect.addEventListener('change', () => {
+        citySelect.classList.remove('has-error');
+        if (citySelect.value === '__OTHER__') {
+          if (customCityInput) {
+            customCityInput.style.display = 'block';
+            customCityInput.focus();
+          }
+          if (cityHiddenInput) cityHiddenInput.value = '';
+        } else {
+          if (customCityInput) {
+            customCityInput.style.display = 'none';
+          }
+          if (cityHiddenInput) cityHiddenInput.value = citySelect.value;
+        }
+      });
+    }
+
+    // When user types custom city
+    if (customCityInput) {
+      customCityInput.addEventListener('input', () => {
+        customCityInput.classList.remove('has-error');
+        if (cityHiddenInput) cityHiddenInput.value = customCityInput.value.trim();
+      });
+    }
+
+    // Initialize states and districts
+    populateStates(countrySelect ? countrySelect.value : 'IN');
+
+    if (!checkoutForm || !submitBtn) return;
+
+    // Payment Option Card Selection
+    paymentCards.forEach(card => {
+      card.addEventListener('click', () => {
+        paymentCards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        const method = card.getAttribute('data-method');
+        if (paymentMethodInput) {
+          paymentMethodInput.value = method;
         }
       });
     });
@@ -820,6 +1264,18 @@
         }
       });
 
+      // Also validate city
+      if (!cityHiddenInput.value.trim()) {
+        valid = false;
+        if (citySelect.value === '__OTHER__') {
+          customCityInput.classList.add('has-error');
+          if (!firstInvalid) firstInvalid = customCityInput;
+        } else {
+          citySelect.classList.add('has-error');
+          if (!firstInvalid) firstInvalid = citySelect;
+        }
+      }
+
       if (!valid) {
         if (window.showToast) {
           window.showToast('Please fill out all required billing details.', 'error');
@@ -832,12 +1288,12 @@
 
       // Submit loading state
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing Order...';
 
       checkoutForm.submit();
     });
 
-    // Also support submitting via Enter key inside inputs
+    // Support submitting via Enter key inside inputs
     checkoutForm.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
         e.preventDefault();

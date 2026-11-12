@@ -1,9 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db.models import Q, Avg, Sum, Count
 from django.http import JsonResponse
-from .models import Product, Category, Review, ProductImage, VersionHistory, ContactMessage, ContactReply
+from .models import Product, Category, Review, ProductImage, VersionHistory, ContactMessage, ContactReply, NewsletterSubscriber
 from blog.models import BlogPost
 from orders.models import Order, OrderItem
 from django.contrib.auth.models import User
@@ -26,7 +27,7 @@ def home(request):
                 'products',
                 filter=Q(products__stock_status='available', products__is_deleted=False)
             )
-        )[:8])
+        ).order_by('display_order', 'id')[:12])
         
         trending_mods = list(Product.objects.select_related('category').filter(
             category__status='active', is_trending=True, stock_status='available'
@@ -78,7 +79,7 @@ def categories_list(request):
                 'products',
                 filter=Q(products__stock_status='available', products__is_deleted=False)
             )
-        ))
+        ).order_by('display_order', 'id'))
     except Exception:
         categories = []
     context = {
@@ -108,26 +109,33 @@ def category_detail(request, slug):
             Q(category__name__icontains=search_query)
         )
 
-    # Apply price range filter
-    min_price = request.GET.get('min_price')
-    max_price = request.GET.get('max_price')
+    # Apply price range filter if provided
+    min_price = request.GET.get('min_price', '').strip()
+    max_price = request.GET.get('max_price', '').strip()
     if min_price:
-        products_query = products_query.filter(price__gte=min_price)
+        try:
+            products_query = products_query.filter(price__gte=float(min_price))
+        except (ValueError, TypeError):
+            min_price = ''
     if max_price:
-        products_query = products_query.filter(price__lte=max_price)
+        try:
+            products_query = products_query.filter(price__lte=float(max_price))
+        except (ValueError, TypeError):
+            max_price = ''
 
     # Apply sorting filter
     sort_by = request.GET.get('sort_by', 'newest')
-    if sort_by == 'newest':
-        products_query = products_query.order_by('-created_at')
-    elif sort_by == 'popular':
-        products_query = products_query.order_by('-downloads_count')
+    if sort_by == 'popular':
+        products_query = products_query.order_by('-downloads_count', '-created_at')
     elif sort_by == 'rating':
-        products_query = products_query.annotate(avg_rating=Avg('reviews__rating')).order_by('-avg_rating')
+        products_query = products_query.annotate(avg_rating=Avg('reviews__rating')).order_by('-avg_rating', '-created_at')
     elif sort_by == 'price_low':
-        products_query = products_query.order_by('price')
+        products_query = products_query.order_by('price', '-created_at')
     elif sort_by == 'price_high':
-        products_query = products_query.order_by('-price')
+        products_query = products_query.order_by('-price', '-created_at')
+    else:
+        sort_by = 'newest'
+        products_query = products_query.order_by('-created_at')
 
     total_count = products_query.count()
     
@@ -135,8 +143,8 @@ def category_detail(request, slug):
         'category': category,
         'products': products_query,
         'search_query': search_query,
-        'min_price': min_price or 0,
-        'max_price': max_price or 100,
+        'min_price': min_price,
+        'max_price': max_price,
         'sort_by': sort_by,
         'total_count': total_count,
     }
@@ -146,7 +154,7 @@ def store(request):
     view_mode = request.GET.get('view_mode', 'grid')
     try:
         products_query = Product.objects.select_related('category').filter(stock_status='available', category__status='active')
-        categories = list(Category.objects.filter(status='active'))
+        categories = list(Category.objects.filter(status='active').order_by('display_order', 'id'))
 
         # Apply search text filter
         search_query = request.GET.get('search', '')
@@ -161,7 +169,13 @@ def store(request):
         # Apply category filter
         selected_categories = request.GET.getlist('category')
         if selected_categories:
-            products_query = products_query.filter(category__slug__in=selected_categories)
+            slug_aliases = {
+                'maps': 'maps-safehouses',
+                'scripts': 'scripts-huds',
+                'graphics': 'graphics-presets',
+            }
+            resolved_categories = [slug_aliases.get(cat, cat) for cat in selected_categories]
+            products_query = products_query.filter(category__slug__in=resolved_categories)
 
         # Apply price range filter
         min_price = request.GET.get('min_price')
@@ -280,8 +294,8 @@ def submit_review(request, slug):
         content = request.POST.get('content', '').strip()
 
         if not rating or not title or not content:
-            messages.error(request, "Please fill out all required fields.")
-            return redirect('marketplace:product_detail', slug=slug)
+            messages.error(request, "Please fill out all required fields (rating, title, and feedback).")
+            return redirect(f"{reverse('marketplace:product_detail', kwargs={'slug': slug})}?tab=reviews")
 
         try:
             rating_val = int(rating)
@@ -289,36 +303,40 @@ def submit_review(request, slug):
                 raise ValueError
         except (ValueError, TypeError):
             messages.error(request, "Rating must be a number between 1 and 5.")
-            return redirect('marketplace:product_detail', slug=slug)
+            return redirect(f"{reverse('marketplace:product_detail', kwargs={'slug': slug})}?tab=reviews")
 
         order = None
         reviewer_name = ""
 
-        if request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser):
+        if request.user.is_authenticated:
+            # Check if logged in user already reviewed
+            if Review.objects.filter(product=product, user=request.user).exists():
+                messages.error(request, "You have already submitted a review for this mod.")
+                return redirect(f"{reverse('marketplace:product_detail', kwargs={'slug': slug})}?tab=reviews")
+
             reviewer_name = request.user.get_full_name() or request.user.username
+            # Check if user purchased this product
+            user_order = Order.objects.filter(
+                user=request.user,
+                status__in=['paid', 'completed'],
+                items__product=product
+            ).first()
+            if not user_order and order_code and email:
+                user_order = Order.objects.filter(code__iexact=order_code, email__iexact=email, items__product=product).first()
+            order = user_order
         else:
-            if not order_code or not email:
-                messages.error(request, "Order Number and Billing Email are required to verify your purchase.")
-                return redirect('marketplace:product_detail', slug=slug)
-
-            order = Order.objects.filter(code__iexact=order_code, email__iexact=email).first()
-            if not order:
-                messages.error(request, "No matching order found with that Order Number and Email.")
-                return redirect('marketplace:product_detail', slug=slug)
-
-            if order.status not in ['paid', 'completed'] and order.payment_status != 'Success':
-                messages.error(request, "Review submission is only allowed for completed purchases.")
-                return redirect('marketplace:product_detail', slug=slug)
-
-            if not order.items.filter(product=product).exists():
-                messages.error(request, "This order does not include this mod. Only verified buyers can submit a review.")
-                return redirect('marketplace:product_detail', slug=slug)
-
-            if Review.objects.filter(product=product, order=order).exists():
-                messages.error(request, "A review has already been submitted for this order. Duplicate reviews are not allowed.")
-                return redirect('marketplace:product_detail', slug=slug)
-
-            reviewer_name = order.full_name or "Verified Customer"
+            # Guest review: if valid order provided, verify it; otherwise accept as guest customer
+            if order_code and email:
+                matched_order = Order.objects.filter(code__iexact=order_code, email__iexact=email, items__product=product).first()
+                if matched_order:
+                    order = matched_order
+                    reviewer_name = matched_order.full_name or "Verified Customer"
+                else:
+                    reviewer_name = email.split('@')[0].replace('.', ' ').title()
+            elif email:
+                reviewer_name = email.split('@')[0].replace('.', ' ').title()
+            else:
+                reviewer_name = "Community Gamer"
 
         Review.objects.create(
             product=product,
@@ -329,7 +347,8 @@ def submit_review(request, slug):
             title=title,
             content=content
         )
-        messages.success(request, "Thank you! Your verified review has been submitted successfully.")
+        messages.success(request, "Thank you! Your review has been submitted successfully.")
+        return redirect(f"{reverse('marketplace:product_detail', kwargs={'slug': slug})}?tab=reviews")
     return redirect('marketplace:product_detail', slug=slug)
 
 def get_client_ip(request):
@@ -642,5 +661,109 @@ def custom_admin_dashboard(request):
 
 def custom_admin_product_edit(request, pk):
     return redirect('custom_admin:product_edit', product_id=pk)
-            
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+
+def newsletter_subscribe(request):
+    """
+    Handles newsletter subscription via POST.
+    Supports both AJAX requests (JSON responses) and regular form submissions.
+    Validates email format, prevents duplicate subscriptions, and persists to database.
+    """
+    if request.method != 'POST':
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.content_type == 'application/json'
+        if is_ajax:
+            return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+        messages.error(request, 'Invalid request method.')
+        return redirect(request.META.get('HTTP_REFERER', 'marketplace:home'))
+
+    # Extract email from JSON payload or standard POST form data
+    email = ''
+    if request.content_type == 'application/json':
+        try:
+            body_data = json.loads(request.body.decode('utf-8'))
+            email = body_data.get('email', '').strip()
+        except Exception:
+            pass
+    if not email:
+        email = request.POST.get('email', '').strip()
+
+    is_ajax = (
+        request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        or 'application/json' in request.headers.get('Accept', '')
+        or request.content_type == 'application/json'
+    )
+
+    if not email:
+        if is_ajax:
+            return JsonResponse({'success': False, 'message': 'Please enter a valid email address.'}, status=400)
+        messages.error(request, 'Please enter a valid email address.')
+        return redirect(request.META.get('HTTP_REFERER', 'marketplace:home'))
+
+    # Validate email format using Django validator
+    try:
+        validate_email(email)
+    except ValidationError:
+        if is_ajax:
+            return JsonResponse({'success': False, 'message': 'Please enter a valid email address.'}, status=400)
+        messages.error(request, 'Please enter a valid email address.')
+        return redirect(request.META.get('HTTP_REFERER', 'marketplace:home'))
+
+    normalized_email = email.lower()
+
+    # Check if existing subscriber
+    existing = NewsletterSubscriber.objects.filter(email__iexact=normalized_email).first()
+    if existing:
+        if not existing.is_active:
+            existing.is_active = True
+            existing.save(update_fields=['is_active'])
+            msg = 'Welcome back! Your newsletter subscription has been reactivated.'
+            if is_ajax:
+                return JsonResponse({'success': True, 'message': msg})
+            messages.success(request, msg)
+            return redirect(request.META.get('HTTP_REFERER', 'marketplace:home'))
+        else:
+            msg = 'This email is already subscribed to our newsletter.'
+            if is_ajax:
+                return JsonResponse({'success': False, 'already_subscribed': True, 'message': msg}, status=409)
+            messages.info(request, msg)
+            return redirect(request.META.get('HTTP_REFERER', 'marketplace:home'))
+
+    # Save new subscription to database
+    try:
+        NewsletterSubscriber.objects.create(email=normalized_email)
+        msg = 'Thank you for subscribing to PawanMod newsletter!'
+        if is_ajax:
+            return JsonResponse({'success': True, 'message': msg})
+        messages.success(request, msg)
+        return redirect(request.META.get('HTTP_REFERER', 'marketplace:home'))
+    except Exception as e:
+        if is_ajax:
+            return JsonResponse({'success': False, 'message': 'Unable to save subscription. Please try again.'}, status=500)
+        messages.error(request, 'Unable to save subscription. Please try again.')
+        return redirect(request.META.get('HTTP_REFERER', 'marketplace:home'))
+
+
+def membership_view(request):
+    """VIP Membership and Pricing Plans page."""
+    return render(request, 'membership.html')
+
+
+def faq_view(request):
+    """Informational FAQ page."""
+    return render(request, 'pages/faq.html')
+
+
+def terms_view(request):
+    """Terms and Service page."""
+    return render(request, 'pages/terms.html')
+
+
+def privacy_view(request):
+    """Privacy Policy page."""
+    return render(request, 'pages/privacy.html')
+
+
+def refunds_view(request):
+    """Refund Policy page."""
+    return render(request, 'pages/refunds.html')
+

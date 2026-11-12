@@ -75,20 +75,20 @@
     <div class="categories-grid">
       {% for cat in featured_categories %}
       <div class="category-card-new" onclick="window.location.href='{% url 'marketplace:category_detail' cat.slug %}'">
-        <div class="cat-title-row">
-          <span class="cat-emoji">
-            {% if cat.slug == 'vehicles' %}🚗
-            {% elif cat.slug == 'weapons' %}🔫
-            {% elif cat.slug == 'scripts-huds' %}📦
-            {% elif cat.slug == 'maps-safehouses' %}🗺️
-            {% elif cat.slug == 'character-skins' %}👥
-            {% elif cat.slug == 'graphics-presets' %}🎨
-            {% elif cat.slug == 'interiors' %}🏢
-            {% elif cat.icon %}<i class="fa-solid {{ cat.icon }}"></i>
-            {% else %}⚙️{% endif %}
-          </span>
-          <h3>{{ cat.name }}</h3>
+        <div class="cat-icon-badge">
+          {% if cat.slug == 'vehicles' %}🚗
+          {% elif cat.slug == 'weapons' or cat.slug == 'weapons-pack' %}🔫
+          {% elif cat.slug == 'scripts-huds' %}📦
+          {% elif cat.slug == 'maps-safehouses' %}🗺️
+          {% elif cat.slug == 'character-skins' %}👥
+          {% elif cat.slug == 'graphics-presets' %}🎨
+          {% elif cat.slug == 'interiors' %}🏢
+          {% elif cat.slug == 'peds' %}🚶
+          {% elif cat.slug == 'props' %}🧱
+          {% elif cat.icon %}<i class="fa-solid {{ cat.icon }}"></i>
+          {% else %}⚙️{% endif %}
         </div>
+        <h3 class="cat-name">{{ cat.name }}</h3>
         <span class="cat-count-text">{{ cat.product_count|default:'0' }} Mods</span>
         <span class="cat-link-text">Explore &rarr;</span>
       </div>
@@ -242,7 +242,110 @@
     </div>
   </div>
 
-  <!-- 12. Customer Reviews -->
+  <!-- 12. VIP Membership Plans -->
+  <div class="home-section-block" id="membershipSec">
+    <div class="section-header" style="justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+      <div class="section-title-wrap">
+        <span class="section-tag" style="color: var(--accent-orange); font-weight: 700;">⚡ Exclusive Access</span>
+        <h2 class="section-title">VIP Membership Plans</h2>
+      </div>
+      <a href="{% url 'marketplace:membership' %}" class="btn btn-secondary"><i class="fa-solid fa-crown"></i> View All Plans</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; align-items: stretch;">
+
+      <!-- Plan 1: Starter Pass -->
+      <div style="background: white; border: 1px solid var(--card-border); border-radius: 12px; padding: 24px 20px; display: flex; flex-direction: column; box-shadow: var(--shadow-soft);">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+          <span style="font-size: 1.4rem;">⚡</span>
+          <div>
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0;">Starter Pass</h3>
+            <span style="font-size: 0.74rem; color: #64748b;">Casual Modders</span>
+          </div>
+        </div>
+        <div style="margin: 10px 0 14px;">
+          <div style="display: flex; align-items: baseline; gap: 4px;">
+            <span style="font-size: 1.8rem; font-weight: 800; color: #0f172a;">₹399</span>
+            <span style="font-size: 0.78rem; color: #64748b;">/ month</span>
+          </div>
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--accent-orange); margin-top: 2px;">
+            ≈ $4.99 USD / month
+          </div>
+        </div>
+        <ul style="list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem; color: #334155; flex-grow: 1;">
+          <li><i class="fa-solid fa-check" style="color: #10b981; margin-right: 6px;"></i> 20+ Starter Mods Access</li>
+          <li><i class="fa-solid fa-check" style="color: #10b981; margin-right: 6px;"></i> High-Speed Direct Downloads</li>
+          <li><i class="fa-solid fa-check" style="color: #10b981; margin-right: 6px;"></i> Discord Community Role</li>
+        </ul>
+        <a href="{% url 'marketplace:membership' %}" class="btn btn-secondary" style="width: 100%; justify-content: center; padding: 9px; font-size: 0.82rem; font-weight: 700; border-radius: 6px;">
+          Explore Plan
+        </a>
+      </div>
+
+      <!-- Plan 2: Pro VIP Pass -->
+      <div style="background: white; border: 2px solid var(--accent-orange); border-radius: 12px; padding: 24px 20px; display: flex; flex-direction: column; position: relative; box-shadow: 0 8px 24px rgba(255, 107, 0, 0.12);">
+        <span style="position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: var(--accent-orange); color: white; font-size: 0.68rem; font-weight: 800; padding: 3px 12px; border-radius: 12px; letter-spacing: 0.5px;">
+          🔥 MOST POPULAR
+        </span>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+          <span style="font-size: 1.4rem;">👑</span>
+          <div>
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0;">Pro VIP Pass</h3>
+            <span style="font-size: 0.74rem; color: var(--accent-orange); font-weight: 700;">Unlimited Modding</span>
+          </div>
+        </div>
+        <div style="margin: 10px 0 14px;">
+          <div style="display: flex; align-items: baseline; gap: 4px;">
+            <span style="font-size: 1.8rem; font-weight: 800; color: #0f172a;">₹799</span>
+            <span style="font-size: 0.78rem; color: #64748b;">/ month</span>
+          </div>
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--accent-orange); margin-top: 2px;">
+            ≈ $9.99 USD / month
+          </div>
+        </div>
+        <ul style="list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem; color: #334155; flex-grow: 1;">
+          <li><i class="fa-solid fa-circle-check" style="color: var(--accent-orange); margin-right: 6px;"></i> <strong>Unlimited Downloads</strong> (All Categories)</li>
+          <li><i class="fa-solid fa-circle-check" style="color: var(--accent-orange); margin-right: 6px;"></i> <strong>24h Early Access</strong> to New Mods</li>
+          <li><i class="fa-solid fa-circle-check" style="color: var(--accent-orange); margin-right: 6px;"></i> 25% Discount on Custom Scripts</li>
+          <li><i class="fa-solid fa-circle-check" style="color: var(--accent-orange); margin-right: 6px;"></i> Priority WhatsApp &amp; Discord Support</li>
+        </ul>
+        <a href="{% url 'marketplace:membership' %}" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px; font-size: 0.85rem; font-weight: 800; border-radius: 6px;">
+          Join Pro VIP &rarr;
+        </a>
+      </div>
+
+      <!-- Plan 3: Unlimited VIP -->
+      <div style="background: white; border: 1px solid var(--card-border); border-radius: 12px; padding: 24px 20px; display: flex; flex-direction: column; box-shadow: var(--shadow-soft);">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+          <span style="font-size: 1.4rem;">💎</span>
+          <div>
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0;">Unlimited VIP</h3>
+            <span style="font-size: 0.74rem; color: #64748b;">1 Year Access (365 Days)</span>
+          </div>
+        </div>
+        <div style="margin: 10px 0 14px;">
+          <div style="display: flex; align-items: baseline; gap: 4px;">
+            <span style="font-size: 1.8rem; font-weight: 800; color: #0f172a;">₹2,499</span>
+            <span style="font-size: 0.78rem; color: #64748b;">/ 1 year (365 days)</span>
+          </div>
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--accent-orange); margin-top: 2px;">
+            ≈ $29.99 USD / year
+          </div>
+        </div>
+        <ul style="list-style: none; padding: 0; margin: 0 0 18px; display: flex; flex-direction: column; gap: 8px; font-size: 0.82rem; color: #334155; flex-grow: 1;">
+          <li><i class="fa-solid fa-check" style="color: #10b981; margin-right: 6px;"></i> <strong>1 Year (365 Days) Unlimited Access</strong></li>
+          <li><i class="fa-solid fa-check" style="color: #10b981; margin-right: 6px;"></i> All Future Releases for 365 Days Included</li>
+          <li><i class="fa-solid fa-check" style="color: #10b981; margin-right: 6px;"></i> 24/7 Dedicated WhatsApp Assistance</li>
+        </ul>
+        <a href="{% url 'marketplace:membership' %}" class="btn btn-secondary" style="width: 100%; justify-content: center; padding: 9px; font-size: 0.82rem; font-weight: 700; border-radius: 6px;">
+          Get Unlimited VIP
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 13. Customer Reviews -->
   <div class="home-section-block">
     <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 14px;">
       <div class="section-title-wrap">
@@ -288,7 +391,7 @@
   </div>
 
   <!-- 13. FAQ Accordions (Requested) -->
-  <div class="home-section-block" style="max-width: 800px; margin: 0 auto;">
+  <div class="home-section-block">
     <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 14px;">
       <div class="section-title-wrap">
         <span class="section-tag" style="color: var(--accent-cyan); font-weight: 700;">Help Center</span>
@@ -312,17 +415,6 @@
     </div>
   </div>
 
-  <!-- 14. Newsletter Section -->
-  <div class="newsletter-section-wrapper" style="background: var(--bg-secondary); border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); padding: 24px 20px; text-align: center; margin-bottom: 10px; box-shadow: var(--shadow-soft);">
-    <div style="max-width: 600px; margin: 0 auto;">
-      <h2 style="font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 1.35rem; text-transform: uppercase; margin-bottom: 6px; color: var(--color-text-primary);">Join Newsletter</h2>
-      <p style="color: var(--color-text-secondary); margin-bottom: 18px; font-size: 0.84rem;">Subscribe to receive updates on new releases, holiday coupon discount codes, and monthly mod giveaways.</p>
-      <form onsubmit="event.preventDefault(); window.showToast('Subscribed to newsletter successfully!', 'success');" style="display: flex; gap: 10px;">
-        <input type="email" placeholder="Enter email address" class="form-input" required style="flex: 1; border-radius: 30px; padding: 8px 18px; font-size: 0.82rem; background: #f3f4f6; border: 1px solid var(--card-border); color: var(--color-text-primary);" aria-label="Email address for newsletter">
-        <button type="submit" class="btn btn-primary" style="border-radius: 30px; padding: 8px 22px; font-size: 0.82rem;"><i class="fa-solid fa-paper-plane"></i> Subscribe</button>
-      </form>
-    </div>
-  </div>
 
 </section>
 
@@ -432,6 +524,36 @@ document.addEventListener('DOMContentLoaded', () => {
       modal.style.display = 'flex';
     }
   });
+
+  // AJAX Quick View Add to Cart
+  const qvAddForm = document.getElementById('qv-add-cart-form');
+  if (qvAddForm) {
+    qvAddForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const actionUrl = qvAddForm.action;
+      if (!actionUrl) return;
+      const formData = new FormData(qvAddForm);
+      fetch(actionUrl, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === 'success') {
+          modal.style.display = 'none';
+          if (window.renderMiniCart) window.renderMiniCart(data);
+          if (window.openMiniCart) window.openMiniCart();
+          if (window.showToast) window.showToast(data.message || 'Added to cart!', 'success');
+        }
+      })
+      .catch(err => {
+        qvAddForm.submit();
+      });
+    });
+  }
 
   // AJAX wishlisting from card
   document.addEventListener('click', (e) => {

@@ -182,7 +182,7 @@
   {% endif %}
 </div>
 
-<form method="POST" id="productForm">
+<form method="POST" id="productForm" enctype="multipart/form-data">
   {% csrf_token %}
   <input type="hidden" name="_stock_status_override" id="stockOverride" value="">
 
@@ -307,19 +307,8 @@
     </div>
   {% endif %}
 
-  <!-- ── Media Management Sections (Phase 2.3) ── -->
-  <div class="form-section" style="position: relative; {% if mode == 'add' %}opacity: 0.6; pointer-events: none;{% endif %}" id="mediaContainer">
-    {% if mode == 'add' %}
-      <!-- Overlay block to guide users -->
-      <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: center; z-index: 10; border-radius: var(--radius); pointer-events: auto;">
-        <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 22px 30px; border-radius: var(--radius-sm); box-shadow: var(--shadow-md); text-align: center; max-width: 420px;">
-          <i class="fa-solid fa-circle-info fa-2x" style="color: var(--color-primary); margin-bottom: 12px; display: block;"></i>
-          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 6px; color: var(--text-primary);">Media Uploads Disabled</div>
-          <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">Please save the product before uploading images or download files.</div>
-        </div>
-      </div>
-    {% endif %}
-
+  <!-- ── Media Management Sections ── -->
+  <div class="form-section" style="position: relative;" id="mediaContainer">
     <div class="form-section-title"><i class="fa-solid fa-photo-film"></i> Product Media &amp; Files</div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
@@ -330,7 +319,7 @@
           <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
           <div class="upload-title">Drag &amp; drop main image or click to upload</div>
           <div class="upload-subtitle">Supports: JPG, JPEG, PNG, WEBP (Max 1920x1920px resizing automatically)</div>
-          <input type="file" id="mainImageInput" style="display:none;" accept="image/jpeg,image/png,image/webp">
+          <input type="file" id="mainImageInput" name="main_image" style="display:none;" accept="image/jpeg,image/png,image/webp">
           <div class="progress-container" id="mainImageProgressContainer">
             <div class="progress-bar" id="mainImageProgressBar"></div>
           </div>
@@ -346,9 +335,15 @@
               <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 0.75rem;" onclick="document.getElementById('mainImageInput').click()">
                 <i class="fa-solid fa-arrows-rotate"></i> Replace
               </button>
+              {% if mode == 'edit' %}
               <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 0.75rem; color: var(--color-red); border-color: rgba(239,68,68,0.2);" onclick="deleteMainImage()">
                 <i class="fa-solid fa-trash"></i> Remove
               </button>
+              {% else %}
+              <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 0.75rem; color: var(--color-red); border-color: rgba(239,68,68,0.2);" onclick="clearLocalMainImage()">
+                <i class="fa-solid fa-trash"></i> Remove
+              </button>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -361,36 +356,36 @@
           <i class="fa-solid fa-file-zipper upload-icon"></i>
           <div class="upload-title">Drag &amp; drop mod package or click to upload</div>
           <div class="upload-subtitle">Allowed formats: .zip, .rar, .7z (Max 100MB)</div>
-          <input type="file" id="modFileInput" style="display:none;" accept=".zip,.rar,.7z">
+          <input type="file" id="modFileInput" name="mod_file" style="display:none;" accept=".zip,.rar,.7z">
           <div class="progress-container" id="modFileProgressContainer">
             <div class="progress-bar" id="modFileProgressBar"></div>
           </div>
         </div>
-        {% if mode == 'edit' %}
-          {% with latest_version=product.versions.first %}
-          <div id="modFilePreviewContainer" style="{% if not latest_version or not latest_version.download_file %}display:none;{% endif %}">
-            <div class="preview-card">
-              <div class="preview-thumbnail" style="display:flex; align-items:center; justify-content:center; background: var(--bg-body); color: var(--color-primary); font-size: 1.8rem;">
-                <i class="fa-solid fa-file-zipper"></i>
-              </div>
-              <div class="preview-info">
-                <div class="preview-name" id="modFilename">{% if latest_version and latest_version.download_file %}{{ latest_version.download_file.name }}{% endif %}</div>
-                <div class="preview-size">Mod Archive File</div>
-              </div>
-              <div class="preview-actions">
-                <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 0.75rem;" onclick="document.getElementById('modFileInput').click()">
-                  <i class="fa-solid fa-arrows-rotate"></i> Replace
-                </button>
-                <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 0.75rem; color: var(--color-red); border-color: rgba(239,68,68,0.2);" onclick="deleteModFile()">
-                  <i class="fa-solid fa-trash"></i> Remove
-                </button>
-              </div>
+        <div id="modFilePreviewContainer" style="{% if mode == 'edit' %}{% with latest_version=product.versions.first %}{% if not latest_version or not latest_version.download_file %}display:none;{% endif %}{% endwith %}{% else %}display:none;{% endif %}">
+          <div class="preview-card">
+            <div class="preview-thumbnail" style="display:flex; align-items:center; justify-content:center; background: var(--bg-body); color: var(--color-primary); font-size: 1.8rem;">
+              <i class="fa-solid fa-file-zipper"></i>
+            </div>
+            <div class="preview-info">
+              <div class="preview-name" id="modFilename">{% if mode == 'edit' %}{% with latest_version=product.versions.first %}{% if latest_version and latest_version.download_file %}{{ latest_version.download_file.name }}{% endif %}{% endwith %}{% endif %}</div>
+              <div class="preview-size" id="modFileSize">Mod Archive File</div>
+            </div>
+            <div class="preview-actions">
+              <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 0.75rem;" onclick="document.getElementById('modFileInput').click()">
+                <i class="fa-solid fa-arrows-rotate"></i> Replace
+              </button>
+              {% if mode == 'edit' %}
+              <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 0.75rem; color: var(--color-red); border-color: rgba(239,68,68,0.2);" onclick="deleteModFile()">
+                <i class="fa-solid fa-trash"></i> Remove
+              </button>
+              {% else %}
+              <button type="button" class="btn-cancel" style="padding: 6px 12px; font-size: 0.75rem; color: var(--color-red); border-color: rgba(239,68,68,0.2);" onclick="clearLocalModFile()">
+                <i class="fa-solid fa-trash"></i> Remove
+              </button>
+              {% endif %}
             </div>
           </div>
-          {% endwith %}
-        {% else %}
-          <div id="modFilePreviewContainer" style="display:none;"></div>
-        {% endif %}
+        </div>
       </div>
     </div>
 
@@ -400,7 +395,7 @@
       <div class="upload-zone" id="galleryDropzone" onclick="document.getElementById('galleryInput').click()" style="padding: 20px;">
         <i class="fa-solid fa-images upload-icon" style="font-size: 1.8rem;"></i>
         <div class="upload-title" style="font-size: 0.8rem;">Drag &amp; drop multiple gallery screenshots or click to upload</div>
-        <input type="file" id="galleryInput" style="display:none;" multiple accept="image/jpeg,image/png,image/webp">
+        <input type="file" id="galleryInput" name="gallery_images" style="display:none;" multiple accept="image/jpeg,image/png,image/webp">
         <div class="progress-container" id="galleryProgressContainer">
           <div class="progress-bar" id="galleryProgressBar"></div>
         </div>
@@ -509,8 +504,97 @@
     if (statusField && status) statusField.value = status;
   }
 
-  // ── Media uploads AJAX (Phase 2.3) ───────────────────────
-  {% if mode == 'edit' %}
+  // ── Setup Drag & Drop zone ──────────────────────────────
+  function setupDragDropZone(zoneId, inputId, onFileDrop) {
+    const zone = document.getElementById(zoneId);
+    const input = document.getElementById(inputId);
+    if (!zone || !input) return;
+    
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      zone.classList.add('dragover');
+    });
+    
+    zone.addEventListener('dragleave', () => {
+      zone.classList.remove('dragover');
+    });
+    
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        try {
+          input.files = e.dataTransfer.files;
+        } catch(err) {}
+        onFileDrop(e.dataTransfer.files);
+      }
+    });
+    
+    input.addEventListener('change', () => {
+      if (input.files.length > 0) {
+        onFileDrop(input.files);
+      }
+    });
+  }
+
+  {% if mode == 'add' %}
+  // ── Mode 'Add': Client-side file preview & standard form upload ──
+  setupDragDropZone('mainImageDropzone', 'mainImageInput', (files) => {
+    const file = files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('mainImagePreview').src = e.target.result;
+      document.getElementById('mainImageFilename').textContent = file.name;
+      document.getElementById('mainImagePreviewContainer').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  window.clearLocalMainImage = function() {
+    const inp = document.getElementById('mainImageInput');
+    if (inp) inp.value = '';
+    const container = document.getElementById('mainImagePreviewContainer');
+    if (container) container.style.display = 'none';
+  };
+
+  setupDragDropZone('modFileDropzone', 'modFileInput', (files) => {
+    const file = files[0];
+    if (!file) return;
+    document.getElementById('modFilename').textContent = file.name;
+    const mb = (file.size / (1024 * 1024)).toFixed(2);
+    document.getElementById('modFileSize').textContent = mb + ' MB • Ready to upload on save';
+    document.getElementById('modFilePreviewContainer').style.display = 'block';
+  });
+
+  window.clearLocalModFile = function() {
+    const inp = document.getElementById('modFileInput');
+    if (inp) inp.value = '';
+    const container = document.getElementById('modFilePreviewContainer');
+    if (container) container.style.display = 'none';
+  };
+
+  setupDragDropZone('galleryDropzone', 'galleryInput', (files) => {
+    const grid = document.getElementById('galleryGrid');
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const card = document.createElement('div');
+        card.className = 'gallery-card';
+        card.innerHTML = `
+          <img src="${e.target.result}" alt="Gallery Image" class="gallery-card-img">
+          <div class="gallery-card-actions">
+            <span class="gallery-handle" title="${file.name}"><i class="fa-solid fa-image"></i> ${file.name.length > 14 ? file.name.slice(0, 14) + '...' : file.name}</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  {% else %}
+  // ── Mode 'Edit': AJAX direct uploads ─────────────────────
   const productId = "{{ product.id }}";
   const csrfToken = "{{ csrf_token }}";
 
@@ -560,36 +644,6 @@
     xhr.send(formData);
   }
 
-  // Setup Drag & Drop zone
-  function setupDragDropZone(zoneId, inputId, onFileDrop) {
-    const zone = document.getElementById(zoneId);
-    const input = document.getElementById(inputId);
-    if (!zone || !input) return;
-    
-    zone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      zone.classList.add('dragover');
-    });
-    
-    zone.addEventListener('dragleave', () => {
-      zone.classList.remove('dragover');
-    });
-    
-    zone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      zone.classList.remove('dragover');
-      if (e.dataTransfer.files.length > 0) {
-        onFileDrop(e.dataTransfer.files);
-      }
-    });
-    
-    input.addEventListener('change', () => {
-      if (input.files.length > 0) {
-        onFileDrop(input.files);
-      }
-    });
-  }
-
   // Setup Main Image Drag & Drop
   setupDragDropZone('mainImageDropzone', 'mainImageInput', (files) => {
     uploadMediaFile(
@@ -599,7 +653,6 @@
       document.getElementById('mainImageProgressContainer'),
       document.getElementById('mainImageProgressBar'),
       (resp) => {
-        // Show Preview
         document.getElementById('mainImagePreview').src = resp.url;
         document.getElementById('mainImageFilename').textContent = resp.filename;
         document.getElementById('mainImagePreviewContainer').style.display = 'block';

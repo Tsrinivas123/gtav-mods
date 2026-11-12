@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Terms &amp; Service | PawanMod Premium GTA V Mods{% endblock %}
+
+{% block content %}
+<section class="section" style="background: #f8fafc; min-height: calc(100vh - 120px); padding: 40px 4%;">
+  <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 28px;">
+    <div class="section-title-wrap">
+      <span class="section-tag" style="color: var(--accent-orange); font-weight: 700;">Legal Agreement</span>
+      <h1 class="section-title" style="margin: 0 auto; text-transform: uppercase;">Terms &amp; Service</h1>
+      <p style="color: var(--color-text-secondary); max-width: 650px; margin: 10px auto 0; font-size: 0.95rem; line-height: 1.5;">
+        Last updated: January 2026. Please read these terms carefully before accessing or purchasing from PawanMod.
+      </p>
+    </div>
+  </div>
+
+  <div style="max-width: 860px; margin: 0 auto; background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); padding: 32px 36px; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; gap: 24px; color: var(--color-text-primary); line-height: 1.6;">
+    <div>
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">1. Acceptance of Terms</h2>
+      <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin: 0;">
+        By creating an account, browsing, or purchasing digital modifications from PawanMod, you agree to comply with and be bound by these Terms of Service. If you do not agree with any part of these terms, you must not use our service.
+      </p>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 0;">
+
+    <div>
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">2. Digital Products &amp; License</h2>
+      <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin: 0;">
+        All products sold on PawanMod are non-exclusive digital licenses intended solely for personal gameplay and private server deployment. You may not re-upload, distribute, resell, or publicly share raw product assets or license keys without prior written authorization from PawanMod.
+      </p>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 0;">
+
+    <div>
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">3. Disclaimer &amp; Rockstar Games Notice</h2>
+      <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin: 0;">
+        PawanMod is not affiliated with, endorsed, or sponsored by Rockstar Games, Take-Two Interactive, or any of their subsidiaries. Grand Theft Auto and GTA V are registered trademarks of Take-Two Interactive. Modifications are intended for offline story mode or approved custom roleplay frameworks (such as FiveM).
+      </p>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 0;">
+
+    <div>
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">4. Account Responsibilities</h2>
+      <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin: 0;">
+        You are responsible for maintaining the confidentiality of your account credentials and for all activities that take place under your account. We reserve the right to suspend accounts that engage in fraudulent behavior, chargebacks, or abusive activity.
+      </p>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 0;">
+
+    <div>
+      <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">5. Contact &amp; Inquiries</h2>
+      <p style="font-size: 0.9rem; color: var(--color-text-secondary); margin: 0;">
+        If you have questions regarding these terms, please contact our support team through our <a href="{% url 'marketplace:contact' %}" style="color: var(--accent-orange); font-weight: 600;">Support Desk</a>.
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}

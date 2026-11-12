@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Frequently Asked Questions | PawanMod Premium GTA V Mods{% endblock %}
+
+{% block content %}
+<section class="section" style="background: #f8fafc; min-height: calc(100vh - 120px); padding: 40px 4%;">
+  <div class="section-header" style="justify-content: center; text-align: center; margin-bottom: 28px;">
+    <div class="section-title-wrap">
+      <span class="section-tag" style="color: var(--accent-cyan); font-weight: 700;">Help &amp; Documentation</span>
+      <h1 class="section-title" style="margin: 0 auto; text-transform: uppercase;">Frequently Asked Questions</h1>
+      <p style="color: var(--color-text-secondary); max-width: 650px; margin: 10px auto 0; font-size: 0.95rem; line-height: 1.5;">
+        Everything you need to know about purchasing, installing, and managing premium GTA V mods and scripts on PawanMod.
+      </p>
+    </div>
+  </div>
+
+  <div style="max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+    
+    <!-- Group: Purchasing & Delivery -->
+    <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); padding: 24px 28px; box-shadow: var(--shadow-soft);">
+      <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-cart-shopping" style="color: var(--accent-orange);"></i> Purchasing &amp; Instant Downloads
+      </h2>
+      
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 4px;">How do I receive my purchased mods?</h3>
+          <p style="font-size: 0.88rem; color: var(--color-text-secondary); line-height: 1.5; margin: 0;">
+            Purchases are processed instantly. As soon as your checkout payment is confirmed, your download links and license files immediately become available inside your account dashboard under <a href="{% url 'accounts:profile' %}" style="color: var(--accent-orange); font-weight: 600;">My Orders &amp; Inventory</a>.
+          </p>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #f1f5f9;">
+        <div>
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 4px;">Which payment methods are supported?</h3>
+          <p style="font-size: 0.88rem; color: var(--color-text-secondary); line-height: 1.5; margin: 0;">
+            We accept all major Indian and international payment methods via Razorpay, including UPI (Google Pay, PhonePe, Paytm, BHIM), Credit/Debit Cards (Visa, MasterCard, RuPay), Net Banking, and digital wallets.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Group: Installation & Compatibility -->
+    <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); padding: 24px 28px; box-shadow: var(--shadow-soft);">
+      <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-gamepad" style="color: var(--accent-cyan);"></i> Installation &amp; Compatibility
+      </h2>
+      
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 4px;">Are these mods compatible with FiveM and Single Player?</h3>
+          <p style="font-size: 0.88rem; color: var(--color-text-secondary); line-height: 1.5; margin: 0;">
+            Yes. Every product card lists its compatibility specifications. Most of our vehicle packs and scripts come with both FiveM ready resource folders and OpenIV single-player add-on packages.
+          </p>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #f1f5f9;">
+        <div>
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 4px;">Are the mod files safe and scanned for viruses?</h3>
+          <p style="font-size: 0.88rem; color: var(--color-text-secondary); line-height: 1.5; margin: 0;">
+            100% safe. Each file upload is rigorously audited and scanned with multi-engine antivirus tools before release to ensure no malicious code, trojans, or cryptominers are present.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Group: Updates & Support -->
+    <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--border-radius-lg); padding: 24px 28px; box-shadow: var(--shadow-soft);">
+      <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+        <i class="fa-solid fa-headset" style="color: #10b981;"></i> Updates &amp; Support
+      </h2>
+      
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 4px;">Do I get free updates when GTA V updates?</h3>
+          <p style="font-size: 0.88rem; color: var(--color-text-secondary); line-height: 1.5; margin: 0;">
+            Yes. Whenever Rockstar updates GTA V, our creators patch their mods. All customers receive lifetime access to future compatibility revisions of their purchased items at no extra cost.
+          </p>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #f1f5f9;">
+        <div>
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 4px;">Still need assistance?</h3>
+          <p style="font-size: 0.88rem; color: var(--color-text-secondary); line-height: 1.5; margin: 0;">
+            Reach out to our active moderators anytime via our <a href="{% url 'marketplace:contact' %}" style="color: var(--accent-orange); font-weight: 600;">Contact Form</a> or message us on WhatsApp for rapid support.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}

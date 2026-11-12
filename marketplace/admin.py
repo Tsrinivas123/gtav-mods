@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, ProductImage, VersionHistory, Review
+from .models import Category, Product, ProductImage, VersionHistory, Review, NewsletterSubscriber
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
@@ -121,4 +121,12 @@ class ContactMessageAdmin(admin.ModelAdmin):
         extra_context['closed_count'] = ContactMessage.objects.filter(status='closed').count()
         
         return super().changelist_view(request, extra_context=extra_context)
+
+
+@admin.register(NewsletterSubscriber)
+class NewsletterSubscriberAdmin(admin.ModelAdmin):
+    list_display = ('email', 'created_at', 'is_active')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('email',)
+    ordering = ['-created_at']
 

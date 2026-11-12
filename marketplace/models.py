@@ -250,3 +250,18 @@ class SiteSetting(models.Model):
         return f"{self.key}: {self.value}"
 
 
+class NewsletterSubscriber(models.Model):
+    email = models.EmailField(unique=True, max_length=254)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Newsletter Subscriber'
+        verbose_name_plural = 'Newsletter Subscribers'
+
+    def __str__(self):
+        return self.email
+
+
+

@@ -22,6 +22,7 @@ def post_list(request):
         if search_query:
             posts = posts.filter(
                 Q(title__icontains=search_query) |
+                Q(excerpt__icontains=search_query) |
                 Q(content__icontains=search_query) |
                 Q(tags__icontains=search_query) |
                 Q(category__icontains=search_query)
@@ -30,6 +31,8 @@ def post_list(request):
         # Category filter
         if category_query:
             posts = posts.filter(category=category_query)
+            
+        posts = posts.order_by('-publish_date')
             
         recent_posts = list(BlogPost.objects.filter(
             status='published',
@@ -96,19 +99,24 @@ def post_detail(request, slug):
 def submit_comment(request, slug):
     post = get_object_or_404(BlogPost, slug=slug)
     if request.method == 'POST':
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        content = request.POST.get('content')
-        
-        if not name or not email or not content:
-            messages.error(request, "Please fill out all fields.")
+        if not request.user.is_authenticated:
+            messages.error(request, "Please log in to post a comment.")
+            from django.urls import reverse
+            return redirect(f"{reverse('accounts:login')}?next={reverse('blog:post_detail', kwargs={'slug': slug})}")
+            
+        content = request.POST.get('content', '').strip()
+        if not content:
+            messages.error(request, "Comment cannot be empty.")
             return redirect('blog:post_detail', slug=slug)
             
+        name = request.user.get_full_name() or request.user.username
+        email = request.user.email or f"{request.user.username}@pawanmod.com"
+        
         BlogComment.objects.create(
             post=post,
             name=name,
             email=email,
             content=content
         )
-        messages.success(request, "Comment posted successfully!")
+        messages.success(request, "Your comment has been posted successfully!")
     return redirect('blog:post_detail', slug=slug)

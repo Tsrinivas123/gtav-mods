@@ -1,154 +1,122 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Blog Guides & Updates | PawanMod Marketplace{% endblock %}
-
-{% block extra_head %}
-<style>
-  /* Fix responsiveness of blog-card on mobile devices */
-  @media (max-width: 768px) {
-    .blog-card {
-      flex-direction: column !important;
-      height: auto !important;
-      min-height: 0 !important;
-    }
-    .blog-card .blog-img {
-      width: 100% !important;
-      height: 200px !important;
-      min-height: auto !important;
-    }
-    .blog-card .blog-img img {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: cover !important;
-    }
-    .blog-card .blog-info {
-      padding: 18px 16px !important;
-    }
-  }
-
-  @media (max-width: 576px) {
-    .blog-card .blog-img {
-      height: 170px !important;
-    }
-    .blog-card .blog-info {
-      padding: 14px 12px !important;
-    }
-    .blog-card .blog-title {
-      font-size: 1.15rem !important;
-      line-height: 1.35 !important;
-      margin-top: 4px !important;
-      word-break: break-word !important;
-    }
-    .blog-card .blog-excerpt {
-      font-size: 0.82rem !important;
-      line-height: 1.5 !important;
-      margin-top: 6px !important;
-    }
-    .blog-card .blog-readmore {
-      font-size: 0.82rem !important;
-    }
-  }
-</style>
-{% endblock %}
+{% block title %}PawanMod | GTA 5 Modding Guides, Tutorials & News{% endblock %}
 
 {% block content %}
-<section class="section" style="padding-top: 40px;">
-  <div class="store-layout">
+<section class="section" style="background: #f3f4f6; min-height: calc(100vh - 60px); padding: 32px 20px;">
+  <div class="blog-page-container">
 
-    <!-- Sidebar: Search & popular articles -->
-    <aside class="filter-sidebar">
-      <div class="filter-title">
-        <span>Blog Index</span>
+    <!-- Section Header -->
+    <div class="section-header" style="justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+      <div class="section-title-wrap">
+        <span class="section-tag" style="color: var(--accent-orange); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Guides & Modding Insights</span>
+        <h2 class="section-title" style="margin: 4px 0 0; text-transform: uppercase;">PawanMod Blog</h2>
       </div>
+      {% if search_query or selected_category %}
+        <a href="{% url 'blog:post_list' %}" class="btn btn-secondary" style="padding: 7px 16px; font-size: 0.8rem; border-radius: 6px;"><i class="fa-solid fa-xmark"></i> Clear Filters</a>
+      {% endif %}
+    </div>
 
-      <!-- Search Form -->
-      <form method="GET" action="{% url 'blog:post_list' %}" style="margin-bottom: 30px;">
-        <div class="filter-section">
-          <h4 class="filter-section-title">Search Articles</h4>
-          <div class="filter-search-box">
-            <input type="text" name="search" value="{{ search_query }}" placeholder="Search articles..."
-              class="form-input">
-            <i class="fa-solid fa-magnifying-glass"></i>
+    <!-- 2-Column Layout -->
+    <div class="blog-layout-grid">
+
+      <!-- Left Sidebar: Search, Categories, Popular Reads -->
+      <aside class="blog-sidebar">
+        <h4 class="blog-sidebar-title">
+          <i class="fa-solid fa-compass" style="color: var(--accent-orange);"></i> Blog Index
+        </h4>
+
+        <!-- Search Form -->
+        <div class="blog-sidebar-section">
+          <span class="blog-sidebar-label">Search Articles</span>
+          <form method="GET" action="{% url 'blog:post_list' %}" id="blogSearchForm">
+            <div class="blog-search-box">
+              <input type="text" name="search" id="blogSearchInput" value="{{ search_query }}" placeholder="Search articles..." class="blog-search-input" autocomplete="off">
+              {% if search_query %}
+                <a href="{% url 'blog:post_list' %}{% if selected_category %}?category={{ selected_category }}{% endif %}" class="blog-search-clear-btn" title="Clear search" style="position: absolute; right: 30px; top: 50%; transform: translateY(-50%); color: #94a3b8; text-decoration: none; font-size: 0.9rem; padding: 2px;">
+                  <i class="fa-solid fa-xmark"></i>
+                </a>
+              {% endif %}
+              <button type="submit" class="blog-search-btn" id="blogSearchBtn" aria-label="Search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Categories Links -->
+        <div class="blog-sidebar-section">
+          <span class="blog-sidebar-label">Categories</span>
+          <div class="blog-cat-list">
+            <a href="{% url 'blog:post_list' %}" class="blog-cat-link {% if not selected_category %}active{% endif %}">
+              <span><i class="fa-solid fa-layer-group" style="width: 18px;"></i> All Categories</span>
+            </a>
+            {% for code, label in categories %}
+            <a href="{% url 'blog:post_list' %}?category={{ code }}" class="blog-cat-link {% if selected_category == code %}active{% endif %}">
+              <span><i class="fa-regular fa-folder-open" style="width: 18px;"></i> {{ label }}</span>
+            </a>
+            {% endfor %}
           </div>
         </div>
-      </form>
 
-      <!-- Categories Links -->
-      <div class="filter-section" style="margin-bottom: 30px;">
-        <h4 class="filter-section-title">Categories</h4>
-        <div class="category-checkboxes">
-          <a href="{% url 'blog:post_list' %}"
-            style="font-size: 0.85rem; display: block; padding: 6px 0; color: {% if not selected_category %}var(--accent-orange){% else %}var(--color-text-secondary){% endif %};">
-            <i class="fa-solid fa-layer-group"></i> All Categories
-          </a>
-          {% for code, label in categories %}
-          <a href="{% url 'blog:post_list' %}?category={{ code }}"
-            style="font-size: 0.85rem; display: block; padding: 6px 0; color: {% if selected_category == code %}var(--accent-orange){% else %}var(--color-text-secondary){% endif %};">
-            <i class="fa-regular fa-folder-open"></i> {{ label }}
-          </a>
-          {% endfor %}
-        </div>
-      </div>
-
-      <!-- Popular articles list -->
-      <div class="filter-section">
-        <h4 class="filter-section-title">Popular Reads</h4>
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          {% for pop in popular_posts %}
-          <div>
-            <a href="{% url 'blog:post_detail' pop.slug %}"
-              style="font-size: 0.85rem; font-weight: 700; color: var(--color-text-primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3;">{{ pop.title }}</a>
-            <span style="font-size: 0.75rem; color: var(--color-text-muted);"><i class="fa-solid fa-eye"></i> {{ pop.views_count }} views</span>
+        <!-- Popular Reads -->
+        <div class="blog-sidebar-section">
+          <span class="blog-sidebar-label">Popular Reads</span>
+          <div style="display: flex; flex-direction: column;">
+            {% for pop in popular_posts %}
+            <a href="{% url 'blog:post_detail' pop.slug %}" class="blog-pop-item">
+              <span class="blog-pop-title">{{ pop.title }}</span>
+              <span class="blog-pop-meta"><i class="fa-regular fa-eye"></i> {{ pop.views_count }} views</span>
+            </a>
+            {% empty %}
+            <p style="font-size: 0.8rem; color: #94a3b8; margin: 0;">No popular articles yet.</p>
+            {% endfor %}
           </div>
-          {% empty %}
-          <p style="font-size: 0.8rem; color: var(--color-text-muted);">No popular articles yet.</p>
-          {% endfor %}
         </div>
-      </div>
-    </aside>
+      </aside>
 
-    <!-- Main posts listing -->
-    <div>
-      <div class="blog-grid" style="grid-template-columns: 1fr;">
+      <!-- Right Main: Articles List -->
+      <main>
         {% for article in posts %}
-        <div class="blog-card" style="flex-direction: row; height: auto; min-height: 240px; margin-bottom: 25px; border-color: var(--card-border);">
-          <div class="blog-img" style="width: 280px; height: auto; flex-shrink: 0; min-height: 240px;">
+        <div class="blog-post-card">
+          <div class="blog-post-thumb">
             {% if article.featured_image %}
-            <img src="{{ article.featured_image.url }}" alt="{{ article.title }}">
+              <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" loading="lazy">
             {% else %}
-            <div
-              style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); color: var(--color-text-muted);">
-              <i class="fa-solid fa-newspaper fa-2x"></i></div>
+              <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #0f172a; color: #64748b;">
+                <i class="fa-solid fa-newspaper fa-3x"></i>
+              </div>
             {% endif %}
-            <span class="blog-cat-badge">{{ article.get_category_display }}</span>
+            <span class="blog-badge">{{ article.get_category_display }}</span>
           </div>
 
-          <div class="blog-info">
-            <span class="blog-date">
-              <i class="fa-regular fa-calendar-days"></i> {{ article.publish_date|date:"F d, Y" }}
-              <span style="margin-left: 10px;"><i class="fa-regular fa-clock"></i> {{ article.reading_time }} min read</span>
-            </span>
-            <h3 class="blog-title" style="font-size: 1.4rem; margin-top: 5px;"><a
-                href="{% url 'blog:post_detail' article.slug %}">{{ article.title }}</a></h3>
-            <p class="blog-excerpt" style="margin-top: 10px;">{{ article.excerpt }}</p>
+          <div class="blog-post-body">
+            <div class="blog-post-meta">
+              <span><i class="fa-regular fa-calendar-days"></i> {{ article.publish_date|date:"F d, Y" }}</span>
+              <span><i class="fa-regular fa-clock"></i> {{ article.reading_time }} min read</span>
+            </div>
 
-            <div
-              style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; border-top: 1px solid var(--card-border); padding-top: 15px;">
-              <a href="{% url 'blog:post_detail' article.slug %}" class="blog-readmore">Read Complete Article <i
-                  class="fa-solid fa-arrow-right-long"></i></a>
-              <span style="font-size: 0.75rem; color: var(--color-text-muted);"><i class="fa-regular fa-eye"></i> {{ article.views_count }} views</span>
+            <h3 class="blog-post-title">
+              <a href="{% url 'blog:post_detail' article.slug %}">{{ article.title }}</a>
+            </h3>
+
+            <p class="blog-post-excerpt">{{ article.excerpt }}</p>
+
+            <div class="blog-post-footer">
+              <a href="{% url 'blog:post_detail' article.slug %}" class="blog-read-btn">
+                Read Complete Article <i class="fa-solid fa-arrow-right-long"></i>
+              </a>
+              <span class="blog-views-badge"><i class="fa-regular fa-eye"></i> {{ article.views_count }} views</span>
             </div>
           </div>
         </div>
         {% empty %}
         <!-- Empty State -->
-        <div
-          style="text-align: center; padding: 60px; color: var(--color-text-secondary); background: var(--card-bg); border-radius: var(--border-radius); border: 1px solid var(--glass-border);">
+        <div style="text-align: center; padding: 60px 20px; background: #ffffff; border-radius: 12px; border: 1px solid var(--card-border); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">
           <i class="fa-solid fa-book-open fa-3x" style="color: var(--accent-orange); margin-bottom: 15px;"></i>
-          <h3>No Articles Found</h3>
-          <p style="font-size: 0.85rem; margin-top: 5px;">We couldn't find any articles matching your search criteria.
-          </p>
+          <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f172a; margin: 0 0 8px 0;">No Articles Found</h3>
+          <p style="font-size: 0.88rem; color: #64748b; margin: 0;">We couldn't find any articles matching your search criteria.</p>
         </div>
         {% endfor %}
 
@@ -157,25 +125,26 @@
         <div class="pagination" style="margin-top: 30px; display: flex; gap: 8px; justify-content: center;">
           {% if posts.has_previous %}
           <a href="?page={{ posts.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
-            class="page-item" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid var(--glass-border); border-radius: 4px; color: var(--color-text-primary); text-decoration: none;"><i class="fa-solid fa-chevron-left"></i></a>
+            class="page-item" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 1px solid var(--card-border); background: #ffffff; border-radius: 8px; color: var(--color-text-primary); text-decoration: none; font-size: 0.85rem;"><i class="fa-solid fa-chevron-left"></i></a>
           {% endif %}
 
           {% for num in posts.paginator.page_range %}
           {% if posts.number == num %}
-          <span class="page-item active" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: var(--accent-orange); border-radius: 4px; color: white; font-weight: bold;">{{ num }}</span>
+          <span class="page-item active" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: var(--accent-orange); border-radius: 8px; color: white; font-weight: 700; font-size: 0.85rem;">{{ num }}</span>
           {% else %}
           <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
-            class="page-item" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid var(--glass-border); border-radius: 4px; color: var(--color-text-primary); text-decoration: none;">{{ num }}</a>
+            class="page-item" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 1px solid var(--card-border); background: #ffffff; border-radius: 8px; color: var(--color-text-primary); text-decoration: none; font-size: 0.85rem;">{{ num }}</a>
           {% endif %}
           {% endfor %}
 
           {% if posts.has_next %}
           <a href="?page={{ posts.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}"
-            class="page-item" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 1px solid var(--glass-border); border-radius: 4px; color: var(--color-text-primary); text-decoration: none;"><i class="fa-solid fa-chevron-right"></i></a>
+            class="page-item" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 1px solid var(--card-border); background: #ffffff; border-radius: 8px; color: var(--color-text-primary); text-decoration: none; font-size: 0.85rem;"><i class="fa-solid fa-chevron-right"></i></a>
           {% endif %}
         </div>
         {% endif %}
-      </div>
+      </main>
+
     </div>
 
   </div>

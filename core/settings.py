@@ -4,10 +4,10 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
-# Load environmental variables
-load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environmental variables from .env with override=True
+load_dotenv(os.path.join(BASE_DIR, '.env'), override=True)
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-secret-key-1234567890')
 

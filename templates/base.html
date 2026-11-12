@@ -21,7 +21,7 @@
 
   <!-- Icons & Fonts -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=3.1">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=4.5">
 
   {% block extra_head %}{% endblock %}
 </head>
@@ -52,6 +52,8 @@
           class="nav-link {% if request.resolver_match.url_name == 'categories_list' or request.resolver_match.url_name == 'category_detail' %}active{% endif %}">Categories</a>
         <a href="{% url 'blog:post_list' %}"
           class="nav-link {% if request.resolver_match.url_name == 'post_list' or request.resolver_match.url_name == 'post_detail' %}active{% endif %}">Blog</a>
+        <a href="{% url 'marketplace:membership' %}"
+          class="nav-link {% if request.resolver_match.url_name == 'membership' %}active{% endif %}">Membership</a>
         <a href="{% url 'marketplace:contact' %}"
           class="nav-link {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a>
       </nav>
@@ -66,16 +68,59 @@
           </button>
         </form>
 
-        <!-- Modern Cart Icon -->
-        <a href="{% url 'orders:cart' %}" class="header-cart" id="cartIcon" aria-label="Shopping Cart, {{ cart_count|default:'0' }} items">
-          <div style="position: relative; display: flex; align-items: center;">
-            <i class="fa-solid fa-cart-shopping"></i>
-            {% if cart_count > 0 %}
-            <span class="header-cart-badge cart-badge">{{ cart_count }}</span>
-            {% endif %}
+        <!-- Modern Cart Icon & Mini Cart Dropdown -->
+        <div class="header-cart-wrapper" id="headerCartWrapper" style="position: relative;">
+          <a href="{% url 'orders:cart' %}" class="header-cart" id="cartIcon" aria-label="Shopping Cart, {{ cart_count|default:'0' }} items">
+            <div style="position: relative; display: flex; align-items: center;">
+              <i class="fa-solid fa-cart-shopping"></i>
+              <span class="header-cart-badge cart-badge" id="headerCartBadge" style="{% if not cart_count %}display: none;{% endif %}">{{ cart_count|default:'0' }}</span>
+            </div>
+            <span class="header-cart-total" id="headerCartTotal">₹{{ cart_total|default:'0.00' }}</span>
+          </a>
+
+          <!-- Mini Cart Dropdown (As shown in Reference) -->
+          <div class="mini-cart-dropdown" id="miniCartDropdown">
+            <div class="mini-cart-items-list" id="miniCartItemsList">
+              {% if cart_items %}
+                {% for item in cart_items %}
+                <div class="mini-cart-item" data-product-id="{{ item.product.id }}">
+                  <div class="mini-cart-img-wrap">
+                    {% if item.product.main_image and item.product.main_image.name %}
+                    <img src="{{ item.product.main_image.url }}" alt="{{ item.product.name }}">
+                    {% else %}
+                    <div class="mini-cart-img-placeholder"><i class="fa-solid fa-box"></i></div>
+                    {% endif %}
+                  </div>
+                  <div class="mini-cart-info">
+                    <h4 class="mini-cart-title">{{ item.product.name }}</h4>
+                    <span class="mini-cart-qty-price">{{ item.quantity }} &times; ₹{{ item.product.price }}</span>
+                  </div>
+                  <button type="button" class="mini-cart-remove-btn" data-product-id="{{ item.product.id }}" aria-label="Remove item" title="Remove item">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+                {% endfor %}
+              {% else %}
+                <div class="mini-cart-empty" id="miniCartEmpty">
+                  <i class="fa-solid fa-cart-shopping" style="font-size: 1.6rem; color: #cbd5e1; margin-bottom: 8px;"></i>
+                  <p style="margin: 0; color: #64748b; font-size: 0.82rem; font-weight: 600;">Your cart is empty</p>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="mini-cart-bottom-box" id="miniCartBottomBox" style="{% if not cart_items %}display: none;{% endif %}">
+              <div class="mini-cart-divider"></div>
+              <div class="mini-cart-subtotal-row">
+                <span class="mini-cart-subtotal-label">Subtotal:</span>
+                <span class="mini-cart-subtotal-val" id="miniCartSubtotalVal">₹{{ cart_total|default:'0.00' }}</span>
+              </div>
+              <div class="mini-cart-btns">
+                <a href="{% url 'orders:cart' %}" class="btn-mini-cart-view">VIEW CART</a>
+                <a href="{% url 'orders:checkout' %}" class="btn-mini-cart-checkout">CHECKOUT</a>
+              </div>
+            </div>
           </div>
-          <span class="header-cart-total">₹{{ cart_total|default:'0.00' }}</span>
-        </a>
+        </div>
 
         {% if request.user.is_authenticated and request.user.is_staff or request.user.is_superuser %}
         <a href="{% url 'custom_admin:dashboard' %}" class="btn-admin-nav" style="color: #FF6B00; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; padding: 6px 12px; border: 1px solid rgba(255,107,0,0.3); border-radius: 20px; background: rgba(255,107,0,0.1);" title="Admin Dashboard">
@@ -105,59 +150,49 @@
     {% endblock %}
   </main>
 
-  <!-- Immersive Cyberpunk Footer -->
+  <!-- Clean Modern Centered Footer -->
   <footer>
-    <div class="footer-top">
-      <div class="footer-logo-desc">
+    <div class="footer-clean-container">
+      <div class="footer-brand-center">
         <a href="{% url 'marketplace:home' %}" class="logo">
           <i class="fa-solid fa-cube"></i> PAWAN<span>MOD</span>
         </a>
-        <p>A premium marketplace for high-performance GTA V modifications, scripting additions, vehicle packs, map
-          environments, and visual enhancements. Level up your Los Santos experience.</p>
-        <div class="footer-socials">
-          <a href="https://discord.gg/example" class="footer-social-btn" aria-label="Discord Server" target="_blank" rel="noopener"><i class="fa-brands fa-discord"></i></a>
-          <a href="https://youtube.com/example" class="footer-social-btn" aria-label="YouTube Channel" target="_blank" rel="noopener"><i class="fa-brands fa-youtube"></i></a>
-          <a href="https://instagram.com/example" class="footer-social-btn" aria-label="Instagram Profile" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i></a>
-          <a href="https://telegram.me/example" class="footer-social-btn" aria-label="Telegram Channel" target="_blank" rel="noopener"><i class="fa-brands fa-telegram"></i></a>
-        </div>
+        <p class="footer-tagline">Premium GTA 5 Mods, Custom Vehicles, Maps & Scripts Marketplace.</p>
       </div>
 
-      <div class="footer-links-col">
-        <h4 class="footer-col-title">Categories</h4>
-        <ul>
-          <li><a href="{% url 'marketplace:store' %}?category=vehicles">🚗 Vehicles</a></li>
-          <li><a href="{% url 'marketplace:store' %}?category=maps">🗺️ Custom Maps</a></li>
-          <li><a href="{% url 'marketplace:store' %}?category=scripts">📦 Script Packs</a></li>
-          <li><a href="{% url 'marketplace:store' %}?category=graphics">🎨 Graphics Packs</a></li>
-        </ul>
+      <div class="footer-nav-bar">
+        <a href="{% url 'marketplace:home' %}">Home</a>
+        <span class="footer-nav-dot">•</span>
+        <a href="{% url 'marketplace:store' %}">Store</a>
+        <span class="footer-nav-dot">•</span>
+        <a href="{% url 'marketplace:categories_list' %}">Categories</a>
+        <span class="footer-nav-dot">•</span>
+        <a href="{% url 'blog:post_list' %}">Blog</a>
+        <span class="footer-nav-dot">•</span>
+        <a href="{% url 'marketplace:membership' %}">Membership</a>
+        <span class="footer-nav-dot">•</span>
+        <a href="{% url 'marketplace:contact' %}">Contact</a>
+        <span class="footer-nav-dot">•</span>
+        <a href="{% url 'marketplace:faq' %}">FAQ</a>
+        <span class="footer-nav-dot">•</span>
+        <a href="{% url 'marketplace:privacy' %}">Privacy Policy</a>
+        <span class="footer-nav-dot">•</span>
+        <a href="{% url 'marketplace:refunds' %}">Refund Policy</a>
+        <span class="footer-nav-dot">•</span>
+        <a href="{% url 'marketplace:terms' %}">Terms</a>
       </div>
 
-      <div class="footer-links-col">
-        <h4 class="footer-col-title">Support</h4>
-        <ul>
-          <li><a href="{% url 'marketplace:contact' %}">Contact Moderators</a></li>
-          <li><a href="{% url 'blog:post_list' %}">Tutorials & Guides</a></li>
-          <li><a href="/faq/">Frequently Asked Questions</a></li>
-          <li><a href="/terms/">Terms & Service</a></li>
-        </ul>
+      <div class="footer-social-links" style="display: flex; gap: 12px; justify-content: center; align-items: center; margin: 18px 0 10px; flex-wrap: wrap;">
+        <a href="https://t.me/pawan9752" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; color: #229ED9; font-weight: 700; font-size: 0.82rem; text-decoration: none; padding: 6px 14px; background: rgba(34,158,217,0.08); border: 1px solid rgba(34,158,217,0.25); border-radius: 20px; transition: all 0.2s ease;">
+          <i class="fa-brands fa-telegram" style="font-size: 0.95rem;"></i> Telegram: @pawan9752
+        </a>
+        <a href="https://discord.gg/pawanmod" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; color: #5865F2; font-weight: 700; font-size: 0.82rem; text-decoration: none; padding: 6px 14px; background: rgba(88,101,242,0.08); border: 1px solid rgba(88,101,242,0.25); border-radius: 20px; transition: all 0.2s ease;">
+          <i class="fa-brands fa-discord" style="font-size: 0.95rem;"></i> Discord Community
+        </a>
       </div>
 
-      <div class="footer-links-col">
-        <h4 class="footer-col-title">Newsletter</h4>
-        <p class="footer-newsletter-desc">Subscribe to receive exclusive beta mod releases and weekly promo codes.</p>
-        <form class="newsletter-form" onsubmit="event.preventDefault(); window.showToast('Subscribed to newsletter successfully!', 'success');">
-          <input type="email" placeholder="Enter email address" class="form-input" required aria-label="Email address for newsletter">
-          <button type="submit" class="btn btn-primary" style="padding: 10px 15px;" aria-label="Subscribe to newsletter"><i class="fa-solid fa-paper-plane"></i></button>
-        </form>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <p>&copy; 2026 PawanMod Marketplace. All rights reserved. Not affiliated with Rockstar Games or Take-Two
-        Interactive.</p>
-      <div class="footer-legal-links">
-        <a href="/privacy/">Privacy Policy</a>
-        <a href="/refunds/">Refund Policy</a>
+      <div class="footer-bottom">
+        <p>&copy; 2026 PawanMod Marketplace. All rights reserved. Not affiliated with Rockstar Games or Take-Two Interactive.</p>
       </div>
     </div>
   </footer>
@@ -168,7 +203,7 @@
   </a>
 
   <!-- Global Particle System and Header Interaction JS -->
-  <script src="{% static 'js/main.js' %}"></script>
+  <script src="{% static 'js/main.js' %}?v=5.0"></script>
   {% block extra_js %}{% endblock %}
 </body>
 

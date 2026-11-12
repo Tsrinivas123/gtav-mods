@@ -64,6 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     });
+
+    // Check if ?tab=reviews in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('tab') === 'reviews') {
+      const revTabBtn = document.querySelector('[data-tab="tabReviews"]');
+      if (revTabBtn) revTabBtn.click();
+    }
   }
 
   // 3. Copy Install Script / Commands Clipboard
@@ -120,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fetch(url, {
         method: 'POST',
         headers: {
-          'X-CSRFToken': getCookie('csrftoken'),
+          'X-CSRFToken': getCookie('csrftoken') || '',
           'X-Requested-With': 'XMLHttpRequest'
         },
         body: formData
@@ -128,22 +135,34 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
-          // Update cart badge counts
-          const badges = document.querySelectorAll('.cart-badge');
-          badges.forEach(b => b.innerText = data.cart_count);
+          // 1. Immediately update header badge & total directly
+          const badge = document.getElementById('headerCartBadge');
+          const headerTotal = document.getElementById('headerCartTotal');
+          const totalText = data.cart_total_formatted || ('₹' + (data.cart_total || '0.00'));
           
-          // Flash message notification
-          const flash = document.createElement('div');
-          flash.style.cssText = 'position: fixed; top: 90px; right: 5%; z-index: 9999; background: var(--card-bg); border-left: 4px solid var(--color-success); border-radius: 4px; padding: 15px 20px; box-shadow: var(--shadow-soft); display: flex; align-items: center; gap: 12px; font-size: 0.85rem;';
-          flash.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--color-success); font-size: 1.1rem;"></i> <span>${data.message}</span>`;
-          document.body.appendChild(flash);
-          
-          setTimeout(() => {
-            flash.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            flash.style.opacity = '0';
-            flash.style.transform = 'translateY(-20px)';
-            setTimeout(() => flash.remove(), 600);
-          }, 3000);
+          if (badge) {
+            badge.innerText = data.cart_count || 0;
+            badge.style.display = (data.cart_count > 0) ? 'inline-block' : 'none';
+          }
+          if (headerTotal) {
+            headerTotal.innerText = totalText;
+          }
+
+          // 2. Update mini-cart dropdown
+          if (window.renderMiniCart) {
+            window.renderMiniCart(data);
+          }
+          if (window.openMiniCart) {
+            window.openMiniCart();
+          } else {
+            const dropdown = document.getElementById('miniCartDropdown');
+            if (dropdown) dropdown.classList.add('open');
+          }
+
+          // 3. Show confirmation toast
+          if (window.showToast) {
+            window.showToast(data.message || 'Added to cart!', 'success');
+          }
         }
       })
       .catch(err => console.error('Cart operation failure: ', err));

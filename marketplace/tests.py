@@ -423,3 +423,105 @@ class MarketplaceModelTests(TestCase):
         resp_checkout_page = self.client.get(reverse('orders:checkout'))
         self.assertEqual(resp_checkout_page.status_code, 200)
         self.assertContains(resp_checkout_page, "Checkout")
+
+
+class NewsletterAndFooterTests(TestCase):
+    def setUp(self):
+        from marketplace.models import NewsletterSubscriber, Category
+        self.category_veh = Category.objects.create(name="Vehicles", slug="vehicles", icon="fa-car", status="active")
+        self.category_maps = Category.objects.create(name="Maps & Safehouses", slug="maps-safehouses", icon="fa-map", status="active")
+
+    def test_newsletter_subscribe_valid_ajax(self):
+        """Verify submitting valid email via AJAX saves subscriber and returns success JSON."""
+        from marketplace.models import NewsletterSubscriber
+        url = reverse('marketplace:newsletter_subscribe')
+        response = self.client.post(url, {'email': 'player1@example.com'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data.get('success'))
+        self.assertTrue(NewsletterSubscriber.objects.filter(email='player1@example.com').exists())
+
+    def test_newsletter_subscribe_standard_post(self):
+        """Verify submitting valid email via regular POST redirects and persists."""
+        from marketplace.models import NewsletterSubscriber
+        url = reverse('marketplace:newsletter_subscribe')
+        response = self.client.post(url, {'email': 'regular_post@example.com'})
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(NewsletterSubscriber.objects.filter(email='regular_post@example.com').exists())
+
+    def test_newsletter_subscribe_invalid_email(self):
+        """Verify invalid email formats are rejected with 400 status and error message."""
+        from marketplace.models import NewsletterSubscriber
+        url = reverse('marketplace:newsletter_subscribe')
+        response = self.client.post(url, {'email': 'not-an-email'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data.get('success'))
+        self.assertFalse(NewsletterSubscriber.objects.filter(email='not-an-email').exists())
+
+    def test_newsletter_subscribe_empty_email(self):
+        """Verify empty email is rejected."""
+        url = reverse('marketplace:newsletter_subscribe')
+        response = self.client.post(url, {'email': '   '}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data.get('success'))
+
+    def test_newsletter_subscribe_duplicate_email(self):
+        """Verify duplicate subscriptions do not duplicate records and inform the user."""
+        from marketplace.models import NewsletterSubscriber
+        NewsletterSubscriber.objects.create(email='duplicate@example.com')
+        url = reverse('marketplace:newsletter_subscribe')
+        response = self.client.post(url, {'email': 'duplicate@example.com'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 409)
+        data = response.json()
+        self.assertFalse(data.get('success'))
+        self.assertTrue(data.get('already_subscribed'))
+        self.assertEqual(NewsletterSubscriber.objects.filter(email='duplicate@example.com').count(), 1)
+
+    def test_newsletter_subscribe_get_method_rejected(self):
+        """Verify GET requests to subscription endpoint are rejected."""
+        url = reverse('marketplace:newsletter_subscribe')
+        response = self.client.get(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 405)
+
+    def test_footer_pages_render_successfully(self):
+        """Verify FAQ, Terms, Privacy, and Refunds pages render 200 OK."""
+        pages = [
+            (reverse('marketplace:faq'), 'Frequently Asked Questions'),
+            (reverse('marketplace:terms'), 'Terms & Service'),
+            (reverse('marketplace:privacy'), 'Privacy Policy'),
+            (reverse('marketplace:refunds'), 'Refund Policy'),
+        ]
+        for url, title in pages:
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200, f"Failed for {url}")
+            self.assertContains(response, title)
+
+    def test_footer_markup_in_base_template(self):
+        """Verify footer on homepage has verified URLs for WhatsApp, Telegram, Discord, and info pages."""
+        response = self.client.get(reverse('marketplace:home'))
+        self.assertEqual(response.status_code, 200)
+
+        # WhatsApp button
+        self.assertContains(response, 'https://wa.me/917566631481')
+        self.assertContains(response, 'class="whatsapp-float"')
+
+        # Verified Socials
+        self.assertContains(response, 'https://discord.gg/pawanmod')
+        self.assertContains(response, 'https://t.me/pawanmod_net')
+        self.assertContains(response, 'data-social="youtube"')
+        self.assertContains(response, 'data-social="instagram"')
+
+        # Working Categories
+        self.assertContains(response, '?category=vehicles')
+        self.assertContains(response, '?category=maps-safehouses')
+        self.assertContains(response, '?category=scripts-huds')
+        self.assertContains(response, '?category=graphics-presets')
+
+        # Working Info pages
+        self.assertContains(response, reverse('marketplace:faq'))
+        self.assertContains(response, reverse('marketplace:terms'))
+        self.assertContains(response, reverse('marketplace:privacy'))
+        self.assertContains(response, reverse('marketplace:refunds'))
+
