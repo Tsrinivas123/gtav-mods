@@ -190,16 +190,11 @@
   <div class="form-section">
     <div class="form-section-title"><i class="fa-solid fa-circle-info"></i> Basic Information</div>
 
-    <div class="form-row" style="margin-bottom:20px; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px;">
+    <div class="form-row" style="margin-bottom:20px;">
       <div class="admin-field">
         <label class="admin-label" for="id_name">Product Name <span class="req">*</span></label>
         {{ form.name }}
         {% for e in form.name.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
-      </div>
-      <div class="admin-field">
-        <label class="admin-label" for="id_game"><i class="fa-solid fa-gamepad" style="color: var(--color-primary); margin-right: 4px;"></i> Game <span class="req">*</span></label>
-        {{ form.game }}
-        {% for e in form.game.errors %}<span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ e }}</span>{% endfor %}
       </div>
       <div class="admin-field">
         <label class="admin-label" for="id_category">Category <span class="req">*</span></label>

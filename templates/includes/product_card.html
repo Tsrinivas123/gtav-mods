@@ -12,12 +12,7 @@
     </div>
 
     <div class="mod-info">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-        <span class="mod-category-label">{{ product.category.name|upper|default:"ALL MODS" }}</span>
-        {% if product.game == 'beamng' %}
-        <span style="font-size: 0.65rem; font-weight: 700; color: #ff6b35; background: rgba(255, 107, 53, 0.12); padding: 2px 6px; border-radius: 4px; letter-spacing: 0.5px; border: 1px solid rgba(255, 107, 53, 0.3);">BEAMNG</span>
-        {% endif %}
-      </div>
+      <span class="mod-category-label">{{ product.category.name|upper|default:"ALL MODS" }}</span>
       <h3 class="mod-name">{{ product.name }}</h3>
 
       <div class="mod-price-box">

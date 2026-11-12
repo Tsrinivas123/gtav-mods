@@ -35,19 +35,6 @@
           </div>
         </div>
 
-        <!-- Target Game Section -->
-        <div class="filter-section">
-          <label for="gameSelect" class="filter-section-title" style="display: block;">Game Platform</label>
-          <div class="custom-select-wrap">
-            <select id="gameSelect" name="game" class="filter-select-input autosubmit-filter" aria-label="Game platform filter">
-              <option value="">All Games (GTA 5 &amp; BeamNG)</option>
-              <option value="gta5" {% if game_filter == 'gta5' %}selected{% endif %}>GTA 5 Only</option>
-              <option value="beamng" {% if game_filter == 'beamng' %}selected{% endif %}>BeamNG.drive Only</option>
-            </select>
-            <i class="fa-solid fa-chevron-down select-chevron-icon"></i>
-          </div>
-        </div>
-
         <!-- Categories Section -->
         <div class="filter-section">
           <span class="filter-section-title">Category</span>
@@ -186,7 +173,7 @@
       {% if products.has_other_pages %}
       <div class="pagination">
         {% if products.has_previous %}
-        <a href="?page={{ products.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% for cat in selected_categories %}&category={{ cat }}{% endfor %}&min_price={{ min_price }}&max_price={{ max_price }}&sort_by={{ sort_by }}&stock_status={{ stock_status }}&game={{ game_filter }}"
+        <a href="?page={{ products.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% for cat in selected_categories %}&category={{ cat }}{% endfor %}&min_price={{ min_price }}&max_price={{ max_price }}&sort_by={{ sort_by }}&stock_status={{ stock_status }}"
           class="page-item" aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></a>
         {% endif %}
 
@@ -194,13 +181,13 @@
           {% if products.number == num %}
             <span class="page-item active">{{ num }}</span>
           {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
-            <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% for cat in selected_categories %}&category={{ cat }}{% endfor %}&min_price={{ min_price }}&max_price={{ max_price }}&sort_by={{ sort_by }}&stock_status={{ stock_status }}&game={{ game_filter }}"
+            <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% for cat in selected_categories %}&category={{ cat }}{% endfor %}&min_price={{ min_price }}&max_price={{ max_price }}&sort_by={{ sort_by }}&stock_status={{ stock_status }}"
               class="page-item">{{ num }}</a>
           {% endif %}
         {% endfor %}
 
         {% if products.has_next %}
-        <a href="?page={{ products.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% for cat in selected_categories %}&category={{ cat }}{% endfor %}&min_price={{ min_price }}&max_price={{ max_price }}&sort_by={{ sort_by }}&stock_status={{ stock_status }}&game={{ game_filter }}"
+        <a href="?page={{ products.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% for cat in selected_categories %}&category={{ cat }}{% endfor %}&min_price={{ min_price }}&max_price={{ max_price }}&sort_by={{ sort_by }}&stock_status={{ stock_status }}"
           class="page-item" aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></a>
         {% endif %}
       </div>

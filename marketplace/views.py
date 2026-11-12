@@ -156,11 +156,6 @@ def store(request):
         products_query = Product.objects.select_related('category').filter(stock_status='available', category__status='active')
         categories = list(Category.objects.filter(status='active').order_by('display_order', 'id'))
 
-        # Apply game filter if requested
-        game_filter = request.GET.get('game', '')
-        if game_filter in ['gta5', 'beamng']:
-            products_query = products_query.filter(game=game_filter)
-
         # Apply search text filter
         search_query = request.GET.get('search', '')
         if search_query:
@@ -232,83 +227,8 @@ def store(request):
         'sort_by': sort_by,
         'view_mode': view_mode,
         'total_count': total_count,
-        'game_filter': game_filter if 'game_filter' in locals() else '',
     }
     return render(request, 'store.html', context)
-
-def beamng_store(request):
-    """
-    Dedicated BeamNG.drive storefront featuring custom cars, crash physics, maps, and sound packs.
-    """
-    from django.core.paginator import Paginator
-    view_mode = request.GET.get('view_mode', 'grid')
-    try:
-        products_query = Product.objects.select_related('category').filter(
-            game='beamng', stock_status='available', category__status='active'
-        )
-        categories = list(Category.objects.filter(status='active').order_by('display_order', 'id'))
-
-        search_query = request.GET.get('search', '')
-        if search_query:
-            products_query = products_query.filter(
-                Q(name__icontains=search_query) | 
-                Q(short_description__icontains=search_query) |
-                Q(description__icontains=search_query) |
-                Q(category__name__icontains=search_query)
-            )
-
-        selected_categories = request.GET.getlist('category')
-        if selected_categories:
-            products_query = products_query.filter(category__slug__in=selected_categories)
-
-        min_price = request.GET.get('min_price')
-        max_price = request.GET.get('max_price')
-        if min_price:
-            products_query = products_query.filter(price__gte=min_price)
-        if max_price:
-            products_query = products_query.filter(price__lte=max_price)
-
-        sort_by = request.GET.get('sort_by', 'newest')
-        if sort_by == 'popular':
-            products_query = products_query.order_by('-downloads_count')
-        elif sort_by == 'rating':
-            products_query = products_query.annotate(avg_rating=Avg('reviews__rating')).order_by('-avg_rating')
-        elif sort_by == 'price_low':
-            products_query = products_query.order_by('price')
-        elif sort_by == 'price_high':
-            products_query = products_query.order_by('-price')
-        else:
-            sort_by = 'newest'
-            products_query = products_query.order_by('-created_at')
-
-        total_count = products_query.count()
-        paginator = Paginator(products_query, 9)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-    except Exception:
-        search_query = ''
-        selected_categories = []
-        min_price = ''
-        max_price = ''
-        sort_by = 'newest'
-        total_count = 0
-        categories = []
-        paginator = Paginator([], 9)
-        page_obj = paginator.get_page(1)
-
-    context = {
-        'products': page_obj,
-        'categories': categories,
-        'selected_categories': selected_categories,
-        'search_query': search_query,
-        'min_price': min_price or '',
-        'max_price': max_price or '',
-        'sort_by': sort_by,
-        'view_mode': view_mode,
-        'total_count': total_count,
-        'is_beamng_hub': True,
-    }
-    return render(request, 'beamng_store.html', context)
 
 def product_detail(request, slug):
     from django.db.models import Prefetch

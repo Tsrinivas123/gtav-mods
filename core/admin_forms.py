@@ -15,7 +15,7 @@ class ProductAdminForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = [
-            'name', 'slug', 'game', 'category', 'short_description', 'description',
+            'name', 'slug', 'category', 'short_description', 'description',
             'requirements', 'installation_guide', 'price', 'old_price',
             'stock_status', 'is_featured', 'is_trending',
         ]
@@ -29,10 +29,6 @@ class ProductAdminForm(forms.ModelForm):
                 'class': 'admin-form-input',
                 'placeholder': 'auto-generated from name',
                 'id': 'id_slug',
-            }),
-            'game': forms.Select(attrs={
-                'class': 'admin-form-input',
-                'id': 'id_game',
             }),
             'category': forms.Select(attrs={
                 'class': 'admin-form-input',
