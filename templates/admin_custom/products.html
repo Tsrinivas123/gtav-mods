@@ -111,18 +111,39 @@
 {% block content %}
 <div class="page-header">
   <h1>
+    {% if game_filter == 'beamng' %}
+    <i class="fa-solid fa-car-burst" style="color:#ff6b35;margin-right:10px;"></i>BeamNG.drive Mods
+    {% else %}
     <i class="fa-solid fa-boxes-stacked" style="color:var(--color-primary);margin-right:10px;"></i>Products
+    {% endif %}
     <span style="font-size:.85rem;font-weight:400;color:var(--text-secondary);margin-left:8px;">{{ total_count }} total</span>
   </h1>
-  <a href="{% url 'custom_admin:product_add' %}" class="filter-btn btn-orange" style="text-decoration:none;">
-    <i class="fa-solid fa-plus"></i> Add Product
-  </a>
+  <div style="display:flex;gap:10px;align-items:center;">
+    {% if game_filter == 'beamng' %}
+    <a href="{% url 'custom_admin:product_add' %}?game=beamng" class="filter-btn btn-orange" style="background:#ff6b35;text-decoration:none;">
+      <i class="fa-solid fa-plus"></i> Add BeamNG Mod
+    </a>
+    {% else %}
+    <a href="{% url 'custom_admin:product_add' %}?game=beamng" class="filter-btn btn-outline" style="border-color:rgba(255,107,53,0.4)!important;color:#ff6b35;text-decoration:none;">
+      <i class="fa-solid fa-car-burst"></i> + Add BeamNG Mod
+    </a>
+    <a href="{% url 'custom_admin:product_add' %}" class="filter-btn btn-orange" style="text-decoration:none;">
+      <i class="fa-solid fa-plus"></i> Add Product
+    </a>
+    {% endif %}
+  </div>
 </div>
 
 <!-- ── Filters ────────────────────────────────────── -->
 <form method="GET" id="filterForm">
   <div class="filter-bar">
     <input type="search" name="q" id="liveSearch" value="{{ q }}" placeholder="Search products…" class="filter-input" autocomplete="off">
+
+    <select name="game" class="filter-input">
+      <option value="">All Games</option>
+      <option value="gta5" {% if game_filter == 'gta5' %}selected{% endif %}>GTA 5 Only</option>
+      <option value="beamng" {% if game_filter == 'beamng' %}selected{% endif %}>BeamNG.drive Only</option>
+    </select>
 
     <select name="category" class="filter-input">
       <option value="">All Categories</option>
@@ -150,8 +171,8 @@
 
     <button type="submit" class="filter-btn btn-orange"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
 
-    {% if q or cat_filter or status_filter or featured_filter or trending_filter %}
-      <a href="{% url 'custom_admin:products' %}" class="filter-btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
+    {% if q or cat_filter or status_filter or featured_filter or trending_filter or game_filter %}
+      <a href="{% url 'custom_admin:products' %}{% if game_filter %}?game={{ game_filter }}{% endif %}" class="filter-btn btn-outline"><i class="fa-solid fa-xmark"></i> Clear</a>
     {% endif %}
   </div>
 </form>
@@ -218,8 +239,15 @@
                 <div style="font-size:.72rem;color:var(--text-secondary);font-family:monospace;">/{{ product.slug }}</div>
               </td>
 
-              <!-- Category -->
-              <td><span class="badge badge-blue">{{ product.category.name }}</span></td>
+              <!-- Category & Game -->
+              <td>
+                <span class="badge badge-blue">{{ product.category.name }}</span>
+                {% if product.game == 'beamng' %}
+                  <span class="badge" style="background:rgba(255,107,53,0.15);color:#ff6b35;border:1px solid rgba(255,107,53,0.3);margin-left:4px;font-size:0.68rem;font-weight:700;">BeamNG</span>
+                {% else %}
+                  <span class="badge badge-gray" style="margin-left:4px;font-size:0.68rem;">GTA 5</span>
+                {% endif %}
+              </td>
 
               <!-- Price -->
               <td style="font-weight:700;">

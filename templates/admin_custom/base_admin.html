@@ -705,9 +705,17 @@
       </a>
 
       <a href="{% url 'custom_admin:products' %}"
-        class="nav-item {% if request.resolver_match.url_name == 'products' %}active{% endif %}">
+        class="nav-item {% if request.resolver_match.url_name == 'products' and not request.GET.game %}active{% endif %}">
         <i class="fa-solid fa-boxes-stacked"></i>
         <span>Products</span>
+      </a>
+
+      <div class="sidebar-section-label">BeamNG.drive</div>
+
+      <a href="{% url 'custom_admin:products' %}?game=beamng"
+        class="nav-item {% if request.GET.game == 'beamng' and request.resolver_match.url_name == 'products' %}active{% endif %}">
+        <i class="fa-solid fa-car-burst" style="color: #ff6b35;"></i>
+        <span>BeamNG Mods</span>
       </a>
 
       <a href="{% url 'custom_admin:categories' %}"

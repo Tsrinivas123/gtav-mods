@@ -349,8 +349,9 @@ header {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1380px;
   margin: 0 auto;
+  gap: 24px;
 }
 
 .logo {
@@ -363,6 +364,9 @@ header {
   color: #FFFFFF;
   text-decoration: none;
   background: transparent;
+  flex-shrink: 0 !important;
+  margin-right: 16px;
+}
   letter-spacing: 0.5px;
   line-height: 1;
   transition: opacity 0.2s ease, transform 0.2s ease;
@@ -412,19 +416,20 @@ footer .logo span {
 
 .nav-menu {
   display: flex;
-  gap: 20px;
+  gap: 14px;
   align-items: center;
 }
 
 .nav-link {
   font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
-  font-size: 0.84rem;
+  font-size: 0.81rem;
   font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 6px 0;
+  padding: 6px 2px;
   position: relative;
+  white-space: nowrap;
   transition: color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -435,6 +440,59 @@ footer .logo span {
 .nav-link.active {
   color: white;
   font-weight: 700;
+}
+
+/* Distinct Highlighted BeamNG Hub Nav Pill */
+.nav-link.nav-beamng-highlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 107, 53, 0.12);
+  border: 1px solid rgba(255, 107, 53, 0.4);
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: #ff8c42 !important;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: none !important;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.nav-link.nav-beamng-highlight:hover {
+  background: rgba(255, 107, 53, 0.25);
+  border-color: #ff6b35;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(255, 107, 53, 0.3);
+}
+
+.nav-link.nav-beamng-highlight.active {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff4500 100%);
+  border-color: #ff6b35;
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(255, 107, 53, 0.4);
+}
+
+.nav-link.nav-beamng-highlight::after {
+  display: none !important;
+}
+
+.nav-beamng-pill-tag {
+  font-size: 0.65rem;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: #ff6b35;
+  color: #ffffff;
+}
+
+.nav-link.nav-beamng-highlight.active .nav-beamng-pill-tag,
+.nav-link.nav-beamng-highlight:hover .nav-beamng-pill-tag {
+  background: #ffffff;
+  color: #ff4500;
 }
 
 .nav-link::after {
@@ -464,9 +522,14 @@ footer .logo span {
 /* Wide Search Bar Redesign - Compact Height & Width */
 .header-search {
   position: relative;
-  width: 220px;
+  width: 180px;
   display: flex;
   align-items: center;
+  transition: width 0.25s ease;
+}
+
+.header-search:focus-within {
+  width: 220px;
 }
 
 .header-search input {

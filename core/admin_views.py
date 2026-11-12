@@ -123,6 +123,7 @@ def admin_products(request):
     status_filter = request.GET.get('status', '')
     featured_filter = request.GET.get('featured', '')
     trending_filter = request.GET.get('trending', '')
+    game_filter = request.GET.get('game', '').strip()
 
     if q:
         qs = qs.filter(Q(name__icontains=q) | Q(short_description__icontains=q) | Q(category__name__icontains=q))
@@ -134,14 +135,18 @@ def admin_products(request):
         qs = qs.filter(is_featured=True)
     if trending_filter == '1':
         qs = qs.filter(is_trending=True)
+    if game_filter in ['gta5', 'beamng']:
+        qs = qs.filter(game=game_filter)
 
     paginator = Paginator(qs, 20)
     page_obj  = paginator.get_page(request.GET.get('page', 1))
 
+    page_title = 'BeamNG Mods' if game_filter == 'beamng' else 'Products'
+
     return render(request, 'admin_custom/products.html', {
         **_base_ctx(),
-        'page_title':       'Products',
-        'breadcrumb':       [('Dashboard', 'custom_admin:dashboard'), ('Products', None)],
+        'page_title':       page_title,
+        'breadcrumb':       [('Dashboard', 'custom_admin:dashboard'), (page_title, None)],
         'products':         page_obj,
         'page_obj':         page_obj,
         'total_count':      paginator.count,
@@ -151,6 +156,7 @@ def admin_products(request):
         'status_filter':    status_filter,
         'featured_filter':  featured_filter,
         'trending_filter':  trending_filter,
+        'game_filter':      game_filter,
         'status_choices':   Product.STOCK_CHOICES,
     })
 
@@ -161,6 +167,10 @@ def admin_products(request):
 def admin_product_add(request):
     from core.admin_forms import ProductAdminForm
     from core import storage_service
+    initial_game = request.GET.get('game', 'gta5')
+    if initial_game not in ['gta5', 'beamng']:
+        initial_game = 'gta5'
+
     if request.method == 'POST':
         form = ProductAdminForm(request.POST, request.FILES)
         if form.is_valid():
@@ -195,18 +205,28 @@ def admin_product_add(request):
                         pass
 
             messages.success(request, f'✔ Product "{product.name}" created successfully!')
+            if product.game == 'beamng':
+                return redirect('/admin/products/?game=beamng')
             return redirect('custom_admin:products')
         else:
             messages.error(request, 'Please fix the errors below.')
     else:
-        form = ProductAdminForm()
+        form = ProductAdminForm(initial={'game': initial_game})
+
+    is_beamng = initial_game == 'beamng'
+    page_title = 'Add BeamNG Mod' if is_beamng else 'Add Product'
 
     return render(request, 'admin_custom/product_form.html', {
         **_base_ctx(),
-        'page_title': 'Add Product',
-        'breadcrumb': [('Dashboard', 'custom_admin:dashboard'), ('Products', 'custom_admin:products'), ('Add Product', None)],
+        'page_title': page_title,
+        'breadcrumb': [
+            ('Dashboard', 'custom_admin:dashboard'),
+            ('BeamNG Mods' if is_beamng else 'Products', 'custom_admin:products'),
+            (page_title, None)
+        ],
         'form': form,
         'mode': 'add',
+        'is_beamng': is_beamng,
     })
 
 

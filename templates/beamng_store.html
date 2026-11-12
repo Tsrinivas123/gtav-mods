@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}BeamNG.drive Showroom & Mods Hub | PawanMod{% endblock %}
+
+{% block extra_head %}
+<style>
+  .beamng-showroom-header {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--border-radius, 12px);
+    padding: 24px 30px;
+    margin: 20px auto 24px auto;
+    max-width: 1200px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .beamng-showroom-info {
+    flex: 1 1 500px;
+  }
+  .beamng-badge-top {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #ff6b35;
+    background: rgba(255, 107, 53, 0.1);
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+  }
+  .beamng-showroom-title {
+    font-size: 1.8rem !important;
+    font-weight: 800 !important;
+    color: var(--color-text-main, #0f172a);
+    margin: 0 0 6px 0 !important;
+    line-height: 1.2 !important;
+  }
+  .beamng-showroom-title span {
+    color: #ff6b35;
+  }
+  .beamng-showroom-sub {
+    color: var(--color-text-secondary, #64748b);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+  .beamng-showroom-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .beamng-counter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-body, #f8fafc);
+    border: 1px solid var(--border-color, #e2e8f0);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text-main, #0f172a);
+  }
+  .beamng-counter-pill .num {
+    color: #ff6b35;
+    font-size: 1.05rem;
+  }
+  .btn-switch-store {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-secondary, #64748b);
+    background: var(--bg-body, #f8fafc);
+    border: 1px solid var(--border-color, #e2e8f0);
+    padding: 8px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .btn-switch-store:hover {
+    color: #ff6b35;
+    border-color: #ff6b35;
+    background: rgba(255, 107, 53, 0.05);
+  }
+
+  /* Quick Pills Bar */
+  .beamng-pills-bar {
+    max-width: 1200px;
+    margin: 0 auto 20px auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+  .beamng-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-secondary, #64748b);
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    padding: 6px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+  .beamng-pill-btn:hover {
+    color: #ff6b35;
+    border-color: #ff6b35;
+  }
+  .beamng-pill-btn.active {
+    background: #ff6b35;
+    color: #ffffff;
+    border-color: #ff6b35;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+  }
+
+  .beamng-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: block;
+    padding: 0 16px;
+  }
+  .beamng-toolbar {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: var(--border-radius, 12px);
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  }
+  .beamng-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+    width: 100%;
+  }
+
+  /* Empty State Garage Style */
+  .beamng-empty-garage {
+    grid-column: 1 / -1 !important;
+    width: 100%;
+    text-align: center;
+    padding: 70px 24px;
+    background: var(--card-bg, #ffffff);
+    border: 1px dashed rgba(255, 107, 53, 0.4);
+    border-radius: var(--border-radius, 12px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  }
+  .beamng-empty-icon {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 16px auto;
+    background: rgba(255, 107, 53, 0.1);
+    color: #ff6b35;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .beamng-empty-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-main, #0f172a);
+    margin-bottom: 6px;
+  }
+  .beamng-empty-desc {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary, #64748b);
+    max-width: 480px;
+    margin: 0 auto 20px auto;
+    line-height: 1.5;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dedicated BeamNG.drive Showroom Header -->
+<div class="beamng-showroom-header">
+  <div class="beamng-showroom-info">
+    <div class="beamng-badge-top">
+      <i class="fa-solid fa-car-burst"></i> Physics &amp; Vehicles Hub
+    </div>
+    <h1 class="beamng-showroom-title">
+      BeamNG.drive <span>Showroom</span>
+    </h1>
+    <p class="beamng-showroom-sub">
+      Soft-body crash deformation physics, real vehicle builds, and custom simulation maps.
+    </p>
+  </div>
+
+  <div class="beamng-showroom-actions">
+    <div class="beamng-counter-pill" title="Total BeamNG mods available">
+      <span>Mods:</span>
+      <span class="num">{{ total_count }}</span>
+    </div>
+    <a href="{% url 'marketplace:store' %}" class="btn-switch-store">
+      <i class="fa-solid fa-arrow-right-arrow-left"></i> GTA 5 Store
+    </a>
+  </div>
+</div>
+
+<!-- Quick Pills Filter Bar -->
+<div class="beamng-pills-bar">
+  <a href="{% url 'marketplace:beamng_store' %}" class="beamng-pill-btn {% if not selected_categories and not min_price and not max_price %}active{% endif %}">
+    <i class="fa-solid fa-border-all"></i> All BeamNG
+  </a>
+  <a href="{% url 'marketplace:beamng_store' %}?category=vehicles" class="beamng-pill-btn {% if 'vehicles' in selected_categories %}active{% endif %}">
+    🚗 Vehicles &amp; Cars
+  </a>
+  <a href="{% url 'marketplace:beamng_store' %}?category=maps" class="beamng-pill-btn {% if 'maps' in selected_categories %}active{% endif %}">
+    🗺️ Arenas &amp; Maps
+  </a>
+  <a href="{% url 'marketplace:beamng_store' %}?category=scripts" class="beamng-pill-btn {% if 'scripts' in selected_categories %}active{% endif %}">
+    🔧 Tuning &amp; Physics
+  </a>
+</div>
+
+<section class="section" style="padding-top: 0; padding-bottom: 60px;">
+  <div class="beamng-container">
+
+    <!-- Toolbar with Search & Sorting -->
+    <div class="beamng-toolbar">
+      <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <div class="store-results-count" style="font-weight: 700; color: var(--color-text-main, #0f172a); font-size: 0.95rem;">
+          Showing <span style="color: #ff6b35;">{{ total_count }}</span> BeamNG mods
+        </div>
+        <!-- Integrated Quick Search -->
+        <form method="GET" action="{% url 'marketplace:beamng_store' %}" style="display: flex; align-items: center;">
+          {% for cat in selected_categories %}
+          <input type="hidden" name="category" value="{{ cat }}">
+          {% endfor %}
+          <input type="hidden" name="sort_by" value="{{ sort_by }}">
+          <div style="position: relative; display: flex; align-items: center;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; color: var(--color-text-secondary, #64748b); font-size: 0.85rem; pointer-events: none;"></i>
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search cars, maps..." 
+                   style="height: 38px; padding: 0 14px 0 34px; border-radius: 20px; border: 1px solid var(--border-color, #e2e8f0); background: var(--bg-body, #f8fafc); color: var(--color-text-main, #0f172a); font-size: 0.85rem; outline: none; width: 220px; transition: all 0.25s ease;">
+          </div>
+        </form>
+      </div>
+
+      <div class="store-sorting-actions">
+        <form id="sortForm" method="GET" action="{% url 'marketplace:beamng_store' %}" style="display: flex; align-items: center; gap: 12px;">
+          {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+          {% for cat in selected_categories %}
+          <input type="hidden" name="category" value="{{ cat }}">
+          {% endfor %}
+          <div class="sort-select-wrap">
+            <label for="sortBySelect" class="sort-label">Sort by:</label>
+            <div class="sort-select-container">
+              <select id="sortBySelect" name="sort_by" class="sort-select" aria-label="Sort products by" onchange="this.form.submit()">
+                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Releases</option>
+                <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Most Popular</option>
+                <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Highest Rated</option>
+                <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+              </select>
+              <i class="fa-solid fa-chevron-down sort-chevron-icon"></i>
+            </div>
+          </div>
+        </form>
+
+        <div class="view-toggle">
+          <div class="view-btn {% if view_mode == 'grid' %}active{% endif %}" id="gridBtn" title="Grid view" role="button" tabindex="0" aria-label="Grid view toggle">
+            <i class="fa-solid fa-table-cells-large"></i>
+          </div>
+          <div class="view-btn {% if view_mode == 'list' %}active{% endif %}" id="listBtn" title="List view" role="button" tabindex="0" aria-label="List view toggle">
+            <i class="fa-solid fa-list"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="beamng-grid" id="modsGrid">
+      {% for product in products %}
+        {% include 'includes/product_card.html' with product=product %}
+      {% empty %}
+      <!-- Empty State Garage -->
+      <div class="beamng-empty-garage">
+          <div class="beamng-empty-icon">
+            <i class="fa-solid fa-car-burst fa-2x"></i>
+          </div>
+          <h3 class="beamng-empty-title">BeamNG Showroom is Empty</h3>
+          <p class="beamng-empty-desc">
+            {% if search_query or selected_categories %}
+            No BeamNG mods match your active search or filters. Try clearing them to see all available items.
+            {% else %}
+            No BeamNG mods have been published yet. You can upload custom vehicles, JBeams, and destruction maps from the Admin panel!
+            {% endif %}
+          </p>
+          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            {% if search_query or selected_categories %}
+            <a href="{% url 'marketplace:beamng_store' %}" class="btn btn-secondary"><i class="fa-solid fa-rotate-left"></i> Reset Filters</a>
+            {% endif %}
+            <a href="{% url 'marketplace:store' %}" class="btn btn-secondary"><i class="fa-solid fa-store"></i> Browse GTA 5 Store</a>
+            {% if user.is_staff %}
+            <a href="/admin/products/add/" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add BeamNG Mod</a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if products.has_other_pages %}
+      <div class="pagination">
+        {% if products.has_previous %}
+        <a href="?page={{ products.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% for cat in selected_categories %}&category={{ cat }}{% endfor %}&min_price={{ min_price }}&max_price={{ max_price }}&sort_by={{ sort_by }}"
+          class="page-item" aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></a>
+        {% endif %}
+
+        {% for num in products.paginator.page_range %}
+          {% if products.number == num %}
+            <span class="page-item active">{{ num }}</span>
+          {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+            <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% for cat in selected_categories %}&category={{ cat }}{% endfor %}&min_price={{ min_price }}&max_price={{ max_price }}&sort_by={{ sort_by }}"
+              class="page-item">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+
+        {% if products.has_next %}
+        <a href="?page={{ products.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% for cat in selected_categories %}&category={{ cat }}{% endfor %}&min_price={{ min_price }}&max_price={{ max_price }}&sort_by={{ sort_by }}"
+          class="page-item" aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/store.js' %}?v=2.2"></script>
+{% endblock %}
