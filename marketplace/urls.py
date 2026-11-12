@@ -6,6 +6,7 @@ app_name = 'marketplace'
 urlpatterns = [
     path('', views.home, name='home'),
     path('store/', views.store, name='store'),
+    path('beamng/', views.beamng_store, name='beamng_store'),
     path('store/<slug:slug>/', views.product_detail, name='product_detail'),
     path('store/<slug:slug>/review/', views.submit_review, name='submit_review'),
     path('categories/', views.categories_list, name='categories_list'),

@@ -48,6 +48,8 @@
           class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
         <a href="{% url 'marketplace:store' %}"
           class="nav-link {% if request.resolver_match.url_name == 'store' or request.resolver_match.url_name == 'product_detail' %}active{% endif %}">Store</a>
+        <a href="{% url 'marketplace:beamng_store' %}"
+          class="nav-link {% if request.resolver_match.url_name == 'beamng_store' %}active{% endif %}"><i class="fa-solid fa-car-burst" style="font-size: 0.85em; margin-right: 4px; color: #ff6b35;"></i>BeamNG Mods</a>
         <a href="{% url 'marketplace:categories_list' %}"
           class="nav-link {% if request.resolver_match.url_name == 'categories_list' or request.resolver_match.url_name == 'category_detail' %}active{% endif %}">Categories</a>
         <a href="{% url 'blog:post_list' %}"
@@ -157,13 +159,15 @@
         <a href="{% url 'marketplace:home' %}" class="logo">
           <i class="fa-solid fa-cube"></i> PAWAN<span>MOD</span>
         </a>
-        <p class="footer-tagline">Premium GTA 5 Mods, Custom Vehicles, Maps & Scripts Marketplace.</p>
+        <p class="footer-tagline">Premium GTA 5 & BeamNG.drive Mods, Custom Vehicles, Maps & Scripts Marketplace.</p>
       </div>
 
       <div class="footer-nav-bar">
         <a href="{% url 'marketplace:home' %}">Home</a>
         <span class="footer-nav-dot">•</span>
         <a href="{% url 'marketplace:store' %}">Store</a>
+        <span class="footer-nav-dot">•</span>
+        <a href="{% url 'marketplace:beamng_store' %}">BeamNG Mods</a>
         <span class="footer-nav-dot">•</span>
         <a href="{% url 'marketplace:categories_list' %}">Categories</a>
         <span class="footer-nav-dot">•</span>

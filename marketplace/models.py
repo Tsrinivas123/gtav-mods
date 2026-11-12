@@ -46,9 +46,15 @@ class Product(models.Model):
         ('coming_soon', 'Coming Soon'),
         ('deprecated', 'Deprecated'),
     )
+
+    GAME_CHOICES = (
+        ('gta5', 'GTA 5'),
+        ('beamng', 'BeamNG.drive'),
+    )
     
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True)
+    game = models.CharField(max_length=20, choices=GAME_CHOICES, default='gta5', db_index=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
     short_description = models.CharField(max_length=255)
     description = models.TextField()
