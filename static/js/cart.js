@@ -3,20 +3,23 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Helper to extract CSRF token from page
-  function getCookie(name) {
+  // Helper to extract CSRF token from page or cookies
+  function getCSRFToken() {
+    const input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) return input.value;
+    
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
       const cookies = document.cookie.split(';');
       for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        if (cookie.substring(0, 10) === 'csrftoken=') {
+          cookieValue = decodeURIComponent(cookie.substring(10));
           break;
         }
       }
     }
-    return cookieValue;
+    return cookieValue || '';
   }
 
   // 1. AJAX Remove Item from Cart
@@ -32,34 +35,31 @@ document.addEventListener('DOMContentLoaded', () => {
       fetch(url, {
         method: 'POST',
         headers: {
-          'X-CSRFToken': getCookie('csrftoken'),
+          'X-CSRFToken': getCSRFToken(),
           'X-Requested-With': 'XMLHttpRequest'
         }
       })
         .then(res => res.json())
         .then(data => {
           if (data.status === 'success') {
-            // Fade out and remove the card element
-            card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-            card.style.opacity = '0';
-            card.style.transform = 'scale(0.9)';
+            if (card) {
+              card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+              card.style.opacity = '0';
+              card.style.transform = 'scale(0.9)';
 
-            setTimeout(() => {
-              card.remove();
-
-              // Check if cart is empty, reload page to display empty state
-              const remainingCards = document.querySelectorAll('.cart-card');
-              if (remainingCards.length === 0) {
-                window.location.reload();
-              } else {
-                // Update badge counts and recalculate totals
-                const badges = document.querySelectorAll('.cart-badge');
-                badges.forEach(b => b.innerText = data.cart_count);
-
-                // Recalculate summary details
-                recalculateCartSummary();
-              }
-            }, 400);
+              setTimeout(() => {
+                card.remove();
+                const remainingCards = document.querySelectorAll('.cart-card');
+                if (remainingCards.length === 0) {
+                  window.location.reload();
+                } else {
+                  document.querySelectorAll('.cart-badge').forEach(b => b.innerText = data.cart_count);
+                  const hTotal = document.getElementById('headerCartTotal');
+                  if (hTotal && data.cart_total_formatted) hTotal.innerText = data.cart_total_formatted;
+                  recalculateCartSummary();
+                }
+              }, 300);
+            }
           }
         })
         .catch(err => console.error('Remove operation failed: ', err));
@@ -74,25 +74,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const qtyInput = wrap.querySelector('.qty-input');
     const product_id = wrap.getAttribute('data-product-id');
     const itemPriceText = document.getElementById(`itemPrice-${product_id}`);
-    const unitPrice = parseFloat(itemPriceText.getAttribute('data-unit-price'));
+    const unitPrice = parseFloat(itemPriceText ? itemPriceText.getAttribute('data-unit-price') : 0) || 0;
 
-    decBtn.addEventListener('click', () => {
-      let currentVal = parseInt(qtyInput.value);
-      if (currentVal > 1) {
-        qtyInput.value = currentVal - 1;
-        updateQtyOnServer(product_id, qtyInput.value, unitPrice, itemPriceText);
+    let updateTimeout = null;
+
+    function applyQtyChange(newVal) {
+      if (newVal < 1) newVal = 1;
+      qtyInput.value = newVal;
+
+      // 1. INSTANT client-side UI update (zero delay!)
+      if (itemPriceText && unitPrice > 0) {
+        const lineTotal = (unitPrice * newVal).toFixed(2);
+        itemPriceText.innerText = `₹${lineTotal}`;
       }
-    });
+      recalculateCartSummary();
 
-    incBtn.addEventListener('click', () => {
-      let currentVal = parseInt(qtyInput.value);
-      qtyInput.value = currentVal + 1;
-      updateQtyOnServer(product_id, qtyInput.value, unitPrice, itemPriceText);
-    });
+      // 2. Debounced background sync with server
+      if (updateTimeout) clearTimeout(updateTimeout);
+      updateTimeout = setTimeout(() => {
+        syncQtyWithServer(product_id, newVal);
+      }, 300);
+    }
+
+    if (decBtn) {
+      decBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        let currentVal = parseInt(qtyInput.value, 10) || 1;
+        if (currentVal > 1) {
+          applyQtyChange(currentVal - 1);
+        }
+      });
+    }
+
+    if (incBtn) {
+      incBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        let currentVal = parseInt(qtyInput.value, 10) || 1;
+        applyQtyChange(currentVal + 1);
+      });
+    }
   });
 
-  // Update quantity on server via AJAX
-  function updateQtyOnServer(productId, quantity, unitPrice, priceTextElement) {
+  // Sync quantity with server via AJAX
+  function syncQtyWithServer(productId, quantity) {
     const formData = new FormData();
     formData.append('quantity', quantity);
 
@@ -101,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(url, {
       method: 'POST',
       headers: {
-        'X-CSRFToken': getCookie('csrftoken'),
+        'X-CSRFToken': getCSRFToken(),
         'X-Requested-With': 'XMLHttpRequest'
       },
       body: formData
@@ -109,12 +135,16 @@ document.addEventListener('DOMContentLoaded', () => {
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
-          // Update product card total on client-side
-          const lineTotal = (unitPrice * parseInt(quantity)).toFixed(2);
-          priceTextElement.innerText = `₹${lineTotal}`;
-
-          // Recalculate global totals
-          recalculateCartSummary();
+          if (data.cart_count !== undefined) {
+            document.querySelectorAll('.cart-badge').forEach(b => {
+              b.innerText = data.cart_count;
+              b.style.display = data.cart_count > 0 ? 'flex' : 'none';
+            });
+          }
+          if (data.cart_total_formatted) {
+            const hTotal = document.getElementById('headerCartTotal');
+            if (hTotal) hTotal.innerText = data.cart_total_formatted;
+          }
         }
       })
       .catch(err => console.error('Qty update error: ', err));
@@ -124,13 +154,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function recalculateCartSummary() {
     let subtotal = 0;
 
-    // Accumulate from all active cart cards
     const cartCards = document.querySelectorAll('.cart-card');
     cartCards.forEach(card => {
       const p_id = card.id.replace('cartCard-', '');
       const priceText = document.getElementById(`itemPrice-${p_id}`);
       if (priceText) {
-        subtotal += parseFloat(priceText.innerText.replace('₹', ''));
+        const val = parseFloat(priceText.innerText.replace(/[₹$,]/g, '')) || 0;
+        subtotal += val;
       }
     });
 
@@ -142,15 +172,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const discountLabel = document.getElementById('summaryDiscount');
     const discountPercentageAttr = discountLabel ? discountLabel.getAttribute('data-discount-percentage') : 0;
 
-    if (discountLabel && discountPercentageAttr > 0) {
+    if (discountLabel && parseFloat(discountPercentageAttr) > 0) {
       discount = subtotal * (parseFloat(discountPercentageAttr) / 100.0);
       discountLabel.innerText = `-₹${discount.toFixed(2)}`;
     }
 
-    const afterDiscount = Math.max(0, subtotal - discount);
-
-    // Grand Total
-    const grandTotal = afterDiscount;
+    const grandTotal = Math.max(0, subtotal - discount);
     const grandTotalLabel = document.getElementById('summaryGrandTotal');
     if (grandTotalLabel) grandTotalLabel.innerText = `₹${grandTotal.toFixed(2)}`;
   }

@@ -185,7 +185,19 @@ def cart_update(request, product_id):
             messages.success(request, "Cart updated.")
             
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return JsonResponse({'status': 'success', 'message': 'Cart updated.'})
+            total_qty = sum(cart.values())
+            subtotal = Decimal('0.00')
+            if cart:
+                p_ids = [int(pid) for pid in cart.keys() if pid.isdigit()]
+                for prod in Product.objects.filter(id__in=p_ids):
+                    subtotal += prod.price * cart[str(prod.id)]
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Cart updated.',
+                'cart_count': total_qty,
+                'cart_total': float(subtotal),
+                'cart_total_formatted': f"₹{subtotal:.2f}"
+            })
             
     return redirect('orders:cart')
 

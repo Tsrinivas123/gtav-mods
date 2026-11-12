@@ -3009,12 +3009,12 @@ footer {
 }
 
 .qty-input {
-  width: 40px;
-  background: transparent;
-  border: none;
-  text-align: center;
-  font-weight: 700;
-  color: white;
+  width: 44px;
+  background: transparent !important;
+  border: none !important;
+  text-align: center !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
   pointer-events: none;
 }
 

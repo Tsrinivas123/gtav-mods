@@ -169,46 +169,63 @@
     display: flex;
     align-items: center;
     background: #ffffff;
-    border: 1px solid #dcdcdc;
+    border: 1.5px solid #d1d5db;
     border-radius: 12px;
     height: 48px;
-    padding: 3px;
+    padding: 4px;
     box-sizing: border-box;
-    width: 120px;
+    width: 124px;
     justify-content: space-between;
     flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
 
   .qty-selector-container .qty-btn {
     border: none;
-    background: none;
-    width: 32px;
-    height: 32px;
+    background: #f1f5f9;
+    width: 34px;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 0.85rem;
-    color: #4b5563;
-    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    color: #1e293b;
+    transition: all 0.15s ease;
     border-radius: 8px;
     padding: 0;
+    user-select: none;
   }
 
   .qty-selector-container .qty-btn:hover {
-    background-color: var(--accent-orange-glow);
-    color: var(--accent-orange);
+    background-color: var(--accent-orange);
+    color: #ffffff;
+    transform: scale(1.05);
   }
 
-  .qty-selector-container .qty-input {
-    width: 36px;
-    border: none;
-    background: transparent;
-    text-align: center;
-    font-weight: 700;
-    color: #111827;
-    font-size: 0.95rem;
-    pointer-events: none;
+  .qty-selector-container .qty-btn:active {
+    transform: scale(0.95);
+  }
+
+  .qty-selector-container .qty-input,
+  input.qty-input[type="text"],
+  input.qty-input {
+    width: 44px !important;
+    height: 38px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    text-align: center !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    font-size: 1.15rem !important;
+    line-height: 38px !important;
+    box-shadow: none !important;
+    outline: none !important;
+    pointer-events: none !important;
+    display: inline-block !important;
+    user-select: none !important;
   }
 
   /* Subtotal Panel */
@@ -514,7 +531,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/cart.js' %}?v=1.1"></script>
+<script src="{% static 'js/cart.js' %}?v=2.0"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const observer = new MutationObserver(() => {
